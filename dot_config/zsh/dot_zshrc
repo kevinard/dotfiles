@@ -1,0 +1,29 @@
+#
+# Executes commands at the start of an interactive session.
+#
+# Authors:
+#   Sorin Ionescu <sorin.ionescu@gmail.com>
+#
+
+# Source Prezto.
+if [[ -s "${ZDOTDIR:-$HOME}/.zprezto/init.zsh" ]]; then
+  source "${ZDOTDIR:-$HOME}/.zprezto/init.zsh"
+fi
+
+# Customize to your needs...
+kitty + complete setup zsh | source /dev/stdin
+
+# Adding color
+alias ls='ls -hN --color=auto --group-directories-first'
+alias grep="grep --color=auto"
+alias diff="diff --color=auto"
+
+# Internet
+alias ledgerble="~/ledger/node_modules/ledgerble/ledgerble.js"
+
+alias zoom="QT_QPA_PLATFORM= XDG_CURRENT_DESKTOP=GNOME /opt/zoom/ZoomLauncher"
+alias zoom_vanilla="/opt/zoom/ZoomLauncher"
+
+alias fournill="ledger --file ~/fournill/ledger/main.journal"
+
+eval "$(rbenv init -)"
