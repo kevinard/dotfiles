@@ -7,11 +7,3 @@
     [".config/zsh/.zprezto".pull]
         args = ["--recurse-submodules"]
 
-[".config/zsh/.zprezto/contrib"]
-    type = "git-repo"
-    url = "https://github.com/belak/prezto-contrib"
-    refreshPeriod = "168h"
-    [".config/zsh/.zprezto/contrib".clone]
-        args = ["--recurse-submodules"]
-    [".config/zsh/.zprezto/contrib".pull]
-        args = ["--recurse-submodules"]
