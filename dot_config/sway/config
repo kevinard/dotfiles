@@ -1,3 +1,5 @@
+include $XDG_CONFIG_HOME/sway/sway.d/*.conf
+
 set $term --no-startup-id $TERMINAL
 set $mod Mod4
 
@@ -17,11 +19,19 @@ for_window [con_mark="dropdowncalc"] sticky enable
 
 for_window [class=ffplay] floating enable
 
-# #---Starting External Scripts---# #
+# Inhibit Idle if a window is fullscreen
+for_window [class="^.*"] inhibit_idle fullscreen
+for_window [app_id="^.*"] inhibit_idle fullscreen
+
 # Setting the background:
 output "*" background ~/.config/wall.png fill
 
 exec --no-startup-id mako
+
+# Disable the laptop screen when the lid is closed.
+#bindswitch --reload --locked lid:on output eDP-1 disable
+#bindswitch --reload --locked lid:off output eDP-1 enable
+
 #exec --no-startup-id swayidle -w \
 #                timeout 270 'sudo light -U 10' \
 #                timeout 300 'lockscreen' \
@@ -67,7 +77,7 @@ input 2:7:SynPS/2_Synaptics_TouchPad {
   tap_button_map lrm
 }
 
-seat seat0 hide_cursor 5000
+seat * hide_cursor 5000
 
 # nord
 set $nord0 #2E3440
@@ -111,10 +121,16 @@ bindsym $mod+BackSpace          reload
 
 #bindsym $mod+grave		exec --no-startup-id dmenuunicode
 
-# change container layout (stacked, tabbed, toggle split)
-bindsym $mod+s layout stacking
-bindsym $mod+w layout tabbed
-bindsym $mod+e layout toggle split
+# Autotiling automatically sets splith and splitv.
+# Because of this the layout only changes for the selected window and not for all windows if no layout is set, which is default in sway.
+# To restore the "original behaviour", the layout needs to be reset before changing it.
+# "Move"ing the windows first, resets the layout.
+## Modify // Window Layout stacking
+bindsym $mod+s move left; move right; layout stacking
+## Modify // Window Layout tabbed
+bindsym $mod+w move left; move right; layout tabbed
+## Modify // Window Layout toggle split
+bindsym $mod+e move left; move right; layout toggle split
 
 # focus the parent container
 bindsym $mod+Escape focus parent
@@ -136,6 +152,24 @@ bindsym $mod+Shift+y		exec --no-startup-id i3resize left
 bindsym $mod+Shift+u		exec --no-startup-id i3resize down
 bindsym $mod+Shift+i		exec --no-startup-id i3resize up
 bindsym $mod+Shift+o		exec --no-startup-id i3resize right
+
+## Resize // Enter Resize Mode // <> r ##
+mode "Resize Mode" {
+    ## Resize // Resize Window // ↑ ↓ ← → ##
+    bindsym Left resize shrink width 10px
+    bindsym h resize shrink width 10px
+    bindsym Down resize grow height 10px
+    bindsym j resize grow height 10px
+    bindsym Up resize shrink height 10px
+    bindsym k resize shrink height 10px
+    bindsym Right resize grow width 10px
+    bindsym l resize grow width 10px
+
+    ## Resize // Exit Resize Mode // Escape or Enter ##
+    bindsym Return mode "default"
+    bindsym Escape mode "default"
+}
+bindsym $mod+r mode "Resize Mode"
 
 bindsym $mod+a			exec --no-startup-id ddspawn dropdowncalc
 
@@ -221,7 +255,8 @@ for_window [class="sent"] border pixel 0px
 for_window [window_role="GtkFileChooserDialog"] resize shrink height 10 px
 for_window [title="Default - Wine desktop"] floating enable
 #for_window [title="Firefox - Sharing Indicator"] floating enable; border pixel 0px; resize set 75 -26; move position 1298 0
-for_window [app_id="firefox" title="Firefox – Sharing Indicator"] floating enable
+for_window [app_id="firefox" title="Firefox – Sharing Indicator"] floating enable, kill
+for_window [app_id="firefox" title="Firefox — Sharing Indicator"] floating enable, kill
 for_window [app_id="firefox" title="Picture-in-Picture"] floating enable
 for_window [app_id="firefox" title="About Mozilla Firefox"] floating enable
 # Jetbrains popup float fixes
