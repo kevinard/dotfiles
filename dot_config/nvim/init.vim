@@ -8,6 +8,7 @@ Plug 'mhinz/vim-signify'
 Plug 'tpope/vim-endwise'
 Plug 'ledger/vim-ledger'
 " Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
+Plug 'alker0/chezmoi.vim'
 call plug#end()
 
 let g:nord_cursor_line_number_background = 1
