@@ -1,6 +1,5 @@
 export XDG_CONFIG_HOME="$HOME/.config"
 export ZDOTDIR="$XDG_CONFIG_HOME/zsh"
-export SPACESHIP_CONFIG_FILE="$ZDOTDIR/spaceship.zsh"
 
 export PATH="$HOME/.local/bin:$HOME/crealettres/lirec/bin:$PATH"
 export EDITOR='nvim'
