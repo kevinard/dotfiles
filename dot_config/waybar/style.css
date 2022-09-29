@@ -1,0 +1,115 @@
+* {
+    border: none;
+    border-radius: 0;
+    font-family: monospace;
+    font-size: 13px;
+    min-height: 0;
+}
+
+window#waybar {
+    background-color: #2e3440;
+    color: #eceff4;
+    transition-property: background-color;
+    transition-duration: .5s;
+}
+
+window#waybar.hidden {
+    opacity: 0.2;
+}
+
+#workspaces button {
+    padding: 0 8px;
+    background-color: transparent;
+    color: #eceff4;
+    border-bottom: 3px solid transparent;
+}
+
+/* https://github.com/Alexays/Waybar/wiki/FAQ#the-workspace-buttons-have-a-strange-hover-effect */
+#workspaces button:hover {
+    background: #434C5E;
+    box-shadow: inherit;
+    border-bottom: 3px solid #ECEFF4;
+}
+
+#workspaces button.focused {
+    background-color: #4C566A;
+    border-bottom: 3px solid #eceff4;
+}
+
+#workspaces button.urgent {
+    background-color: #d08770;
+}
+
+#mode {
+    background-color: #64727D;
+    border-bottom: 3px solid #eceff4;
+}
+
+#clock, #battery, #cpu, #memory, #backlight, #idle_inhibitor, #network, #pulseaudio, #custom-spotify, #tray, #mode {
+    padding: 0 3px;
+    margin: 0 4px;
+    color: #eceff4;
+}
+
+#battery.charging {
+    color: #a3be8c;
+}
+
+@keyframes blink {
+    to {
+        color: #eceff4;
+    }
+}
+
+#battery.critical:not(.charging) {
+    color: #b5616a;
+    animation-name: blink;
+    animation-duration: 0.5s;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+    animation-direction: alternate;
+}
+
+label:focus {
+    background-color: #4C566A;
+}
+
+#network {
+    background: #2980b9;
+}
+
+#network.disconnected {
+    background: #f53c3c;
+}
+
+#backlight {
+    background: #90b1b1;
+}
+
+#pulseaudio {
+    background: #f1c40f;
+    color: black;
+}
+
+#pulseaudio.muted {
+    background: #90b1b1;
+    color: #2a5c45;
+}
+
+#custom-spotify {
+    background: #66cc99;
+    color: #2a5c45;
+}
+
+#tray {
+    background-color: #2980b9;
+}
+
+#idle_inhibitor {
+    background-color: #2d3436;
+}
+
+#idle_inhibitor.activated {
+    background-color: #ecf0f1;
+    color: #2d3436;
+}

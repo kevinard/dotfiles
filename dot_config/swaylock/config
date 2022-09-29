@@ -1,0 +1,17 @@
+color=#2e3440
+inside-color=#2e3440
+inside-wrong-color=#2e3440
+inside-ver-color=#2e3440
+inside-clear-color=#2e3440
+separator-color=#eceff4
+line-color=#2e3440
+ring-color=#eceff4
+key-hl-color=#88c0d0
+ring-wrong-color=#bf616a
+text-wrong-color=#bf616a
+ring-ver-color=#81a1c1
+text-ver-color=#81a1c1
+ring-clear-color=#d08770
+text-clear-color=#d08770
+text-caps-lock-color=#eceff4
+line-uses-inside

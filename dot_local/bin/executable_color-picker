@@ -1,0 +1,20 @@
+#!/bin/sh
+
+
+RED_ON="$(pgrep redshift)"
+
+set -e
+
+if test -n "$RED_ON";then
+    pkill redshift
+fi
+
+grim -g "$(slurp -b aabbcc00 -p)" - |
+    convert - txt:- |
+    grep -oE '#[0-9A-Fa-f]{6}' |
+    wl-copy
+
+notify-send "$(wl-paste)" "Copied to clipboard"
+
+test -n "$RED_ON"  && redshift &> /dev/null &
+

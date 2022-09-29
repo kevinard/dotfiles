@@ -1,0 +1,18 @@
+configuration {
+  modi: "drun,ssh,filebrowser";
+	width: 650;
+	font: "monospace 14";
+	show-icons: true;
+	line-margin: 10;
+	display-run: "";
+	display-ssh: "";
+	display-drun: "";
+	display-combi: "";
+  disable-history: false;
+  case-sensitive: false;
+  scroll-method: 1;
+  matching: "fuzzy";
+  sort: true;
+  sorting-method: "fzf";
+}
+@theme "nord"
