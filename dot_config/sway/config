@@ -1,4 +1,4 @@
-include $XDG_CONFIG_HOME/sway/sway.d/*.conf
+include $XDG_CONFIG_HOME/sway/sway.d/*
 
 set $term --no-startup-id $TERMINAL
 set $mod Mod4
