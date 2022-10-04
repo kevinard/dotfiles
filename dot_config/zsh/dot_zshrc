@@ -25,5 +25,3 @@ alias zoom="QT_QPA_PLATFORM= XDG_CURRENT_DESKTOP=GNOME /opt/zoom/ZoomLauncher"
 alias zoom_vanilla="/opt/zoom/ZoomLauncher"
 
 alias fournill="ledger --file ~/fournill/ledger/main.journal"
-
-eval "$(rbenv init -)"
