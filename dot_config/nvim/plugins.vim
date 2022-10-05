@@ -1,0 +1,10 @@
+call plug#begin('~/.local/share/nvim/plugged')
+Plug 'arcticicestudio/nord-vim'
+Plug 'itchyny/lightline.vim'
+Plug 'scrooloose/nerdtree'
+Plug 'Xuyuanp/nerdtree-git-plugin'
+Plug 'mhinz/vim-signify'
+Plug 'tpope/vim-endwise'
+Plug 'ledger/vim-ledger'
+Plug 'alker0/chezmoi.vim'
+call plug#end()
