@@ -29,10 +29,9 @@ vim.opt.shiftwidth = indent
 vim.opt.tabstop = indent
 vim.opt.softtabstop = indent
 vim.opt.expandtab = true
-vim.opt.listchars = "tab:>-,trail:·,eol:¬,space:⋅"
+vim.opt.listchars = "tab:>-,trail:·,eol:¬,nbsp:⋅"
 vim.opt.title = true
 vim.opt.ruler = true
-vim.opt.clipboard = vim.opt.clipboard + "unnamedplus"
-vim.opt.path = vim.opt.path + "**"
+vim.opt.clipboard = "unnamedplus"
 
 vim.g.mapleader = " "

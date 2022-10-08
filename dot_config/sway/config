@@ -26,7 +26,10 @@ for_window [app_id="^.*"] inhibit_idle fullscreen
 # Setting the background:
 output "*" background ~/.config/wall.png fill
 
-exec --no-startup-id mako
+exec --no-startup-id swaync
+
+# Toggle control center
+bindsym $mod+n exec swaync-client -t -sw
 
 # Disable the laptop screen when the lid is closed.
 #bindswitch --reload --locked lid:on output eDP-1 disable
@@ -202,11 +205,11 @@ bindsym $mod+Shift+l		move right 30
 
 bindsym $mod+Shift+x		exec --no-startup-id lockscreen
 
-bindsym $mod+b			bar mode dock
-bindsym $mod+Shift+b			bar mode hide
+bindsym $mod+b			    exec killall -SIGUSR1 waybar
+bindsym $mod+Shift+b		exec killall -SIGUSR2 waybar
 
-bindsym $mod+n		floating toggle; sticky toggle; resize set 640 360; move position 0 700
-bindsym $mod+Shift+n		floating toggle; sticky toggle; resize set 640 360; move position 1280 700
+#bindsym $mod+n		floating toggle; sticky toggle; resize set 640 360; move position 0 700
+#bindsym $mod+Shift+n		floating toggle; sticky toggle; resize set 640 360; move position 1280 700
 
 # #---Workspace Bindings---# #
 bindsym $mod+Prior		workspace prev
@@ -290,10 +293,10 @@ bindsym $mod+Shift+Up		move up
 bindsym $mod+Shift+Right 	move right
 
 # For screenshots and recording
-bindsym --locked Print 			    exec --no-startup-id swaygrab output
-bindsym Shift+Print     exec --no-startup-id swaygrab region
-bindsym Alt+Print 		  exec --no-startup-id swaygrap active
-bindsym Alt+Shift+Print exec --no-startup-id swaygrap window
+bindsym --locked Print 	exec grimshot save output - | swappy -f -
+bindsym Shift+Print     exec grimshot save area - | swappy -f -
+bindsym Alt+Print 		  exec grimshot save window - | swappy -f -
+bindsym Alt+Shift+Print exec grimshot save screen - | swappy -f -
 
 # #---Extra XF86 Keys---# #
 # These are the extra media keys that some keyboards have.
@@ -314,10 +317,10 @@ bindsym --locked XF86AudioForward	exec --no-startup-id lmc forward 10
 bindsym --locked XF86MonBrightnessDown	exec --no-startup-id sudo light -U 5
 bindsym --locked XF86MonBrightnessUp	exec --no-startup-id sudo light -A 5
 
-exec_always /home/kevinard/.config/sway/import-gsettings \
-    gtk-theme:gtk-theme-name \
-    icon-theme:gtk-icon-theme-name \
-    cursor-theme:gtk-cursor-theme-name
+# exec_always /home/kevinard/.config/sway/import-gsettings \
+#    gtk-theme:gtk-theme-name \
+#    icon-theme:gtk-icon-theme-name \
+#    cursor-theme:gtk-cursor-theme-name
 exec systemctl --user import-environment DISPLAY WAYLAND_DISPLAY SWAYSOCK
 exec hash dbus-update-activation-environment 2>/dev/null && \
      dbus-update-activation-environment --systemd DISPLAY WAYLAND_DISPLAY SWAYSOCK
