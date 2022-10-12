@@ -1,0 +1,3 @@
+#!/bin/bash
+
+bash $XDG_CONFIG_HOME/rofi/rofi-network-manager.sh

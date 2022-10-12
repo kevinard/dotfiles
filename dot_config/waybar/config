@@ -50,7 +50,7 @@
     "tooltip-format-wifi": "{essid} ({signalStrength}%) - {ipaddr} - Up: {bandwidthUpBytes} / Down: {bandwidthDownBytes}",
     "tooltip-format-ethernet": "{ifname} - {ipaddr} - Up: {bandwidthUpBytes} / Down: {bandwidthDownBytes}",
     "tooltip-format-disconnected": "Disconnected",
-    "on-click": "networkmanager_dmenu",
+    "on-click": "bash rofi-network-manager",
     "interval": 20
   },
   "pulseaudio": {
