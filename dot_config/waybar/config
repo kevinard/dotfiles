@@ -35,20 +35,19 @@
   },
   "battery": {
     "states": {
-      "warning": 30,
-      "critical": 15
+      "warning": 20,
+      "critical": 10
     },
     "format": "{capacity}% {icon}",
-    "format-charging": "{capacity}% ",
-    "format-plugged": "{capacity}% ",
+    "format-charging": "{capacity}% ",
     "format-icons": ["", "", "", "", ""],
   },
   "network": {
     "format-wifi": "",
     "format-ethernet": "",
     "format-disconnected": "⚠",
-    "tooltip-format-wifi": "{essid} ({signalStrength}%) - {ipaddr} - Up: {bandwidthUpBytes} / Down: {bandwidthDownBytes}",
-    "tooltip-format-ethernet": "{ifname} - {ipaddr} - Up: {bandwidthUpBytes} / Down: {bandwidthDownBytes}",
+    "tooltip-format-wifi": "{essid} ({signalStrength}%)\nIP: {ipaddr}\n {bandwidthUpBits} -  {bandwidthDownBits}",
+    "tooltip-format-ethernet": "{ifname}\n {bandwidthUpBits} -  {bandwidthDownBits}",
     "tooltip-format-disconnected": "Disconnected",
     "on-click": "bash rofi-network-manager",
     "interval": 20
@@ -121,7 +120,7 @@
     "escape": true
   },
   "custom/pacman": {
-    "format": "{} ",
+    "format": "{} ",
     "interval": 3600,                     // every hour
     "exec": "checkupdates | wc -l",       // # of updates
     "exec-if": "[[ `checkupdates | wc -l` -gt 0 ]]",
