@@ -1,0 +1,20 @@
+{{- if ne .env "home" }}
+.local/bin/grimshot
+.local/bin/lmc
+.local/bin/dmenumount
+.local/bin/dmenuumount
+.local/bin/battery
+.local/bin/clamshell
+.local/bin/sway-screenshare
+.local/bin/swaygrab
+.local/bin/dropdowncalc
+{{- end }}
+{{- if ne .env "work" }}
+.local/bin/code
+.local/bin/slack
+.local/bin/chromium
+.local/bin/discord
+.local/share/applications/code.desktop
+.local/share/applications/slack.desktop
+.local/bin/fd
+{{- end }}

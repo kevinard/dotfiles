@@ -1,0 +1,89 @@
+{
+  "sway/workspaces": {
+    "disable-scroll": true,
+    "all-outputs": false,
+    "format": "{name}"
+  },
+  "sway/mode": {
+    "format": "<span style=\"italic\">{}</span>"
+  },
+  "sway/window": {
+    "max-length": 60,
+  },
+  "tray": {
+    "spacing": 10,
+    "reverse-direction": true,
+  },
+  "clock": {
+    "format": "{:%a %d %b %H:%M}",
+    "locale": "fr_FR.utf8",
+    "tooltip-format": "",
+  },
+  "battery": {
+    "states": {
+      "warning": 20,
+      "critical": 10
+    },
+    "format": "{capacity}% {icon}",
+    "format-charging": "{capacity}% ",
+    "format-icons": ["", "", "", "", ""],
+  },
+  "network": {
+    "format-wifi": "",
+    "format-ethernet": "",
+    "format-disconnected": "⚠",
+    "tooltip-format-wifi": "{essid} ({signalStrength}%)\nIP: {ipaddr}\n {bandwidthUpBits} -  {bandwidthDownBits}",
+    "tooltip-format-ethernet": "{ifname}\n {bandwidthUpBits} -  {bandwidthDownBits}",
+    "tooltip-format-disconnected": "Disconnected",
+    "on-click": "kitty sh -c 'nmtui'",
+    "interval": 20
+  },
+  "pulseaudio": {
+    "format": "{volume}% {icon}",
+    "format-bluetooth": "{volume}% {icon}",
+    "format-muted": "婢",
+    "format-icons": {
+      "headphones": "",
+      "handsfree": "",
+      "headset": "",
+      "phone": "",
+      "portable": "",
+      "car": "",
+      "default": ["", "", ""]
+    },
+    "on-click": "pavucontrol"
+  },
+  "idle_inhibitor": {
+    "format": "{icon}",
+    "format-icons": {
+      "activated": "",
+      "deactivated": ""
+    }
+  },
+{{- if eq .env "home" }}
+  "custom/media": {
+    "format": "{icon} {}",
+    "format-icons": {
+      "spotify": "",
+      "default": "🎜"
+    },
+    "escape": true,
+    "return-type": "json",
+    "max-length": 40,
+    "on-click": "playerctl play-pause",
+    "on-click-right": "playerctl stop",
+    "smooth-scrolling-threshold": 10, // This value was tested using a trackpad, it should be lowered if using a mouse.
+    "on-scroll-up": "playerctl next",
+    "on-scroll-down": "playerctl previous",
+    "exec": "$HOME/.config/waybar/mediaplayer.py 2> /dev/null", // Script in resources/custom_modules folder
+  },
+  "custom/pacman": {
+    "format": "{} ",
+    "interval": 3600,                     // every hour
+    "exec": "checkupdates | wc -l",       // # of updates
+    "exec-if": "[[ `checkupdates | wc -l` -gt 0 ]]",
+    "on-click": "kitty sh -c 'yay -Syu'; pkill -SIGRTMIN+8 waybar", // update system
+    "signal": 8
+  }
+{{- end }}
+}

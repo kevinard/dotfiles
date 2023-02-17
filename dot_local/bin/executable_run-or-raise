@@ -1,0 +1,143 @@
+#!/usr/bin/python3
+
+# This is a run-or-raise implementation for Sway. Usage:
+#
+# bindsym Mod4+e exec ~/.config/sway/run-or-raise Emacs emacs
+# bindsym Mod4+w exec ~/.config/sway/run-or-raise Firefox firefox
+#                                                   ^^^     ^^^
+#                                            app_id/class command
+#
+# Now, what will happen?
+#
+# First, this script will use "swaymsg -t get_tree" to get a tree of all
+# outputs, workspaces and containers. THen it will look into any nodes
+# therein if it finds a Sway app by matching either the "app_id" or "class"
+# entries in this tree.
+#
+# If it finds none, it executes the specified command.
+#
+# If it finds one, it focuses it.
+#
+# If it founds several, it looks if one is already focused. It will then focuses
+# the one AFTER the currently focused one (wrapping to the start if needed). If
+# however none was focused, then focus the first matched client.
+
+
+import sys, os, argparse, time, subprocess, json, types
+
+if True:
+	parser = argparse.ArgumentParser(prog = 'run-or-raise')
+	parser.add_argument('match')
+	parser.add_argument('command')
+	parser.add_argument('-d', '--debug', action='store_true')
+	parser.add_argument('-n', '--dry-run', action='store_true')
+	opts = parser.parse_args()
+	opts.match = opts.match.lower()
+	if opts.debug:
+		print(opts)
+
+ids = []
+
+def check(node, indent=0):
+	if type(node) is dict:
+		if opts.debug:
+			print("  "*indent, node.get("type", "<no type>"))
+		app_id = node.get("app_id", "")
+		if app_id is None:
+			app_id = ""
+		app_id = app_id.lower()
+		if opts.debug and app_id != "":
+			print("  "*indent, "  app_id", app_id)
+
+		# app_id is for Wayland apps
+		clazz = node.get("class", "")
+		if opts.debug and clazz != "":
+			print("  "*indent, "  X11 window class", clazz)
+
+		if app_id == opts.match:
+			ids.append(( node["id"], node["focused"]) )
+		else:
+			# window_properties.class is for X11 apps
+			wp = node.get("window_properties", {})
+			clazz = wp.get("class", "").lower()
+			if clazz == opts.match:
+				ids.append(( node["id"], node["focused"]) )
+			else:
+				# as a last resort, try to match a window name
+				window_name = node.get("name", "")
+				if window_name is not None and opts.match in window_name.lower():
+					ids.append(( node["id"], node["focused"]) )
+
+		nodes = node.get('nodes', [])
+		for node in nodes:
+			check(node, indent+1)
+		return
+	if type(node) is list:
+		for item in node:
+			nodes = item.get('nodes', [])
+			for node in nodes:
+				check(node, indent+1)
+		return
+
+
+def get_tree():
+	tree = subprocess.run(["/usr/bin/swaymsg", "-t", "get_tree"], capture_output=True).stdout
+	tree = json.loads(tree)
+	check(tree)
+	return tree
+
+
+def raise_id(id):
+	if opts.dry_run:
+		print("RAISE ID:", id)
+	else:
+		args = ["/usr/bin/swaymsg", "[con_id=%s]" % id[0], "focus"]
+		# print("ARGS:", args)
+		subprocess.run(args, env=os.environ)
+	sys.exit(0)
+
+
+get_tree()
+# print("IDS:", ids)
+
+# if we have no hit, we need to run it
+if len(ids) == 0:
+	if opts.dry_run:
+		print("RUN:", opts.command)
+	else:
+		subprocess.run(["/usr/bin/notify-send", "--expire-time=1500", "--transient", opts.command + " starting ..."])
+		subprocess.Popen(opts.command)
+		n = 0
+		while n < 20:
+			time.sleep(0.1)
+			get_tree()
+			if len(ids) != 0:
+				raise_id(ids[0])
+				break
+	sys.exit(0)
+
+# if we only have one hit, then focus it
+if len(ids) == 1:
+	raise_id(ids[0])
+
+# Find currently focused hit
+focused = None
+n = 0
+while n < len(ids):
+	p = ids[n]
+	if p[1]:
+		focused = n
+		break
+	n += 1
+# print("FOCUSED:", focused)
+
+# if none of the ids is focused, focus first
+if focused is None:
+	raise_id(ids[0])
+
+# if we have several hits, raise the one after the currently focused on
+n += 1
+if n >= len(ids):
+	n = 0
+raise_id(ids[n])
+

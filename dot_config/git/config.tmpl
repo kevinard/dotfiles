@@ -1,0 +1,21 @@
+[user]
+	email = {{ .email }}
+	name = {{ .fullname }}
+[diff]
+	algorithm = histogram
+[pull]
+	rebase = false
+
+{{- if eq .env "work" }}
+[url "ssh://git@github.com/"]
+    insteadOf = https://github.com/
+{{- end }}
+
+{{- if ne .gpgsign "no" }}
+# GPG Setup
+[user]
+    signingkey = {{ .gpgsign }}
+
+[commit]
+    gpgsign = true
+{{- end }}

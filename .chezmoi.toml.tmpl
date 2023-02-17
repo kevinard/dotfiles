@@ -1,7 +1,15 @@
+{{- $env := promptStringOnce . "env" "Env ? (home/work)" -}}
 {{- $email := promptStringOnce . "email" "Email address" -}}
 {{- $fullname := promptStringOnce . "fullname" "Full name" -}}
+{{- $gpgsign := promptStringOnce . "gpgsign" "GPG Key (no to disable)" -}}
+{{- $themeFlavour := promptStringOnce . "themeFlavour" "Catppuccin Flavour ? (mocha/macchiato/frappe/latte)" -}}
+{{- $projectsPaths := promptStringOnce . "projectsPaths" "Projects Paths ? (list of paths separated by a space)" -}}
 
 [data]
+    env = {{ $env | quote }}
     email = {{ $email | quote }}
     fullname = {{ $fullname | quote }}
+    gpgsign = {{ $gpgsign | quote }}
+    themeFlavour = {{ $themeFlavour | quote }}
+    projectsPaths = {{ $projectsPaths | quote }}
 

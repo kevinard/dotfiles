@@ -1,0 +1,6 @@
+#!/bin/sh
+{{- if ne .env "work" }}
+ln -sf "{{ .chezmoi.homeDir }}/.themes/Catppuccin-Mocha-Standard-Lavender-Dark/gtk-4.0/assets" "{{ .chezmoi.homeDir }}/.config/gtk-4.0/assets"
+cp -r {{ .chezmoi.homeDir }}/.icons/Catppuccin-folders/* {{ .chezmoi.homeDir }}/.icons/Papirus
+papirus-folders -C cat-{{ .themeFlavour }}-lavender --theme Papirus-Dark
+{{- end }}

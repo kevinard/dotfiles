@@ -1,0 +1,4 @@
+[Desktop Entry]
+Type=Application
+Name=Slack
+Exec="/usr/bin/slack --enable-features=UseOzonePlatform,WaylandWindowDecorations,WebRTCPipeWireCapturer --ozone-platform=wayland"

@@ -1,0 +1,19 @@
+include $XDG_CONFIG_HOME/sway/themes/catppuccin-{{ .themeFlavour }}
+
+# target                 title     bg    text   indicator  border
+client.focused           $pink     $base $text  $rosewater $pink
+client.focused_tab_title $pink     $base $text  $rosewater $pink
+client.focused_inactive  $mauve    $base $text  $rosewater $mauve
+client.unfocused         $mauve    $base $text  $rosewater $mauve
+client.urgent            $peach    $base $peach $overlay0  $peach
+client.placeholder       $overlay0 $base $text  $overlay0  $overlay0
+client.background        $base
+
+bar {
+  swaybar_command waybar
+}
+
+default_border pixel 2
+default_floating_border pixel 2
+smart_borders on
+smart_gaps on

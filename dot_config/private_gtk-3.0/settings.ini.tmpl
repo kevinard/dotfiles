@@ -1,0 +1,13 @@
+[Settings]
+gtk-application-prefer-dark-theme=0
+gtk-font-name=sans-serif 10
+{{- if eq .env "work" }}
+gtk-theme-name=Yaru-purple-dark
+gtk-icon-theme-name=Yaru-purple-dark
+gtk-cursor-theme-name=Yaru
+{{- end }}
+{{- if eq .env "home" }}
+gtk-theme-name=Catppuccin-Mocha-Standard-Lavender-Dark
+gtk-icon-theme-name=Catppuccin-SE
+gtk-cursor-theme-name=Catppuccin-{{ .themeFlavour }}-Dark-Cursors
+{{- end }}

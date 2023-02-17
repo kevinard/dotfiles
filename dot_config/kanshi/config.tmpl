@@ -1,0 +1,31 @@
+{{- if eq .env "home" }}
+profile {
+	output "Chimei Innolux Corporation 0x14B1 0x00000000" position 0,0
+}
+
+profile {
+	output "Chimei Innolux Corporation 0x14B1 0x00000000" position 0,0
+	output HDMI-A-2 position 1920,0
+}
+{{- end }}
+{{- if eq .env "work" }}
+profile laptop {
+	output "Unknown 0x06CE 0x00000000" position 0,0
+}
+
+profile home-3 {
+	output "Goldstar Company Ltd LG IPS FULLHD " position 0,0
+	output "Samsung Electric Company S24C650 0x00000000" position 1920,0
+	output "Unknown 0x06CE 0x00000000" position 1920,1080
+}
+
+profile home-2-samsung {
+	output "Samsung Electric Company S24C650 0x00000000" position 0,0
+	output "Unknown 0x06CE 0x00000000" position 0,1080
+}
+
+profile home-2-lg {
+	output "Goldstar Company Ltd LG IPS FULLHD " position 0,0
+	output "Unknown 0x06CE 0x00000000" position 0,1080
+}
+{{- end }}

@@ -1,0 +1,4 @@
+[Desktop Entry]
+Type=Application
+Name=Chromium Web Browser
+Exec="/snap/bin/chromium --enable-features=UseOzonePlatform,WaylandWindowDecorations,WebRTCPipeWireCapturer --ozone-platform=wayland"

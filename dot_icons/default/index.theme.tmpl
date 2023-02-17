@@ -1,0 +1,9 @@
+[Icon Theme]
+Name=Default
+Comment=Default Cursor Theme
+{{- if eq .env "home" }}
+Inherits=Catppuccin-{{ .themeFlavour }}-Dark-Cursors
+{{- end }}
+{{- if eq .env "work" }}
+Inherits=Yaru
+{{- end }}

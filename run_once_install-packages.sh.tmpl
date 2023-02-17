@@ -1,0 +1,11 @@
+#!/bin/sh
+{{- if eq .chezmoi.osRelease.id "ubuntu" }}
+sudo apt install fonts-linuxlibertine fonts-noto-color-emoji fonts-dejavu ripgrep kanshi wdisplays kitty mako-notifier rofi sway swayidle swaylock waybar grimshot python3-i3ipc yubioath-desktop playerctl brightnessctl zathura zsh imagemagick fd-find wl-clipboard
+#sudo snap install nvim firefox chromium
+{{- if eq .env "work" }}
+#sudo snap install thunderbird slack code
+{{- end }}
+{{- end }}
+{{- if eq .chezmoi.osRelease.id "arch" }}
+# TODO
+{{- end }}

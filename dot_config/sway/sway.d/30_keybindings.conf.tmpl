@@ -1,0 +1,205 @@
+# open a terminal
+bindsym $mod+Return 		                        exec $term
+bindsym $mod+Shift+Return	                      exec samedir
+
+bindsym $mod+Shift+q		                        kill
+
+# floating bindings
+bindsym $mod+Shift+space                        floating toggle
+bindsym $mod+space		                          focus mode_toggle
+bindsym $mod+s		      	                      sticky toggle
+
+# reload Sway config
+bindsym $mod+BackSpace                          reload
+
+# toggle fullscreen mode
+bindsym $mod+f			                            fullscreen toggle
+
+# Autotiling automatically sets splith and splitv.
+# Because of this the layout only changes for the selected window and not for all windows if no layout is set, which is default in sway.
+# To restore the "original behaviour", the layout needs to be reset before changing it.
+# "Move"ing the windows first, resets the layout.
+## Modify // Window Layout stacking
+bindsym $mod+Shift+s                            move left; move right; layout stacking
+## Modify // Window Layout tabbed
+bindsym $mod+Shift+e                            move left; move right; layout tabbed
+## Modify // Window Layout toggle split
+bindsym $mod+Shift+t                            move left; move right; layout toggle split
+
+# toggle the split direction for the focused window
+bindsym $mod+t			                            split toggle
+
+# focus the parent container
+bindsym $mod+Escape                             focus parent
+
+# focus the child container
+bindsym $mod+Shift+Escape                       focus child
+
+# Resize
+set $mode_resize Resize Window: ←/h, ↓/j, ↑/k, →/l
+bindsym $mod+Shift+r                            mode "$mode_resize"
+mode "$mode_resize" {
+    bindsym Left                                exec sway-resize left
+    bindsym h                                   exec sway-resize left
+    bindsym Down                                exec sway-resize down
+    bindsym j                                   exec sway-resize down
+    bindsym Up                                  exec sway-resize up
+    bindsym k                                   exec sway-resize up
+    bindsym Right                               exec sway-resize right
+    bindsym l                                   exec sway-resize right
+
+    bindsym Return                              mode "default"
+    bindsym Escape                              mode "default"
+}
+
+# Gaps
+set $mode_gaps Gaps: (o) outer, (i) inner, (d) default, (r) reset
+set $mode_gaps_outer Outer Gaps: +|-|0 (local), Shift + +|-|0 (global)
+set $mode_gaps_inner Inner Gaps: +|-|0 (local), Shift + +|-|0 (global)
+bindsym $mod+Shift+g                            mode "$mode_gaps"
+
+mode "$mode_gaps" {
+  bindsym o                                     mode "$mode_gaps_outer"
+  bindsym i                                     mode "$mode_gaps_inner"
+
+  # set default gaps
+  bindsym d                                     gaps inner current set 15; gaps outer current set 15
+
+  # remove all gaps
+  bindsym r                                     gaps inner current set 0; gaps outer current set 0
+
+  bindsym Return                                mode "default"
+  bindsym Escape                                mode "default"
+}
+
+mode "$mode_gaps_inner" {
+  bindsym plus                                  gaps inner current plus 5
+  bindsym minus                                 gaps inner current minus 5
+  bindsym 0                                     gaps inner current set 0
+
+  bindsym Shift+plus                            gaps inner all plus 5
+  bindsym Shift+minus                           gaps inner all minus 5
+  bindsym Shift+0                               gaps inner all set 0
+
+  bindsym Return                                mode "default"
+  bindsym Escape                                mode "default"
+}
+mode "$mode_gaps_outer" {
+  bindsym plus                                  gaps outer current plus 5
+  bindsym minus                                 gaps outer current minus 5
+  bindsym 0                                     gaps outer current set 0
+
+  bindsym Shift+plus                            gaps outer all plus 5
+  bindsym Shift+minus                           gaps outer all minus 5
+  bindsym Shift+0                               gaps outer all set 0
+
+  bindsym Return                                mode "default"
+  bindsym Escape                                mode "default"
+}
+
+# launcher
+bindsym $mod+d			                            exec rofi -show drun
+
+# dropdown app
+{{- if eq .env "home" }}
+bindsym $mod+a			                            exec ddspawnterm dropdowncalc
+{{- end }}
+{{- if eq .env "work" }}
+bindsym $mod+Shift+y	                          exec ddspawnapp yubioath-desktop
+{{- end }}
+
+# navigation
+bindsym $mod+Left		                            focus left
+bindsym $mod+h			                            focus left
+bindsym $mod+Down		                            focus down
+bindsym $mod+j			                            focus down
+bindsym $mod+Up			                            focus up
+bindsym $mod+k			                            focus up
+bindsym $mod+Right 		                          focus right
+bindsym $mod+l			                            focus right
+
+# move windows
+bindsym $mod+Shift+Left	                        move left
+bindsym $mod+Shift+h		                        move left
+bindsym $mod+Shift+Down	                        move down
+bindsym $mod+Shift+j		                        move down
+bindsym $mod+Shift+Up		                        move up
+bindsym $mod+Shift+k		                        move up
+bindsym $mod+Shift+Right                        move right
+bindsym $mod+Shift+l		                        move right
+
+# session management
+bindsym $mod+x		                              exec lockscreen
+bindsym $mod+Shift+x		                        exec wlogout -c 20 -r 20 -m 300 -p layer-shell
+
+# hide waybar
+bindsym $mod+b			                            exec killall -SIGUSR1 waybar
+# reload waybar
+bindsym $mod+Shift+b		                        exec killall -SIGUSR2 waybar
+
+# #---Function Buttons---# #
+{{- if eq .env "home" }}
+bindsym $mod+F9		                              exec dmenumount
+bindsym $mod+F10	                              exec dmenuumount
+{{- end }}
+
+# For screenshots and recording
+{{- if eq .env "home" }}
+bindsym --locked Print 	                        exec grimshot save output - | swappy -f -
+bindsym Shift+Print                             exec grimshot save area - | swappy -f -
+bindsym Alt+Print 		                          exec grimshot save window - | swappy -f -
+bindsym Alt+Shift+Print                         exec grimshot save screen - | swappy -f -
+{{- end }}
+{{- if eq .env "work" }}
+bindsym --locked Print 	                        exec grimshot save output
+bindsym Shift+Print                             exec grimshot save area
+bindsym Alt+Print 		                          exec grimshot save window
+bindsym Alt+Shift+Print                         exec grimshot save screen
+{{- end }}
+
+# #---Extra XF86 Keys---# #
+# These are the extra media keys that some keyboards have.
+{{- if eq .env "home" }}
+bindsym --locked XF86AudioMute		              exec volumectl toggle-mute
+bindsym --locked XF86AudioLowerVolume	          exec volumectl -u down 5
+bindsym --locked Shift+XF86AudioLowerVolume	    exec volumectl -u down 10
+bindsym --locked Control+XF86AudioLowerVolume	  exec volumectl -u down 1
+bindsym --locked XF86AudioRaiseVolume	          exec volumectl -u up 5
+bindsym --locked Shift+XF86AudioRaiseVolume	    exec volumectl -u up 10
+bindsym --locked Control+XF86AudioRaiseVolume	  exec volumectl -u up 1
+bindsym --locked XF86AudioNext		              exec lmc next
+bindsym --locked XF86AudioPlay		              exec lmc toggle
+bindsym --locked XF86AudioPrev		              exec lmc prev
+bindsym --locked XF86AudioStop		              exec lmc toggle
+bindsym --locked XF86AudioRewind		            exec lmc back 10
+bindsym --locked XF86AudioForward	              exec lmc forward 10
+bindsym --locked XF86AudioMicMute	              exec volumectl -m toggle-mute
+bindsym --locked XF86MonBrightnessDown	        exec sudo lightctl down
+bindsym --locked XF86MonBrightnessUp	          exec sudo lightctl up
+{{- end }}
+{{- if eq .env "work" }}
+bindsym --locked XF86AudioMute		              exec pactl set-sink-mute @DEFAULT_SINK@ toggle
+bindsym --locked XF86AudioLowerVolume	          exec pactl set-sink-volume @DEFAULT_SINK@ -5%
+bindsym --locked Shift+XF86AudioLowerVolume	    exec pactl set-sink-volume @DEFAULT_SINK@ -10%
+bindsym --locked Control+XF86AudioLowerVolume	  exec pactl set-sink-volume @DEFAULT_SINK@ -1%
+bindsym --locked XF86AudioRaiseVolume	          exec pactl set-sink-volume @DEFAULT_SINK@ +5%
+bindsym --locked Shift+XF86AudioRaiseVolume	    exec pactl set-sink-volume @DEFAULT_SINK@ +10%
+bindsym --locked Control+XF86AudioRaiseVolume	  exec pactl set-sink-volume @DEFAULT_SINK@ +1%
+bindsym --locked XF86AudioPlay		              exec playerctl play-pause
+bindsym --locked XF86AudioMicMute	              exec pactl set-source-mute @DEFAULT_SOURCE@ toggle
+bindsym --locked XF86MonBrightnessDown	        exec sudo brightnessctl s 5%-
+bindsym --locked XF86MonBrightnessUp	          exec sudo brightnessctl s +5%
+{{- end }}
+
+# mark a window
+bindsym $mod+m                                  swap container with mark 1
+# swap the focused window with the marked one
+bindsym $mod+Shift+m                            mark --toggle 1
+
+# focus an app and launch it if it's not running
+bindsym $mod+z                                  exec run-or-raise $BROWSER $BROWSER
+{{- if eq .env "work" }}
+bindsym $mod+u                                  exec run-or-raise slack slack
+bindsym $mod+y                                  exec run-or-raise code-url-handler code
+bindsym $mod+i                                  exec run-or-raise discord discord
+{{- end }}

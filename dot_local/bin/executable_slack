@@ -1,0 +1,5 @@
+#!/bin/sh
+
+source $HOME/.profile
+
+exec /usr/bin/slack --enable-features=UseOzonePlatform,WaylandWindowDecorations,WebRTCPipeWireCapturer --ozone-platform=wayland

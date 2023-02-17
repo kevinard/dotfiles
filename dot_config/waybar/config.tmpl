@@ -1,0 +1,18 @@
+{
+  "layer": "top",
+  "position": "top",
+  "height": 30,
+  "include": [
+    "~/.config/waybar/default-modules.json",
+  ],
+{{- if eq .env "home" }}
+  "modules-left": ["sway/workspaces", "sway/mode", "custom/media"],
+  "modules-center": ["sway/window"],
+  "modules-right": ["tray", "custom/pacman", "idle_inhibitor", "pulseaudio", "network", "battery", "clock"],
+{{- end }}
+{{- if eq .env "work" }}
+  "modules-left": ["sway/workspaces", "sway/mode"],
+  "modules-center": ["sway/window"],
+  "modules-right": ["tray", "idle_inhibitor", "pulseaudio", "network", "battery", "clock"],
+{{- end }}
+}

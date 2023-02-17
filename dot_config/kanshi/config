@@ -1,9 +1,0 @@
-profile {
-	output "Chimei Innolux Corporation 0x14B1 0x00000000" position 0,0
-}
-
-profile {
-	output "Chimei Innolux Corporation 0x14B1 0x00000000" position 0,0
-	output HDMI-A-2 position 1920,0
-}
-

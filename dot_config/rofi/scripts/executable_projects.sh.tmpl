@@ -1,0 +1,27 @@
+#!/bin/zsh
+
+PROJECTS_PATHS=({{ .projectsPaths }})
+
+# Add chezmoi dotfiles dir in projects list
+if [ "$ROFI_RETV" = 1 ]; then
+  if [ "chezmoi" = "$@" ]; then
+    swaymsg exec "kitty -d {{ .chezmoi.sourceDir }} nvim &" > /dev/null
+    exit 0
+  fi
+else
+  echo "chezmoi"
+fi
+
+# List projects or launch nvim in selected project
+for project_path in $PROJECTS_PATHS ; do
+  for project in $(ls $project_path); do
+    if [ "$ROFI_RETV" = 1 ]; then
+      if [ "$project" = "$@" ]; then
+        swaymsg exec "kitty -d $project_path/$project nvim &" > /dev/null
+        exit 0
+      fi
+    else
+      echo "$project"
+    fi
+  done
+done
