@@ -2,7 +2,7 @@
 Name=Default
 Comment=Default Cursor Theme
 {{- if eq .env "home" }}
-Inherits=Catppuccin-{{ .themeFlavour }}-Dark-Cursors
+Inherits=Catppuccin-{{ title .themeFlavour }}-{{ title .themeCursorColor }}-Cursors
 {{- end }}
 {{- if eq .env "work" }}
 Inherits=Yaru

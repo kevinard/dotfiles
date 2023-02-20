@@ -7,7 +7,12 @@ gtk-icon-theme-name=Yaru-purple-dark
 gtk-cursor-theme-name=Yaru
 {{- end }}
 {{- if eq .env "home" }}
-gtk-theme-name=Catppuccin-Mocha-Standard-Lavender-Dark
-gtk-icon-theme-name=Catppuccin-SE
-gtk-cursor-theme-name=Catppuccin-{{ .themeFlavour }}-Dark-Cursors
+{{- if eq .themeFlavour "latte" }}
+gtk-theme-name=Catppuccin-{{ title .themeFlavour }}-Standard-{{ title .themeColor }}-Light
+gtk-icon-theme-name=Papirus-Light
+{{- else }}
+gtk-theme-name=Catppuccin-{{ title .themeFlavour }}-Standard-{{ title .themeColor }}-Dark
+gtk-icon-theme-name=Papirus-Dark
+{{- end }}
+gtk-cursor-theme-name=Catppuccin-{{ title .themeFlavour }}-{{ title .themeCursorColor }}-Cursors
 {{- end }}

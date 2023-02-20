@@ -184,11 +184,18 @@ workspace $ws5 output $primary $secondary $tertiary
 assign [app_id="firefox"] $ws1
 assign [class="firefox"] $ws1
 assign [app_id="telegramdesktop"] $ws2
+assign [app_id="org.telegram.desktop"] $ws2
 assign [app_id="code-url-handler"] $ws2
 assign [class="code"] $ws2
 assign [class="Slack"] $ws3
 assign [app_id="Slack"] $ws3
+{{- if eq .env "home" }}
+assign [app_id="thunderbird"] $ws3
+assign [class="thunderbird"] $ws3
+{{- end }}
+{{- if eq .env "work" }}
 assign [app_id="thunderbird"] $ws4
 assign [class="thunderbird"] $ws4
+{{- end }}
 assign [app_id="chromium"] $ws5
 assign [class="chromium"] $ws5
