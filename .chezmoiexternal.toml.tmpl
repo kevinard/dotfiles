@@ -13,126 +13,60 @@
     [".config/zsh/.zprezto".pull]
         args = ["--recurse-submodules"]
 
-[".local/share/fonts/NerdFontsSymbols"]
-    type = "archive"
-    url = "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/NerdFontsSymbolsOnly.zip"
-    refreshPeriod = "744h"
-    exclude = ["readme.md", "LICENSE", "*Windows*"]
-
-[".local/share/fonts/JetBrainsMono"]
-    type = "archive"
-    url = "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/JetBrainsMono.zip"
-    refreshPeriod = "744h"
-    exclude = ["readme.md", "*Windows*"]
-
-[".local/share/fonts/Muli"]
-    type = "archive"
-    url = "https://github.com/googlefonts/mulish/archive/refs/heads/main.zip"
-    refreshPeriod = "744h"
-    stripComponents = 3
-    include = ["mulish-main/fonts/ttf/*.ttf"]
-
-[".local/share/fonts/Inter"]
-    type = "archive"
-    url = "https://github.com/rsms/inter/releases/download/v3.19/Inter-3.19.zip"
-    refreshPeriod = "744h"
-    stripComponents = 1
-    include = ["Inter Desktop/*"]
-
-[".config/sway/themes"]
-    type = "archive"
-    url = "https://github.com/catppuccin/i3/archive/refs/heads/main.zip"
-    refreshPeriod = "744h"
-    stripComponents = 2
-    include = ["i3-main/themes/*"]
-
-[".local/share/rofi/themes"]
-    type = "archive"
-    url = "https://github.com/catppuccin/rofi/archive/refs/heads/main.zip"
-    refreshPeriod = "744h"
-    stripComponents = 6
-    include = ["rofi-main/basic/.local/share/rofi/themes/*"]
-
-[".config/zsh/themes"]
-    type = "archive"
-    url = "https://github.com/catppuccin/zsh-syntax-highlighting/archive/refs/heads/main.zip"
-    refreshPeriod = "744h"
-    stripComponents = 2
-    include = ["zsh-syntax-highlighting-main/themes/*"]
-
-[".config/zathura/themes"]
-    type = "archive"
-    url = "https://github.com/catppuccin/zathura/archive/refs/heads/main.zip"
-    refreshPeriod = "744h"
-    stripComponents = 2
-    include = ["zathura-main/src/*"]
-
-[".config/kitty/themes"]
-    type = "archive"
-    url = "https://github.com/catppuccin/kitty/archive/refs/heads/main.zip"
-    refreshPeriod = "744h"
-    stripComponents = 1
-    include = ["kitty-main/*.conf"]
-
 [".config/xresources"]
     type = "file"
     url = "https://raw.githubusercontent.com/catppuccin/xresources/main/{{ .themeFlavour }}.Xresources"
     refreshPeriod = "744h"
 
-[".config/waybar/themes"]
-    type = "archive"
-    url = "https://github.com/catppuccin/waybar/archive/refs/heads/main.zip"
-    refreshPeriod = "744h"
-    stripComponents = 2
-    include = ["waybar-main/themes/*"]
+## [".local/share/fonts/NerdFontsSymbols"]
+##     type = "archive"
+##     url = "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/NerdFontsSymbolsOnly.zip"
+##     refreshPeriod = "744h"
+##     exclude = ["readme.md", "LICENSE", "*Windows*"]
+##
+## [".local/share/fonts/JetBrainsMono"]
+##     type = "archive"
+##     url = "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/JetBrainsMono.zip"
+##     refreshPeriod = "744h"
+##     exclude = ["readme.md", "*Windows*"]
+##
+## [".local/share/fonts/Muli"]
+##     type = "archive"
+##     url = "https://github.com/googlefonts/mulish/archive/refs/heads/main.zip"
+##     refreshPeriod = "744h"
+##     stripComponents = 3
+##     include = ["mulish-main/fonts/ttf/*.ttf"]
+##
+## [".local/share/fonts/Inter"]
+##     type = "archive"
+##     url = "https://github.com/rsms/inter/releases/download/v3.19/Inter-3.19.zip"
+##     refreshPeriod = "744h"
+##     stripComponents = 1
+##     include = ["Inter Desktop/*"]
 
-[".icons/Catppuccin-{{ .themeFlavour }}-Dark-Cursors"]
-    type = "archive"
-    url = "https://github.com/catppuccin/cursors/releases/latest/download/Catppuccin-{{ .themeFlavour }}-Dark-Cursors.zip"
-    refreshPeriod = "744h"
-    stripComponents = 1
-
+{{- if ne .env "work" }}
 [".themes"]
     type = "archive"
-    url = "https://github.com/catppuccin/gtk/releases/latest/download/Catppuccin-{{ .themeFlavour }}-Standard-Lavender-Dark.zip"
+{{- if eq .themeFlavour "latte" }}
+    url = "https://github.com/catppuccin/gtk/releases/latest/download/Catppuccin-{{ title .themeFlavour }}-Standard-{{ title .themeColor }}-Light.zip"
+{{- else }}
+    url = "https://github.com/catppuccin/gtk/releases/latest/download/Catppuccin-{{ title .themeFlavour }}-Standard-{{ title .themeColor }}-Dark.zip"
+{{- end }}
     refreshPeriod = "744h"
 
-[".icons/Catppuccin-SE"]
+[".icons/Catppuccin-{{ title .themeFlavour }}-{{ title .themeCursorColor }}-Cursors"]
     type = "archive"
-    url = "https://github.com/ljmill/catppuccin-icons/releases/latest/download/Catppuccin-SE.tar.bz2"
+    url = "https://github.com/catppuccin/cursors/releases/latest/download/Catppuccin-{{ title .themeFlavour }}-{{ title .themeCursorColor }}-Cursors.zip"
     refreshPeriod = "744h"
     stripComponents = 1
 
-[".icons/Papirus"]
-    type = "archive"
-    url = "https://github.com/PapirusDevelopmentTeam/papirus-icon-theme/archive/refs/tags/20230104.zip"
+[".icons/papirus-icon-theme"]
+    type = "git-repo"
+    url = "https://github.com/PapirusDevelopmentTeam/papirus-icon-theme.git"
     refreshPeriod = "744h"
-    stripComponents = 2
-    include = ["papirus-icon-theme-20230104/Papirus/**"]
 
-[".icons/Papirus-Dark"]
-    type = "archive"
-    url = "https://github.com/PapirusDevelopmentTeam/papirus-icon-theme/archive/refs/tags/20230104.zip"
+[".icons/papirus-folders"]
+    type = "git-repo"
+    url = "https://github.com/catppuccin/papirus-folders.git"
     refreshPeriod = "744h"
-    stripComponents = 2
-    include = ["papirus-icon-theme-20230104/Papirus-Dark/**"]
-
-[".icons/Papirus-Light"]
-    type = "archive"
-    url = "https://github.com/PapirusDevelopmentTeam/papirus-icon-theme/archive/refs/tags/20230104.zip"
-    refreshPeriod = "744h"
-    stripComponents = 2
-    include = ["papirus-icon-theme-20230104/Papirus-Light/**"]
-
-[".local/bin/papirus-folders"]
-    type = "file"
-    url = "https://raw.githubusercontent.com/catppuccin/papirus-folders/main/papirus-folders"
-    refreshPeriod = "744h"
-    executable = true
-
-[".icons/Catppuccin-folders"]
-    type = "archive"
-    url = "https://github.com/catppuccin/papirus-folders/archive/refs/heads/main.zip"
-    refreshPeriod = "744h"
-    stripComponents = 2
-    include = ["papirus-folders-main/src/**"]
+{{- end }}

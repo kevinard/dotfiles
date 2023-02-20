@@ -173,7 +173,7 @@ local servers = {
     diagnostics = true,
   },
   terraformls = {},
-  sumneko_lua = {
+  lua_ls = {
     Lua = {
       telemetry = { enable = false },
       hint = { enable = true },
