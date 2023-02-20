@@ -31,6 +31,8 @@ if [[ -z "$LESSOPEN" ]] && (( $#commands[(i)lesspipe(|.sh)] )); then
 fi
 export LESSHISTFILE="/dev/null"
 
+export CATPPUCCIN_FLAVOUR="{{ .themeFlavour }}"
+
 # Start graphical server if sway not already running.
 #if [ "$(tty)" = "/dev/tty2" ]; then
   export _JAVA_AWT_WM_NONREPARENTING=1
