@@ -32,4 +32,5 @@ alias fournill="ledger --file ~/fournill/ledger/main.journal"
 {{- if eq .env "work" }}
 source $SCALINGO_HOME/tools-and-hacks/zsh/scalingo
 eval "$(rbenv init -)"
+alias ans="source $HOME/.local/venv/ansible/bin/activate"
 {{- end }}
