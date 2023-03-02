@@ -13,6 +13,26 @@ input type:keyboard {
   xkb_numlock enabled
 }
 
+{{- if eq .env "work" }}
+input "13364:547:Keychron_Keychron_K2_Pro" {
+  repeat_delay 300
+  repeat_rate 40
+  xkb_layout us
+  xkb_variant altgr-intl
+  xkb_options shift:both_capslock,caps:escape
+  xkb_numlock enabled
+}
+
+input "13364:547:Keychron_K2_Pro_Keyboard" {
+  repeat_delay 300
+  repeat_rate 40
+  xkb_layout us
+  xkb_variant altgr-intl
+  xkb_options shift:both_capslock,caps:escape
+  xkb_numlock enabled
+}
+{{- end }}
+
 input type:touchpad {
   accel_profile adaptive
   click_method clickfinger
