@@ -159,25 +159,6 @@ bindsym Alt+Shift+Print                         exec grimshot save screen
 
 # #---Extra XF86 Keys---# #
 # These are the extra media keys that some keyboards have.
-{{- if eq .env "home" }}
-bindsym --locked XF86AudioMute		              exec volumectl toggle-mute
-bindsym --locked XF86AudioLowerVolume	          exec volumectl -u down 5
-bindsym --locked Shift+XF86AudioLowerVolume	    exec volumectl -u down 10
-bindsym --locked Control+XF86AudioLowerVolume	  exec volumectl -u down 1
-bindsym --locked XF86AudioRaiseVolume	          exec volumectl -u up 5
-bindsym --locked Shift+XF86AudioRaiseVolume	    exec volumectl -u up 10
-bindsym --locked Control+XF86AudioRaiseVolume	  exec volumectl -u up 1
-bindsym --locked XF86AudioNext		              exec lmc next
-bindsym --locked XF86AudioPlay		              exec lmc toggle
-bindsym --locked XF86AudioPrev		              exec lmc prev
-bindsym --locked XF86AudioStop		              exec lmc toggle
-bindsym --locked XF86AudioRewind		            exec lmc back 10
-bindsym --locked XF86AudioForward	              exec lmc forward 10
-bindsym --locked XF86AudioMicMute	              exec volumectl -m toggle-mute
-bindsym --locked XF86MonBrightnessDown	        exec sudo lightctl down
-bindsym --locked XF86MonBrightnessUp	          exec sudo lightctl up
-{{- end }}
-{{- if eq .env "work" }}
 bindsym --locked XF86AudioMute		              exec pactl set-sink-mute @DEFAULT_SINK@ toggle
 bindsym --locked XF86AudioLowerVolume	          exec pactl set-sink-volume @DEFAULT_SINK@ -5%
 bindsym --locked Shift+XF86AudioLowerVolume	    exec pactl set-sink-volume @DEFAULT_SINK@ -10%
@@ -185,11 +166,15 @@ bindsym --locked Control+XF86AudioLowerVolume	  exec pactl set-sink-volume @DEFA
 bindsym --locked XF86AudioRaiseVolume	          exec pactl set-sink-volume @DEFAULT_SINK@ +5%
 bindsym --locked Shift+XF86AudioRaiseVolume	    exec pactl set-sink-volume @DEFAULT_SINK@ +10%
 bindsym --locked Control+XF86AudioRaiseVolume	  exec pactl set-sink-volume @DEFAULT_SINK@ +1%
-bindsym --locked XF86AudioPlay		              exec playerctl play-pause
 bindsym --locked XF86AudioMicMute	              exec pactl set-source-mute @DEFAULT_SOURCE@ toggle
+bindsym --locked XF86AudioPlay		              exec playerctl play-pause
+bindsym --locked XF86AudioNext		              exec playerctl next
+bindsym --locked XF86AudioPrev		              exec playerctl previous
+bindsym --locked XF86AudioStop		              exec playerctl stop
+bindsym --locked XF86AudioRewind		            exec playerctl position 10-
+bindsym --locked XF86AudioForward	              exec playerctl position 10+
 bindsym --locked XF86MonBrightnessDown	        exec sudo brightnessctl s 5%-
 bindsym --locked XF86MonBrightnessUp	          exec sudo brightnessctl s +5%
-{{- end }}
 
 # mark a window
 bindsym $mod+m                                  swap container with mark 1
@@ -198,8 +183,8 @@ bindsym $mod+Shift+m                            mark --toggle 1
 
 # focus an app and launch it if it's not running
 bindsym $mod+z                                  exec run-or-raise $BROWSER $BROWSER
+bindsym $mod+y			                            exec rofi -show projects
 {{- if eq .env "work" }}
-bindsym $mod+u                                  exec run-or-raise slack slack
-bindsym $mod+y                                  exec run-or-raise code-url-handler code
+bindsym $mod+u                                  exec run-or-raise Slack slack
 bindsym $mod+i                                  exec run-or-raise discord discord
 {{- end }}
