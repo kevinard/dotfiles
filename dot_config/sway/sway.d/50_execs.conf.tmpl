@@ -13,22 +13,12 @@ exec "telegram-desktop &"
 {{- end }}
 {{- if eq .env "work" }}
 exec "slack &"
-exec "discord &"
+# exec "discord &"
 {{- end }}
 
 exec --no-startup-id $BROWSER &
 exec --no-startup-id thunderbird &
 
-{{- if eq .env "home" }}
-exec --no-startup-id swayidle -w \
-                timeout 270 'sudo lightctl down 10' \
-                timeout 300 'lockscreen' \
-                timeout 600 'swaymsg "output * dpms off"' \
-                     resume 'swaymsg "output * dpms on"' \
-                before-sleep 'lockscreen' \
-                after-resume 'sudo lightctl up 10'
-{{- end }}
-{{- if eq .env "work" }}
 exec --no-startup-id swayidle -w \
                 timeout 270 'sudo brightnessctl s 10%-' \
                 timeout 300 'lockscreen' \
@@ -36,5 +26,4 @@ exec --no-startup-id swayidle -w \
                      resume 'swaymsg "output * dpms on"' \
                 before-sleep 'lockscreen' \
                 after-resume 'sudo brightnessctl s +10%'
-{{- end }}
 
