@@ -97,16 +97,6 @@ mode "$mode_gaps_outer" {
   bindsym Escape                                mode "default"
 }
 
-# launcher
-bindsym $mod+d			                            exec rofi -show drun
-
-# dropdown app
-{{- if eq .env "home" }}
-bindsym $mod+a			                            exec ddspawnterm dropdowncalc
-{{- end }}
-{{- if eq .env "work" }}
-bindsym $mod+Shift+y	                          exec ddspawnapp yubioath-desktop
-{{- end }}
 
 # navigation
 bindsym $mod+Left		                            focus left
@@ -181,10 +171,23 @@ bindsym $mod+m                                  swap container with mark 1
 # swap the focused window with the marked one
 bindsym $mod+Shift+m                            mark --toggle 1
 
+# launcher
+bindsym $mod+d			                            exec rofi -show drun
+
+# dropdown app
+{{- if eq .env "home" }}
+bindsym $mod+a			                            exec ddspawnterm dropdowncalc
+{{- end }}
+{{- if eq .env "work" }}
+bindsym $mod+a      	                          exec ddspawnapp yubioath-desktop
+{{- end }}
+
 # focus an app and launch it if it's not running
 bindsym $mod+z                                  exec run-or-raise $BROWSER $BROWSER
 bindsym $mod+y			                            exec rofi -show projects
 {{- if eq .env "work" }}
 bindsym $mod+u                                  exec run-or-raise Slack slack
-bindsym $mod+i                                  exec run-or-raise discord discord
+bindsym $mod+Shift+u                            exec run-or-raise "Slack - Chromium" slackium
+bindsym $mod+i                                  exec run-or-raise thunderbird thunderbird
+bindsym $mod+Shift+i                            exec run-or-raise discord discord
 {{- end }}

@@ -12,8 +12,9 @@
 {{- if ne .env "work" }}
 .local/bin/chromium
 .local/bin/discord
-.local/bin/slack
+.local/bin/slackium
 .local/bin/fd
 .local/share/applications/chromium.desktop
 .local/share/applications/code.desktop
+snap/
 {{- end }}

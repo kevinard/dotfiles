@@ -1,9 +1,12 @@
 #!/bin/sh
 {{- if eq .chezmoi.osRelease.id "ubuntu" }}
-sudo apt install fonts-linuxlibertine fonts-noto-color-emoji fonts-dejavu ripgrep kanshi wdisplays kitty mako-notifier rofi sway swayidle swaylock waybar grimshot python3-i3ipc yubioath-desktop playerctl brightnessctl zathura zsh imagemagick fd-find wl-clipboard fzf
-#sudo snap install nvim firefox chromium
+sudo apt install fonts-linuxlibertine fonts-noto-color-emoji fonts-dejavu ripgrep kanshi wdisplays kitty mako-notifier rofi sway swayidle swaylock waybar grimshot python3-i3ipc yubioath-desktop playerctl brightnessctl zathura zsh imagemagick fd-find wl-clipboard fzf thunderbird
+sudo snap install nvim
+sudo snap install firefox
+sudo snap install chromium
 {{- if eq .env "work" }}
-#sudo snap install thunderbird slack code
+sudo snap install slack
+sudo snap install code
 {{- end }}
 {{- end }}
 {{- if eq .chezmoi.osRelease.id "arch" }}

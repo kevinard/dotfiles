@@ -10,3 +10,66 @@ scrollback_lines 10000
 linux_display_server wayland
 dynamic_background_opacity yes
 strip_trailing_spaces smart
+focus_follows_mouse no
+tab_bar_edge top
+tab_bar_style powerline
+tab_powerline_style slanted
+allow_remote_control yes
+listen_on unix:@mykitty
+
+mouse_map left click ungrabbed mouse_handle_click selection link prompt
+
+enabled_layouts tall,fat,splits
+
+map ctrl+enter new_window
+map ctrl+shift+enter launch --cwd=current
+map ctrl+shift+l next_layout
+map ctrl+alt+z toggle_layout stack
+
+# Create a new window splitting the space used by the existing one so that
+# the two windows are placed one above the other
+map ctrl+\ launch --location=hsplit
+
+# Create a new window splitting the space used by the existing one so that
+# the two windows are placed side by side
+map ctrl+shift+\ launch --location=vsplit
+
+# Move the active window in the indicated direction
+map ctrl+alt+up move_window up
+map ctrl+alt+left move_window left
+map ctrl+alt+right move_window right
+map ctrl+alt+down move_window down
+
+# reset all windows in the tab to default sizes
+map ctrl+home resize_window reset
+
+# Switch focus to the neighboring window in the indicated direction
+#map ctrl+left neighboring_window left
+#map ctrl+right neighboring_window right
+#map ctrl+up neighboring_window up
+#map ctrl+down neighboring_window down
+map ctrl+down kitten pass_keys.py neighboring_window bottom ctrl+j
+map ctrl+up kitten pass_keys.py neighboring_window top    ctrl+k
+map ctrl+left kitten pass_keys.py neighboring_window left   ctrl+h
+map ctrl+right kitten pass_keys.py neighboring_window right  ctrl+l
+map ctrl+j kitten pass_keys.py neighboring_window bottom ctrl+j
+map ctrl+k kitten pass_keys.py neighboring_window top    ctrl+k
+map ctrl+h kitten pass_keys.py neighboring_window left   ctrl+h
+map ctrl+l kitten pass_keys.py neighboring_window right  ctrl+l
+
+# the 3 here is the resize amount, adjust as needed
+map shift+down kitten pass_keys.py relative_resize down  3 shift+j
+map shift+up kitten pass_keys.py relative_resize up    3 shift+k
+map shift+left kitten pass_keys.py relative_resize left  3 shift+h
+map shift+right kitten pass_keys.py relative_resize right 3 shift+l
+map shift+j kitten pass_keys.py relative_resize down  3 shift+j
+map shift+k kitten pass_keys.py relative_resize up    3 shift+k
+map shift+h kitten pass_keys.py relative_resize left  3 shift+h
+map shift+l kitten pass_keys.py relative_resize right 3 shift+l
+
+# moves the window into a new OS window
+map ctrl+f2 detach_window
+# moves the window into a new tab
+map ctrl+f3 detach_window new-tab
+# moves the tab into a new OS window
+map ctrl+f4 detach_tab
