@@ -1,28 +1,8 @@
-#
-# Executes commands at the start of an interactive session.
-#
-# Authors:
-#   Sorin Ionescu <sorin.ionescu@gmail.com>
-#
-
-source "${ZDOTDIR:-$HOME}/themes/catppuccin_{{ .themeFlavour }}-zsh-syntax-highlighting.zsh"
-
-# Source Prezto.
-if [[ -s "${ZDOTDIR:-$HOME}/.zprezto/init.zsh" ]]; then
-  source "${ZDOTDIR:-$HOME}/.zprezto/init.zsh"
-fi
+source "${ZDOTDIR:-$HOME}/custom/themes/catppuccin_{{ .themeFlavour }}-zsh-syntax-highlighting.zsh"
 
 xrdb -merge $XDG_CONFIG_HOME/xresources
 
-# Customize to your needs...
-{{- if eq .env "work" }}
-source /usr/share/doc/fzf/examples/key-bindings.zsh
-source /usr/share/doc/fzf/examples/completion.zsh
-{{- end }}
-{{- if eq .env "home" }}
-source /usr/share/fzf/key-bindings.zsh
-source /usr/share/fzf/completion.zsh
-{{- end }}
+# fzf
 export FZF_DEFAULT_COMMAND='fd --type f --strip-cwd-prefix --hidden --follow --exclude .git'
 export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
 # Use fd (https://github.com/sharkdp/fd) instead of the default find
@@ -32,12 +12,16 @@ export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
 _fzf_compgen_path() {
   fd --hidden --follow --exclude ".git" . "$1"
 }
-
 # Use fd to generate the list for directory completion
 _fzf_compgen_dir() {
   fd --type d --hidden --follow --exclude ".git" . "$1"
 }
-source "${ZDOTDIR:-$HOME}/themes/catppuccin_{{ .themeFlavour }}-fzf.zsh"
+source "${ZDOTDIR:-$HOME}/custom/themes/catppuccin_{{ .themeFlavour }}-fzf.zsh"
+
+# Source oh-my-zsh
+if [[ -s "${ZDOTDIR:-$HOME}/oh-my-zsh/oh-my-zsh.sh" ]]; then
+  source "${ZDOTDIR:-$HOME}/oh-my-zshrc.zsh"
+fi
 
 # Fix kitty terminal when using ssh
 alias ssh="TERM=xterm-256color ssh"

@@ -9,14 +9,30 @@
     url = "https://github.com/kevinard/nvim.git"
     refreshPeriod = "744h"
 
-[".config/zsh/.zprezto"]
+[".config/zsh/oh-my-zsh"]
     type = "git-repo"
-    url = "https://github.com/sorin-ionescu/prezto.git"
+    url = "https://github.com/ohmyzsh/ohmyzsh.git"
     refreshPeriod = "168h"
-    [".config/zsh/.zprezto".clone]
-        args = ["--recurse-submodules"]
-    [".config/zsh/.zprezto".pull]
-        args = ["--recurse-submodules"]
+
+[".config/zsh/custom/themes/spaceship-prompt"]
+    type = "git-repo"
+    url = "https://github.com/spaceship-prompt/spaceship-prompt.git"
+    refreshPeriod = "168h"
+
+[".config/zsh/custom/plugins/zsh-history-substring-search"]
+    type = "git-repo"
+    url = "https://github.com/zsh-users/zsh-history-substring-search"
+    refreshPeriod = "168h"
+
+[".config/zsh/custom/plugins/zsh-syntax-highlighting"]
+    type = "git-repo"
+    url = "https://github.com/zsh-users/zsh-syntax-highlighting.git"
+    refreshPeriod = "168h"
+
+[".config/zsh/custom/plugins/zsh-autosuggestions"]
+    type = "git-repo"
+    url = "https://github.com/zsh-users/zsh-autosuggestions"
+    refreshPeriod = "168h"
 
 [".config/xresources"]
     type = "file"
