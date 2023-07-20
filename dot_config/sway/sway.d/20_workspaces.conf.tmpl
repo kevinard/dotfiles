@@ -9,16 +9,16 @@ set $ws8 "8"
 set $ws9 "9"
 set $ws10 "10"
 
-set $wsa1 "A-1"
-set $wsa2 "A-2"
-set $wsa3 "A-3"
-set $wsa4 "A-4"
-set $wsa5 "A-5"
-set $wsa6 "A-6"
-set $wsa7 "A-7"
-set $wsa8 "A-8"
-set $wsa9 "A-9"
-set $wsa10 "A-10"
+set $wsa1 "1-A"
+set $wsa2 "2-A"
+set $wsa3 "3-A"
+set $wsa4 "4-A"
+set $wsa5 "5-A"
+set $wsa6 "6-A"
+set $wsa7 "7-A"
+set $wsa8 "8-A"
+set $wsa9 "9-A"
+set $wsa10 "10-A"
 
 set $primary "Unknown 0x06CE 0x00000000"
 set $secondary "Goldstar Company Ltd LG IPS FULLHD "
@@ -177,8 +177,8 @@ workspace $ws2 output $secondary $tertiary $primary
 #workspace $wsa5 output $tertiary $secondary $primary
 #workspace $wsa6 output $tertiary $secondary $primary
 #workspace $wsa7 output $tertiary $secondary $primary
-workspace $wsa8 output $primary $secondary $tertiary
-workspace $wsa9 output $primary $secondary $tertiary
+workspace $wsa8 output $tertiary $primary $secondary
+workspace $wsa9 output $tertiary $primary $secondary
 workspace $wsa10 output $primary $secondary $tertiary
 
 assign [app_id="firefox"] $ws1
@@ -194,8 +194,8 @@ assign [app_id="code-url-handler"] $ws2
 assign [class="Code"] $ws2
 assign [class="Slack"] $wsa8
 assign [app_id="Slack"] $wsa8
+assign [app_id="chromium"] $wsa8
+assign [class="chromium"] $wsa8
 assign [app_id="thunderbird"] $wsa9
 assign [class="thunderbird"] $wsa9
-assign [app_id="chromium"] $wsa10
-assign [class="chromium"] $wsa10
 {{- end }}
