@@ -200,7 +200,7 @@ bindsym $mod+d			                            exec rofi -show drun
 # dropdown app
 {{- if eq .env "home" }}
 # bindsym $mod+a			                            exec ddspawnterm dropdowncalc
-bindsym $mod+a      	                          exec swaymsg [con_mark="dropdowncalc"] scratchpad show || exec $term -T dropdowncalc dropdowncalc
+bindsym $mod+a      	                          exec swaymsg [con_mark="dropdowncalc"] scratchpad show || exec kitty -T "dropdowncalc" dropdowncalc
 {{- end }}
 {{- if eq .env "work" }}
 bindsym $mod+a      	                          exec swaymsg [app_id="authenticator"] scratchpad show || exec authenticator
