@@ -1,11 +1,12 @@
 #!/bin/sh
 
-rm -f /tmp/locked.png
+# rm -f /tmp/locked.png
 
 # If `imagemagick` is not installed, use a blank screen.
-[ -f /usr/bin/convert ] &&
-grim /tmp/base.png &&
-convert /tmp/base.png -blur 0x8 /tmp/locked.png
+# [ -f /usr/bin/convert ] &&
+# grim /tmp/base.png &&
+# convert /tmp/base.png -blur 0x8 /tmp/locked.png
 
-swaylock -e -f -i /tmp/locked.png
+# swaylock -e -f -i /tmp/locked.png
+swaylock -f -i $XDG_CONFIG_HOME/wall.png
 

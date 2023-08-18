@@ -20,10 +20,10 @@ exec --no-startup-id $BROWSER &
 exec --no-startup-id thunderbird &
 
 exec --no-startup-id swayidle -w \
-                timeout 270 'sudo brightnessctl s 10%-' \
                 timeout 300 'lockscreen' \
                 timeout 600 'swaymsg "output * dpms off"' \
                      resume 'swaymsg "output * dpms on"' \
+                timeout 900 'systemctl suspend' \
                 before-sleep 'lockscreen' \
-                after-resume 'sudo brightnessctl s +10%'
+                lock 'lockscreen' \
 
