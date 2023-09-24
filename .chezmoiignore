@@ -1,5 +1,4 @@
 {{- if ne .env "home" }}
-.local/bin/grimshot
 .local/bin/lmc
 .local/bin/dmenumount
 .local/bin/dmenuumount
