@@ -17,3 +17,6 @@
 .local/share/applications/code.desktop
 snap/
 {{- end }}
+{{- if eq .chezmoi.osRelease.id "ubuntu" }}
+.local/bin/grimshot
+{{- end }}

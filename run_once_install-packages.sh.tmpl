@@ -11,6 +11,5 @@ sudo snap install code
 {{- end }}
 {{- if eq .chezmoi.osRelease.id "arch" }}
 # TODO: wdisplays rofi-wayland
-sudo pacman -S zsh vim networkmanager sudo git openssh curl wgetttf-linux-libertine noto-fonts ttf-dejavu ripgrep kanshi kitty mako sway swaybg swayidle swaylock waybar grim slurp wl-copy jq python-i3ipc playerctl brightnessctl zathura imagemagick fd wl-clipboard fzf thunderbird neovim firefox chromium rofi
-ln -s /usr/share/sway/scripts/grimshot {{ .chezmoi.homeDir }}/.local/bin/grimshot
+sudo pacman -S zsh vim networkmanager sudo git openssh curl wget ttf-linux-libertine noto-fonts ttf-dejavu ripgrep kanshi kitty mako sway swaybg swayidle swaylock waybar grim slurp jq python-i3ipc playerctl brightnessctl zathura imagemagick fd wl-clipboard fzf thunderbird neovim firefox chromium
 {{- end }}
