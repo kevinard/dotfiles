@@ -1,3 +1,5 @@
+#!/bin/zsh
+
 source "${ZDOTDIR:-$HOME}/custom/themes/catppuccin_{{ .themeFlavour }}-zsh-syntax-highlighting.zsh"
 
 xrdb -merge $XDG_CONFIG_HOME/xresources
@@ -30,9 +32,6 @@ alias ssh="TERM=xterm-256color ssh"
 alias ls='ls -hN --color=auto --group-directories-first'
 alias grep="grep --color=auto"
 alias diff="diff --color=auto"
-
-# Internet
-alias ledgerble="~/ledger/node_modules/ledgerble/ledgerble.js"
 
 alias fournill="ledger --file ~/fournill/ledger/main.journal"
 

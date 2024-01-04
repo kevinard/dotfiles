@@ -1,9 +1,14 @@
 #!/bin/sh
 {{- if eq .chezmoi.osRelease.id "ubuntu" }}
-sudo apt install fonts-linuxlibertine fonts-noto-color-emoji fonts-dejavu ripgrep kanshi wdisplays kitty mako-notifier rofi sway swayidle swaylock waybar grimshot python3-i3ipc yubioath-desktop playerctl brightnessctl zathura zsh imagemagick fd-find wl-clipboard fzf thunderbird
+sudo apt install fonts-linuxlibertine fonts-noto-color-emoji fonts-dejavu ripgrep kanshi wdisplays kitty mako-notifier rofi sway swayidle swaylock waybar grimshot python3-i3ipc yubioath-desktop playerctl brightnessctl zathura zsh imagemagick fd-find wl-clipboard fzf thunderbird scdaemon
 sudo snap install nvim
 sudo snap install firefox
 sudo snap install chromium
+LAZYGIT_VERSION=$(curl -s "https://api.github.com/repos/jesseduffield/lazygit/releases/latest" | grep -Po '"tag_name": "v\K[^"]*')
+curl -Lo lazygit.tar.gz "https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_${LAZYGIT_VERSION}_Linux_x86_64.tar.gz"
+tar xf lazygit.tar.gz lazygit
+sudo install lazygit /usr/local/bin
+rm -rf lazygit lazygit.tar.gz
 {{- if eq .env "work" }}
 sudo snap install slack
 sudo snap install code
@@ -11,5 +16,5 @@ sudo snap install code
 {{- end }}
 {{- if eq .chezmoi.osRelease.id "arch" }}
 # TODO: wdisplays rofi-wayland
-sudo pacman -S zsh vim networkmanager sudo git openssh curl wget ttf-linux-libertine noto-fonts ttf-dejavu ripgrep kanshi kitty mako sway swaybg swayidle swaylock waybar grim slurp jq python-i3ipc playerctl brightnessctl zathura imagemagick fd wl-clipboard fzf thunderbird neovim firefox chromium
+sudo pacman -S zsh vim networkmanager sudo git openssh curl wget ttf-linux-libertine noto-fonts ttf-dejavu ripgrep kanshi kitty mako sway swaybg swayidle swaylock waybar grim slurp jq python-i3ipc playerctl brightnessctl zathura imagemagick fd wl-clipboard fzf thunderbird neovim firefox chromium lazygit
 {{- end }}
