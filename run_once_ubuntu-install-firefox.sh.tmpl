@@ -12,6 +12,11 @@ Package: *
 Pin: origin packages.mozilla.org
 Pin-Priority: 1000
 ' | sudo tee /etc/apt/preferences.d/mozilla
+echo '
+Unattended-Upgrade::Package-Blacklist {
+    "firefox";
+};
+' | sudo tee /etc/apt/apt.conf.d/51unattended-upgrades-custom-blacklist
 sudo apt update
 sudo apt install firefox
 {{- end }}
