@@ -1,0 +1,5 @@
+{{- if eq .chezmoi.osRelease.id "arch" -}}
+#!/bin/sh
+
+sudo pacman -S --needed {{ range .packages.arch.pacman -}}{{ . }} {{ end }}
+{{ end -}}

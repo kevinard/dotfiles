@@ -1,0 +1,15 @@
+{{- if eq .chezmoi.osRelease.id "arch" -}}
+#!/bin/sh
+
+# during installation, create a separate /boot partition to host the EFI
+# install systemd-boot bootloader
+bootctl install
+systemctl enable systemd-boot-update.service
+
+cp -r loader/loader.conf /boot/loader/loader.conf
+cp -r loader/entries/arch.conf /boot/loader/entries/arch.conf
+cp -r loader/entries/arch-fallback.conf /boot/loader/entries/arch-fallback.conf
+ROOT_UUID=$(blkid | grep ext4 | cut -d' ' -f2)
+sed s/UUID/${ROOT_UUID}/g /boot/loader/entries/arch.conf
+sed s/UUID/${ROOT_UUID}/g /boot/loader/entries/arch-fallback.conf
+{{ end -}}

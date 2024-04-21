@@ -1,0 +1,21 @@
+{{- $env := promptStringOnce . "env" "Env ? (home/work)" -}}
+{{- $email := promptStringOnce . "email" "Email address" -}}
+{{- $fullname := promptStringOnce . "fullname" "Full name" -}}
+{{- $gpgsign := promptStringOnce . "gpgsign" "GPG Key (no to disable)" -}}
+{{- $themeFlavour := promptStringOnce . "themeFlavour" "Catppuccin Flavour ? (mocha/macchiato/frappe/latte)" -}}
+{{- $themeColor := promptStringOnce . "themeColor" "Catppuccin Accent Color ? (rosewater/maroon/pink/teal/peach/sapphire/red/flamingo/green/mauve/sky/yellow/blue/lavender)" -}}
+{{- $themeCursorColor := promptStringOnce . "themeCursorColor" "Catppuccin Cursor Color ? (rosewater/maroon/pink/teal/peach/sapphire/red/flamingo/green/mauve/sky/yellow/blue/lavender/dark/light)" -}}
+{{- $projectsPaths := promptStringOnce . "projectsPaths" "Projects Paths ? (list of paths separated by a space)" -}}
+
+[data]
+    env = {{ $env | quote }}
+    email = {{ $email | quote }}
+    fullname = {{ $fullname | quote }}
+    gpgsign = {{ $gpgsign | quote }}
+    themeFlavour = {{ $themeFlavour | quote }}
+    themeColor = {{ $themeColor | quote }}
+    themeCursorColor = {{ $themeCursorColor | quote }}
+    projectsPaths = {{ $projectsPaths | quote }}
+
+[hooks.read-source-state.pre]
+    command = ".local/share/chezmoi/home/.install-password-manager.sh"

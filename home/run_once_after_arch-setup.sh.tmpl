@@ -1,0 +1,28 @@
+{{- if eq .chezmoi.osRelease.id "arch" -}}
+#!/bin/sh
+
+# setup sddm display manager
+sudo mkdir -p /etc/sddm.conf.d
+sudo cp -r ~/.local/etc/sddm.conf.d/wayland.conf /etc/sddm.conf.d/wayland.conf
+sudo cp -r ~/.local/share/sddm/themes/catppuccin-{{ .themeFlavour }} /usr/share/sddm/themes/
+sudo cp -r ~/.local/etc/sddm.conf.d/theme.conf.user /usr/share/sddm/themes/catppuccin-{{ .themeFlavour }}/
+sudo cp -r ~/.config/wall.jpg /usr/share/sddm/themes/catppuccin-{{ .themeFlavour }}/backgrounds/
+sudo systemctl enable sddm.service
+
+# setup polkit
+sudo usermod -aG storage,wheel {{ .chezmoi.username }}
+sudo mkdir -p /etc/polkit-1/rules.d
+sudo cp -r ~/.local/etc/polkit-1/rules.d/* /etc/polkit-1/rules.d/
+
+# setup theme
+{{ if eq .themeFlavour "latte" }}
+DARK_OR_LIGHT="Light"
+{{ else }}
+DARK_OR_LIGHT="Dark"
+{{ end }}
+GTK_THEME_PATH="{{ .chezmoi.homeDir }}/.themes/Catppuccin-{{ title .themeFlavour }}-Standard-{{ title .themeColor }}-$DARK_OR_LIGHT/gtk-4.0/assets"
+ln -sf $GTK_THEME_PATH "{{ .chezmoi.homeDir }}/.config/gtk-4.0/assets"
+DESTDIR="{{ .chezmoi.homeDir }}/.icons" {{ .chezmoi.homeDir }}/.icons/papirus-icon-theme/install.sh
+cp -r {{ .chezmoi.homeDir }}/.icons/papirus-folders/src/* {{ .chezmoi.homeDir }}/.icons/Papirus
+{{ .chezmoi.homeDir }}/.icons/papirus-folders/papirus-folders -C cat-{{ .themeFlavour }}-{{ .themeColor }} --theme Papirus-$DARK_OR_LIGHT
+{{ end -}}

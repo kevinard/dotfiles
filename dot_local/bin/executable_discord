@@ -1,5 +1,0 @@
-#!/bin/bash
-
-source $HOME/.profile
-
-exec /snap/bin/chromium --enable-features=UseOzonePlatform,WaylandWindowDecorations,WebRTCPipeWireCapturer --ozone-platform=wayland --new-window --kiosk https://discord.com/app

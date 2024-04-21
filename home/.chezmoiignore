@@ -1,0 +1,12 @@
+{{- if ne .env "home" }}
+.local/bin/battery
+.local/bin/dropdowncalc
+{{- end }}
+{{- if ne .env "work" }}
+.local/bin/chromium
+.local/bin/slackium
+.local/bin/fd
+.local/share/applications/chromium.desktop
+.local/share/applications/code.desktop
+{{- end }}
+user.js
