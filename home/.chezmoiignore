@@ -3,6 +3,7 @@
 .local/bin/dropdowncalc
 {{- end }}
 {{- if ne .env "work" }}
+.local/bin/authenticator
 .local/bin/chromium
 .local/bin/slackium
 .local/bin/fd

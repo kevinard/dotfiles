@@ -1,4 +1,3 @@
-# TODO ubuntu: yubico authenticator
 # TODO arch: wdisplays rofi-wayland
 packages:
   ubuntu:
@@ -30,6 +29,7 @@ packages:
       - "thunderbird"
       - "scdaemon"
       - "firefox"
+      - "pcscd"
       # - "cliphist"
     snap:
       - "nvim --classic"

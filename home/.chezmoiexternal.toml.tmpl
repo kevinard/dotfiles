@@ -59,6 +59,14 @@
     url = "https://raw.githubusercontent.com/catppuccin/xresources/main/{{ .themeFlavour }}.Xresources"
     refreshPeriod = "744h"
 
+{{- if eq .env "work" }}
+[".local/share/yubico-authenticator"]
+    type = "archive"
+    url = "https://developers.yubico.com/yubioath-flutter/Releases/yubico-authenticator-latest-linux.tar.gz"
+    refreshPeriod = "744h"
+    stripComponents = 1
+{{- end }}
+
 ## [".local/share/fonts/NerdFontsSymbols"]
 ##     type = "archive"
 ##     url = "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/NerdFontsSymbolsOnly.zip"
