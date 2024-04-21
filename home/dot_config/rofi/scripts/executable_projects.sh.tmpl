@@ -9,7 +9,7 @@ open_project(){
 # Add chezmoi and nvim dotfiles dir in projects list
 if [ "$ROFI_RETV" = 1 ]; then
   if [ "dotfiles" = "$@" ]; then
-    open_project "{{ .chezmoi.sourceDir }}"
+    open_project "{{ .chezmoi.workingTree }}"
     exit 0
   elif [ "nvim" = "$@" ]; then
     open_project "{{ .chezmoi.homeDir }}/.config/nvim"

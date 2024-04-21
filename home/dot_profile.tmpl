@@ -3,8 +3,10 @@ export ZDOTDIR="$XDG_CONFIG_HOME/zsh"
 export HISTFILE="$ZDOTDIR/.zsh_history"
 
 export GPG_TTY=$(tty)
+{{- if eq .env "home" }}
 unset SSH_AGENT_PID
 export SSH_AUTH_SOCK="${XDG_RUNTIME_DIR}/gnupg/S.gpg-agent.ssh"
+{{- end }}
 
 export SCALINGO_HOME=$HOME/scalingo
 export GOPATH=$HOME/go
@@ -40,4 +42,8 @@ if [[ $DESKTOP_SESSION = "sway" ]]; then
   export SAL_USE_VCLPLUGIN=gtk3
   export XDG_CURRENT_DESKTOP=sway
   export XDG_SESSION_DESKTOP=sway
+{{- if eq .env "work" }}
+  eval $(/usr/bin/gnome-keyring-daemon --start --components=pkcs11,secrets,ssh)
+  export SSH_AUTH_SOCK
+{{- end }}
 fi

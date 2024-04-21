@@ -4,7 +4,9 @@
 exec systemctl --user import-environment
 exec hash dbus-update-activation-environment 2>/dev/null && \
      dbus-update-activation-environment --systemd --all
+{{- if eq .env "home" }}
 exec --no-startup-id /usr/lib/polkit-kde-authentication-agent-1 &
+{{- end }}
 exec_always import-gsettings
 exec_always --no-startup-id autotiling &
 exec --no-startup-id kanshi &

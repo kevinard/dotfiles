@@ -30,9 +30,9 @@ packages:
       - "thunderbird"
       - "scdaemon"
       - "firefox"
-      - "cliphist"
+      # - "cliphist"
     snap:
-      - "nvim"
+      - "nvim --classic"
       - "chromium"
       - "slack"
       - "code"
