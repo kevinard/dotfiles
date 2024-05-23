@@ -37,7 +37,4 @@ if ! type lazygit >/dev/null 2>&1; then
 	sudo install lazygit /usr/local/bin
 	rm -rf lazygit lazygit.tar.gz
 fi
-
-# enable services
-sudo systemctl enable --now pcscd
 {{ end -}}

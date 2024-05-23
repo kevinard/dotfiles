@@ -13,9 +13,9 @@ IsRelative=1
 Path=personal.profile
 {{- if eq .env "home" }}
 Default=1
-{{- end }}
+{{ end }}
 
-{{- if eq .env "work" }}
+{{ if eq .env "work" }}
 [Profile1]
 Name=work
 IsRelative=1

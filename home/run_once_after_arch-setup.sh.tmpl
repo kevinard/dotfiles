@@ -25,4 +25,7 @@ ln -sf $GTK_THEME_PATH "{{ .chezmoi.homeDir }}/.config/gtk-4.0/assets"
 DESTDIR="{{ .chezmoi.homeDir }}/.icons" {{ .chezmoi.homeDir }}/.icons/papirus-icon-theme/install.sh
 cp -r {{ .chezmoi.homeDir }}/.icons/papirus-folders/src/* {{ .chezmoi.homeDir }}/.icons/Papirus
 {{ .chezmoi.homeDir }}/.icons/papirus-folders/papirus-folders -C cat-{{ .themeFlavour }}-{{ .themeColor }} --theme Papirus-$DARK_OR_LIGHT
+
+# startpage
+systemctl --user enable --now startpage.service
 {{ end -}}

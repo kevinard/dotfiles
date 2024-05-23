@@ -1,0 +1,8 @@
+{{- if eq .chezmoi.osRelease.id "ubuntu" -}}
+#!/bin/bash
+
+# enable services
+sudo systemctl enable --now pcscd
+systemctl --user enable --now startpage.service
+systemctl --user enable --now startpage-work.service
+{{ end -}}

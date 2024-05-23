@@ -1,0 +1,11 @@
+[Unit]
+Description=Startpage
+After=network.target
+
+[Service]
+WorkingDirectory={{ .chezmoi.homeDir }}/.local/share/tilde
+ExecStart=python3 -m http.server 8080
+Restart=always
+
+[Install]
+WantedBy=default.target

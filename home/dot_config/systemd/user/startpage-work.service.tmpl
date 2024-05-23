@@ -1,0 +1,11 @@
+[Unit]
+Description=Startpage-Work
+After=network.target
+
+[Service]
+WorkingDirectory={{ .chezmoi.homeDir }}/scalingo/tools-and-hacks/startpage
+ExecStart=python3 -m http.server 8081
+Restart=always
+
+[Install]
+WantedBy=default.target
