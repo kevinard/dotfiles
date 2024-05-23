@@ -66,11 +66,28 @@
     },
     "on-click": "pavucontrol"
   },
+  "wireplumber": {
+      "format": "{volume}% {icon}",
+      "format-muted": "婢",
+      "on-click": "helvum",
+      "format-icons": ["", "", ""]
+  },
   "idle_inhibitor": {
     "format": "{icon}",
     "format-icons": {
       "activated": "",
       "deactivated": ""
+    }
+  },
+  "power-profiles-daemon": {
+    "format": "{icon}",
+    "tooltip-format": "Power profile: {profile}\nDriver: {driver}",
+    "tooltip": true,
+    "format-icons": {
+      "default": "",
+      "performance": "",
+      "balanced": "",
+      "power-saver": ""
     }
   },
 {{- if eq .env "home" }}

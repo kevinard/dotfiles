@@ -6,13 +6,13 @@
     "~/.config/waybar/default-modules.json",
   ],
 {{- if eq .env "home" }}
-  "modules-left": ["sway/workspaces", "hyprland/workspaces", "sway/mode", "hyprland/submap", "custom/media"],
-  "modules-center": ["sway/window", "hyprland/window"],
-  "modules-right": ["tray", "custom/pacman", "idle_inhibitor", "pulseaudio", "network", "battery", "clock"],
+  "modules-left": ["hyprland/workspaces", "hyprland/submap"],
+  "modules-center": ["hyprland/window"],
+  "modules-right": ["tray", "power-profiles-daemon", "custom/pacman", "idle_inhibitor", "pulseaudio", "network", "battery", "clock"],
 {{- end }}
 {{- if eq .env "work" }}
   "modules-left": ["sway/workspaces", "sway/mode"],
   "modules-center": ["sway/window"],
-  "modules-right": ["tray", "idle_inhibitor", "pulseaudio", "network", "battery", "clock"],
+  "modules-right": ["tray", "power-profiles-daemon", "idle_inhibitor", "pulseaudio", "network", "battery", "clock"],
 {{- end }}
 }

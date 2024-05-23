@@ -1,0 +1,29 @@
+[Install{{ mozillaInstallHash "/usr/lib/firefox" }}]
+{{- if eq .env "home" }}
+Default=personal.profile
+{{- end }}
+{{- if eq .env "work" }}
+Default=work.profile
+{{- end }}
+Locked=1
+
+[Profile0]
+Name=personal
+IsRelative=1
+Path=personal.profile
+{{- if eq .env "home" }}
+Default=1
+{{- end }}
+
+{{- if eq .env "work" }}
+[Profile1]
+Name=work
+IsRelative=1
+Path=work.profile
+Default=1
+{{- end }}
+
+[General]
+StartWithLastProfile=1
+Version=2
+
