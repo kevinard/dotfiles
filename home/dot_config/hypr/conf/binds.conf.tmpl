@@ -1,0 +1,113 @@
+$mainMod = SUPER
+
+bind = $mainMod, return, exec, $terminal
+bind = $mainMod SHIFT, return, exec, hyprland-samedir
+bind = $mainMod SHIFT, Q, killactive,
+bind = $mainMod, M, exit,
+bind = $mainMod, E, exec, $fileManager
+bind = $mainMod SHIFT, space, togglefloating,
+bind = $mainMod, R, exec, $menu
+bind = $mainMod, P, pseudo, # dwindle
+bind = $mainMod SHIFT, T, togglesplit, # dwindle
+bind = $mainMod SHIFT, X, exec, wlogout
+bind = $mainMod, X, exec, loginctl lock-session
+
+bind = $mainMod, Z, togglefloating
+bind = $mainMod, Z, pin
+
+bind = $mainMod, backspace, exec, hyprctl reload
+bind = $mainMod, backspace, exec, forcerendererreload
+
+bind = $mainMod, F, fullscreen
+
+bind = $mainMod, B, exec, killall -SIGUSR1 waybar
+bind = $mainMod SHIFT, B, exec, killall -SIGUSR2 waybar
+
+bind = $mainMod, I, exec, hyprland-run-or-raise class thunderbird thunderbird
+bind = $mainMod, U, exec, hyprland-run-or-raise class "org.telegram.desktop" telegram-desktop
+
+bind = $mainMod, V, exec, cliphist list | rofi -dmenu | cliphist decode | wl-copy
+
+# Move focus with mainMod + arrow keys
+bind = $mainMod, left, movefocus, l
+bind = $mainMod, right, movefocus, r
+bind = $mainMod, up, movefocus, u
+bind = $mainMod, down, movefocus, d
+bind = $mainMod, h, movefocus, l
+bind = $mainMod, l, movefocus, r
+bind = $mainMod, k, movefocus, u
+bind = $mainMod, j, movefocus, d
+
+# Move window
+bind = $mainMod SHIFT, left, movewindow, l
+bind = $mainMod SHIFT, right, movewindow, r
+bind = $mainMod SHIFT, up, movewindow, u
+bind = $mainMod SHIFT, down, movewindow, d
+bind = $mainMod SHIFT, h, movewindow, l
+bind = $mainMod SHIFT, l, movewindow, r
+bind = $mainMod SHIFT, k, movewindow, u
+bind = $mainMod SHIFT, j, movewindow, d
+
+# Switch workspaces with mainMod + [0-9]
+bind = $mainMod, 1, workspace, 1
+bind = $mainMod, 2, workspace, 2
+bind = $mainMod, 3, workspace, 3
+bind = $mainMod, 4, workspace, 4
+bind = $mainMod, 5, workspace, 5
+bind = $mainMod, 6, workspace, 6
+bind = $mainMod, 7, workspace, 7
+bind = $mainMod, 8, workspace, 8
+bind = $mainMod, 9, workspace, 9
+bind = $mainMod, 0, workspace, 10
+
+# Move active window to a workspace with mainMod + SHIFT + [0-9]
+bind = $mainMod SHIFT, 1, movetoworkspace, 1
+bind = $mainMod SHIFT, 2, movetoworkspace, 2
+bind = $mainMod SHIFT, 3, movetoworkspace, 3
+bind = $mainMod SHIFT, 4, movetoworkspace, 4
+bind = $mainMod SHIFT, 5, movetoworkspace, 5
+bind = $mainMod SHIFT, 6, movetoworkspace, 6
+bind = $mainMod SHIFT, 7, movetoworkspace, 7
+bind = $mainMod SHIFT, 8, movetoworkspace, 8
+bind = $mainMod SHIFT, 9, movetoworkspace, 9
+bind = $mainMod SHIFT, 0, movetoworkspace, 10
+
+# Example special workspace (scratchpad)
+bind = $mainMod, S, togglespecialworkspace, magic
+bind = $mainMod SHIFT, S, movetoworkspace, special:magic
+
+# Scroll through existing workspaces with mainMod + scroll
+bind = $mainMod, mouse_down, workspace, e+1
+bind = $mainMod, mouse_up, workspace, e-1
+
+# Move/resize windows with mainMod + LMB/RMB and dragging
+bindm = $mainMod, mouse:272, movewindow
+bindm = $mainMod, mouse:273, resizewindow
+
+
+# For screenshots and recording
+bindl = , Print, exec, grimblast save output
+bind = SHIFT, Print, exec, grimblast save area
+bind = ALT, Print, exec, grimblast save screen
+bindl = CTRL, Print, exec, grimblast save output - | swappy -f -
+bind = CTRL SHIFT, Print, exec, grimblast save area - | swappy -f -
+bind = CTRL ALT, Print, exec, grimblast save screen - | swappy -f -
+
+# #---Extra XF86 Keys---# #
+# These are the extra media keys that some keyboards have.
+bindl = , XF86AudioMute,		              exec, pactl set-sink-mute @DEFAULT_SINK@ toggle
+bindl = , XF86AudioLowerVolume,	          exec, pactl set-sink-volume @DEFAULT_SINK@ -5%
+bindl = SHIFT, XF86AudioLowerVolume,	    exec, pactl set-sink-volume @DEFAULT_SINK@ -10%
+bindl = CTRL, XF86AudioLowerVolume,	      exec, pactl set-sink-volume @DEFAULT_SINK@ -1%
+bindl = , XF86AudioRaiseVolume,	          exec, pactl set-sink-volume @DEFAULT_SINK@ +5%
+bindl = SHIFT, XF86AudioRaiseVolume,	    exec, pactl set-sink-volume @DEFAULT_SINK@ +10%
+bindl = CTRL, XF86AudioRaiseVolume,   	  exec, pactl set-sink-volume @DEFAULT_SINK@ +1%
+bindl = , XF86AudioMicMute,	              exec, pactl set-source-mute @DEFAULT_SOURCE@ toggle
+bindl = , XF86AudioPlay,		              exec, playerctl play-pause
+bindl = , XF86AudioNext,		              exec, playerctl next
+bindl = , XF86AudioPrev,		              exec, playerctl previous
+bindl = , XF86AudioStop,		              exec, playerctl stop
+bindl = , XF86AudioRewind,		            exec, playerctl position 10-
+bindl = , XF86AudioForward,	              exec, playerctl position 10+
+bindl = , XF86MonBrightnessDown,	        exec, sudo brightnessctl s 5%-
+bindl = , XF86MonBrightnessUp,	          exec, sudo brightnessctl s +5%

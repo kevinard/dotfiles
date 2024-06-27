@@ -94,14 +94,14 @@
 ##     include = ["Inter Desktop/*"]
 
 {{- if ne .env "work" }}
-[".themes"]
-    type = "archive"
-{{- if eq .themeFlavour "latte" }}
-    url = "https://github.com/catppuccin/gtk/releases/latest/download/Catppuccin-{{ title .themeFlavour }}-Standard-{{ title .themeColor }}-Light.zip"
-{{- else }}
-    url = "https://github.com/catppuccin/gtk/releases/latest/download/Catppuccin-{{ title .themeFlavour }}-Standard-{{ title .themeColor }}-Dark.zip"
-{{- end }}
-    refreshPeriod = "744h"
+# [".themes"]
+#     type = "archive"
+# {{- if eq .themeFlavour "latte" }}
+#     url = "https://github.com/catppuccin/gtk/releases/latest/download/Catppuccin-{{ title .themeFlavour }}-Standard-{{ title .themeColor }}-Light.zip"
+# {{- else }}
+#     url = "https://github.com/catppuccin/gtk/releases/latest/download/Catppuccin-{{ title .themeFlavour }}-Standard-{{ title .themeColor }}-Dark.zip"
+# {{- end }}
+#     refreshPeriod = "744h"
 
 [".local/share/sddm/themes"]
   type = "archive"

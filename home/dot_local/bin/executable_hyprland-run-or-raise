@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+
+# This is a run-or-raise implementation for Hyprland.
+#
+# Usage: run-or-raise TYPE SEARCH COMMAND
+# TYPE: how this script will search for existing windows, can be class or title
+# SEARCH: what this script will try to find in existing windows, can be an exact match for class or a regex for title
+# COMMAND: fallback command if no window match the search criteria
+#
+# Examples:
+# bind = $mainMod, A, exec, run-or-raise title nmtui "kitty -e nmtui"
+# bind = $mainMod, B, exec, run-or-raise class firefox firefox
+#
+# How does it work?
+#
+# This script uses "hyprctl clients" to get a list of existing windows.
+# Then, it filters that list by matching the TYPE field (either "class" or "title")
+# with the SEARCH pattern.
+#
+# If it finds no match, it executes the specified COMMAND.
+#
+# If it finds one, it focuses it.
+#
+# If it finds several matches, they are sorted using the "focusHistoryID" field and the last
+# one is focused. This means that the windows will always be cycled through in the same order,
+# usually from oldest to newest. If at some point, one or more matching windows are manually
+# focused, the order will change
+
+[ -z "$1" ] && echo "No type provided" && exit 1
+[ -z "$2" ] && echo "No class/title provided" && exit 1
+[ -z "$3" ] && echo "No fallback command provided" && exit 1
+
+target_address=""
+
+case $1 in
+class)
+	target_address=$(hyprctl clients -j | jq -r '[.[] | select(.class == "'$2'")] | sort_by(.focusHistoryID) | .[-1:] | .[] | .address')
+	;;
+title)
+	target_address=$(hyprctl clients -j | jq -r '[.[] | select(.title | test("'$2'"))] | sort_by(.focusHistoryID) | .[-1:] | .[] | .address')
+	;;
+esac
+
+if [[ -z $target_address ]]; then
+	hyprctl dispatch -- exec $3
+else
+	hyprctl dispatch "focuswindow address:${target_address}"
+fi

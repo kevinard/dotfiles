@@ -1,0 +1,13 @@
+[Match]
+Type=wlan
+WLANInterfaceType=station
+
+[Network]
+DHCP=yes
+IgnoreCarrierLoss=3s
+
+[DHCPv4]
+RouteMetric=600
+
+[IPv6AcceptRA]
+RouteMetric=600

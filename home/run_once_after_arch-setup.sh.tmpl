@@ -14,6 +14,11 @@ sudo usermod -aG storage,wheel {{ .chezmoi.username }}
 sudo mkdir -p /etc/polkit-1/rules.d
 sudo cp -r ~/.local/etc/polkit-1/rules.d/* /etc/polkit-1/rules.d/
 
+# setup cups
+sudo systemctl enable cups.socket
+
+sudo systemctl enable power-profiles-daemon
+
 # setup theme
 {{ if eq .themeFlavour "latte" }}
 DARK_OR_LIGHT="Light"

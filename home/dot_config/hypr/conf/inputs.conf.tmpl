@@ -1,0 +1,54 @@
+input {
+{{- if eq .env "home" }}
+    kb_layout = us
+    kb_variant = altgr-intl
+{{- end }}
+{{- if eq .env "work" }}
+    kb_layout = fr
+{{- end }}
+    kb_options = shift:both_capslock,caps:escape
+    numlock_by_default = true
+    repeat_rate = 40
+    repeat_delay = 300
+
+    touchpad {
+        disable_while_typing = false
+        natural_scroll = false
+        tap_button_map = lrm
+        clickfinger_behavior = true
+        tap-to-click = true
+        drag_lock = true
+        tap-and-drag = true
+        scroll_factor = 1.0
+    }
+
+    follow_mouse = 1
+    float_switch_override_focus = 2
+    special_fallthrough = true
+    accel_profile = adaptive
+    natural_scroll = false
+    mouse_refocus = true
+    scroll_factor = 1.0
+    sensitivity = 0 # -1.0 - 1.0, 0 means no modification.
+    resolve_binds_by_sym = 1
+}
+
+{{- if eq .env "work" }}
+device {
+    name = keychron-keychron-k2-pro
+    kb_layout = us
+    kb_variant = altgr-intl
+}
+
+device {
+    name = keychron-keychron-k2
+    kb_layout = us
+    kb_variant = altgr-intl
+}
+
+device {
+    name = keychron-keychron-k8
+    kb_layout = us
+    kb_variant = altgr-intl
+}
+{{- end }}

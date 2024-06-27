@@ -1,6 +1,9 @@
 {{- if ne .env "home" }}
 .local/bin/battery
 .local/bin/dropdowncalc
+.local/bin/hyprland-run-or-raise
+.local/bin/hyprland-samedir
+.local/etc
 {{- end }}
 {{- if ne .env "work" }}
 .local/bin/authenticator
@@ -9,5 +12,5 @@
 .local/bin/fd
 .local/share/applications/chromium.desktop
 .local/share/applications/code.desktop
+.config/systemd/user/startpage-work.service
 {{- end }}
-user.js
