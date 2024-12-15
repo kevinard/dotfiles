@@ -39,6 +39,7 @@ packages:
   arch:
     pacman:
       - "zsh"
+      - "zsh-completions"
       - "vim"
       # - "networkmanager"
       - "sudo"
@@ -120,8 +121,8 @@ packages:
       - "gstreamer"
       - "usbutils"
       - "reflector"
-      - "systemd-resolvconf"
-      - "wpa_supplicant"
+      # - "systemd-resolvconf"
+      # - "wpa_supplicant"
       - "power-profiles-daemon"
       - "tree-sitter-cli"
       - "luarocks"

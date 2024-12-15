@@ -30,7 +30,7 @@
   "clock": {
     "format": "{:%a %d %b %H:%M}",
     "locale": "fr_FR.utf8",
-    "tooltip-format": "",
+    "tooltip": false,
   },
   "battery": {
     "states": {
@@ -48,13 +48,19 @@
     "tooltip-format-wifi": "{essid} ({signalStrength}%)\nIP: {ipaddr}\n {bandwidthUpBits} -  {bandwidthDownBits}",
     "tooltip-format-ethernet": "{ifname}\n {bandwidthUpBits} -  {bandwidthDownBits}",
     "tooltip-format-disconnected": "Disconnected",
-    "on-click": "kitty -e nmtui",
+{{- if eq .env "home" }}
+    "on-click": "$HOME/.config/waybar/scripts/wifimenu.sh",
+{{- end }}
+{{- if eq .env "work" }}
+    "on-click": "$HOME/.config/waybar/scripts/wifimenu.sh",
+    "on-right-click": "kitty -e nmtui",
+{{- end }}
     "interval": 20
   },
   "pulseaudio": {
     "format": "{volume}% {icon}",
     "format-bluetooth": "{volume}% {icon}",
-    "format-muted": "婢",
+    "format-muted": "{volume}% 婢",
     "format-icons": {
       "headphones": "",
       "handsfree": "",
@@ -68,7 +74,7 @@
   },
   "wireplumber": {
       "format": "{volume}% {icon}",
-      "format-muted": "婢",
+      "format-muted": "{volume}% 婢",
       "on-click": "helvum",
       "format-icons": ["", "", ""]
   },
@@ -90,6 +96,12 @@
       "power-saver": ""
     }
   },
+  "custom/power": {
+      "format": " ",
+      "tooltip": false,
+      "on-click": "wlogout",
+      "interval" : 86400
+  },
 {{- if eq .env "home" }}
   "custom/media": {
     "format": "{icon} {}",
@@ -105,7 +117,7 @@
     "smooth-scrolling-threshold": 10, // This value was tested using a trackpad, it should be lowered if using a mouse.
     "on-scroll-up": "playerctl next",
     "on-scroll-down": "playerctl previous",
-    "exec": "$HOME/.config/waybar/mediaplayer.py 2> /dev/null", // Script in resources/custom_modules folder
+    "exec": "$HOME/.config/waybar/scripts/mediaplayer.py 2> /dev/null", // Script in resources/custom_modules folder
   },
   "custom/pacman": {
     "format": "{} ",

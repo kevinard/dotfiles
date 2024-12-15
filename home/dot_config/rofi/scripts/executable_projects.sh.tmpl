@@ -3,7 +3,12 @@
 PROJECTS_PATHS=({{ .projectsPaths }})
 
 open_project(){
+{{- if eq .env "home" }}
+  hyprctl dispatch exec "kitty -d $1 nvim &" > /dev/null
+{{- end }}
+{{- if eq .env "work" }}
   swaymsg exec "kitty -d $1 nvim &" > /dev/null
+{{- end }}
 }
 
 # Add chezmoi and nvim dotfiles dir in projects list

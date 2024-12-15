@@ -41,7 +41,7 @@ zstyle ':completion:*:*:docker-*:*' option-stacking yes
 # Custom plugins may be added to $ZSH_CUSTOM/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
-plugins=(git colored-man-pages extract spaceship-section-scalingo docker docker-compose fd fzf jsontools ripgrep zsh-syntax-highlighting zsh-history-substring-search zsh-autosuggestions)
+plugins=(git colored-man-pages extract spaceship-section-scalingo docker docker-compose fzf jsontools zsh-syntax-highlighting zsh-history-substring-search zsh-autosuggestions)
 
 source $ZSH/oh-my-zsh.sh
 

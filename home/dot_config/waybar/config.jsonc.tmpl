@@ -1,0 +1,23 @@
+{
+  "layer": "top",
+  "position": "top",
+  "mode": "dock",
+  "height": 30,
+  "exclusive": true,
+  "passthrough": false,
+  "gtk-layer-shell": true,
+  "reload_style_on_change": true,
+  "include": [
+    "~/.config/waybar/default-modules.json",
+  ],
+{{- if eq .env "home" }}
+  "modules-left": ["hyprland/workspaces", "hyprland/submap"],
+  "modules-center": ["hyprland/window"],
+  "modules-right": ["tray", "power-profiles-daemon", "custom/pacman", "idle_inhibitor", "pulseaudio", "network", "battery", "clock", "custom/power"],
+{{- end }}
+{{- if eq .env "work" }}
+  "modules-left": ["sway/workspaces", "sway/mode"],
+  "modules-center": ["sway/window"],
+  "modules-right": ["tray", "power-profiles-daemon", "idle_inhibitor", "pulseaudio", "network", "battery", "clock", "custom/power"],
+{{- end }}
+}

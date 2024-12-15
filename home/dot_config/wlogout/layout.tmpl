@@ -12,7 +12,12 @@
 }
 {
     "label" : "logout",
+{{- if eq .env "home" }}
+    "action" : "hyprctl dispatch exit 0",
+{{- end }}
+{{- if eq .env "work" }}
     "action" : "swaymsg exit",
+{{- end }}
     "text" : "Logout (e)",
     "keybind" : "e",
 }
@@ -24,7 +29,7 @@
 }
 {
     "label" : "suspend",
-    "action" : "systemctl suspend",
+    "action" : "loginctl lock-session && systemctl suspend",
     "text" : "Suspend (u)",
     "keybind" : "u",
 }

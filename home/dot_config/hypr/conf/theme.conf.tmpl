@@ -72,7 +72,7 @@ misc {
     disable_autoreload = false
     enable_swallow = false
     focus_on_activate = false
-    no_direct_scanout = true
+    # no_direct_scanout = true
     # hide_cursor_on_touch = false
     #hide_cursor_on_key_press = false
     mouse_move_focuses_monitor = true
@@ -83,3 +83,9 @@ misc {
     new_window_takes_over_fullscreen = 0
     # enable_hyprcursor = true
 }
+
+{{- if eq .graphicsStack "nvidia" }}
+cursor {
+    no_hardware_cursors = true
+}
+{{- end }}

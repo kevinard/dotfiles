@@ -6,11 +6,11 @@ ALL_kver="/boot/vmlinuz-linux"
 PRESETS=('default' 'fallback')
 
 #default_config="/etc/mkinitcpio.conf"
-default_image="/boot/initramfs-linux.img"
-default_uki="/efi/EFI/Linux/arch-linux.efi"
+# default_image="/boot/initramfs-linux.img"
+default_uki="/efi/arch-linux.efi"
 #default_options="--splash /usr/share/systemd/bootctl/splash-arch.bmp"
 
 #fallback_config="/etc/mkinitcpio.conf"
-fallback_image="/boot/initramfs-linux-fallback.img"
-fallback_uki="/efi/EFI/Linux/arch-linux-fallback.efi"
-fallback_options="-S autodetect --cmdline /etc/kernel/fallback_cmdline"
+# fallback_image="/boot/initramfs-linux-fallback.img"
+fallback_uki="/efi/arch-linux-fallback.efi"
+fallback_options="-S autodetect"
