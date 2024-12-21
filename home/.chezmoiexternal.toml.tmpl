@@ -54,10 +54,10 @@
     url = "https://github.com/zsh-users/zsh-autosuggestions"
     refreshPeriod = "168h"
 
-[".config/xresources"]
-    type = "file"
-    url = "https://raw.githubusercontent.com/catppuccin/xresources/main/{{ .themeFlavour }}.Xresources"
-    refreshPeriod = "744h"
+# [".config/xresources"]
+#     type = "file"
+#     url = "https://raw.githubusercontent.com/catppuccin/xresources/main/{{ .themeFlavour }}.Xresources"
+#     refreshPeriod = "744h"
 
 {{- if eq .env "work" }}
 [".local/share/yubico-authenticator"]
@@ -65,6 +65,15 @@
     url = "https://developers.yubico.com/yubioath-flutter/Releases/yubico-authenticator-latest-linux.tar.gz"
     refreshPeriod = "744h"
     stripComponents = 1
+
+{{ $miseVersion := "v2024.11.37" -}}
+[".local/bin/mise"]
+    type = "archive-file"
+    url = "https://github.com/jdx/mise/releases/download/{{ $miseVersion }}/mise-{{ $miseVersion }}-linux-x64.tar.gz"
+    refreshPeriod = "744h"
+    stripComponents = 1
+    path = "bin/mise"
+
 {{- end }}
 
 ## [".local/share/fonts/NerdFontsSymbols"]

@@ -41,7 +41,7 @@ SPACESHIP_PROMPT_ORDER=(
   # purescript     # PureScript section
   # erlang         # Erlang section
   # kubectl        # Kubectl context section
-  # ansible        # Ansible section
+  ansible        # Ansible section
   terraform      # Terraform workspace section
   # pulumi         # Pulumi stack section
   # ibmcloud       # IBM Cloud section
