@@ -2,7 +2,7 @@
 
 source "${ZDOTDIR:-$HOME}/custom/themes/catppuccin_{{ .themeFlavour }}-zsh-syntax-highlighting.zsh"
 
-xrdb -merge $XDG_CONFIG_HOME/xresources
+# xrdb -merge $XDG_CONFIG_HOME/xresources
 
 # fzf
 export FZF_DEFAULT_COMMAND='fd --type f --strip-cwd-prefix --hidden --follow --exclude .git'

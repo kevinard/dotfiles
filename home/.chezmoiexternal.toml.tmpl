@@ -112,13 +112,15 @@
     refreshPeriod = "744h"
     stripComponents = 1
 
-[".icons/papirus-icon-theme"]
-    type = "git-repo"
-    url = "https://github.com/PapirusDevelopmentTeam/papirus-icon-theme.git"
-    refreshPeriod = "744h"
-
 [".icons/papirus-folders"]
     type = "git-repo"
     url = "https://github.com/catppuccin/papirus-folders.git"
     refreshPeriod = "744h"
+
+[".local/bin/papirus-folders"]
+    type = "file"
+    url = "https://raw.githubusercontent.com/PapirusDevelopmentTeam/papirus-folders/refs/heads/master/papirus-folders"
+    refreshPeriod = "744h"
+    executable = true
+
 {{- end }}
