@@ -1,8 +1,16 @@
 {{- if eq .chezmoi.osRelease.id "ubuntu" -}}
 #!/bin/bash
 
+# change sddm theme
+sudo mkdir -p /etc/sddm.conf.d
+sudo cp -r ~/.local/etc/sddm.conf.d/wayland.conf /etc/sddm.conf.d/wayland.conf
+sudo cp -r ~/.local/etc/sddm.conf.d/maya.theme.conf.user /usr/share/sddm/themes/maya/theme.conf.user
 # enable services
 sudo systemctl enable --now pcscd
 systemctl --user enable --now startpage.service
 systemctl --user enable --now startpage-work.service
+systemctl --user enable --now waybar
+systemctl --user enable --now swayidle
+systemctl --user enable --now kanshi
+systemctl --user enable --now mako
 {{ end -}}

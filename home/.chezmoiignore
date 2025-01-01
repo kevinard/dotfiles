@@ -3,7 +3,7 @@
 .local/bin/dropdowncalc
 .local/bin/hyprland-run-or-raise
 .local/bin/hyprland-samedir
-.local/etc
+.config/hypr
 {{- end }}
 {{- if ne .env "work" }}
 .local/bin/authenticator

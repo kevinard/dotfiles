@@ -5,12 +5,6 @@
     executable = true
 
 {{- if eq .chezmoi.osRelease.id "arch" }}
-[".local/bin/grimshot"]
-    type = "file"
-    url = "https://raw.githubusercontent.com/OctopusET/sway-contrib/master/grimshot"
-    refreshPeriod = "168h"
-    executable = true
-
 [".local/bin/grimblast"]
     type = "file"
     url = "https://raw.githubusercontent.com/hyprwm/contrib/main/grimblast/grimblast"
@@ -53,11 +47,6 @@
     type = "git-repo"
     url = "https://github.com/zsh-users/zsh-autosuggestions"
     refreshPeriod = "168h"
-
-# [".config/xresources"]
-#     type = "file"
-#     url = "https://raw.githubusercontent.com/catppuccin/xresources/main/{{ .themeFlavour }}.Xresources"
-#     refreshPeriod = "744h"
 
 {{- if eq .env "work" }}
 [".local/share/yubico-authenticator"]

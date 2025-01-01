@@ -30,7 +30,9 @@ packages:
       - "scdaemon"
       - "firefox"
       - "pcscd"
-      # - "cliphist"
+      - "sddm"
+      - "cliphist"
+      - "gh"
     snap:
       - "nvim --classic"
       - "chromium"

@@ -1,0 +1,16 @@
+[Unit]
+Description=Idle manager for Wayland
+Documentation=man:swayidle(1)
+PartOf=graphical-session.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/swayidle -w \
+                timeout 300 'swaylock -f -i $XDG_CONFIG_HOME/wall.png' \
+                timeout 600 'swaymsg "output * dpms off"' \
+                     resume 'swaymsg "output * dpms on"' \
+                timeout 900 'systemctl suspend' \
+                before-sleep 'swaylock -f -i $XDG_CONFIG_HOME/wall.png' \
+                lock 'swaylock -f -i $XDG_CONFIG_HOME/wall.png'
+[Install]
+WantedBy=sway-session.target

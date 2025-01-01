@@ -20,6 +20,11 @@ Unattended-Upgrade::Allowed-Origins {
 };
 ' | sudo tee /etc/apt/apt.conf.d/51unattended-upgrades-local
 
+# add the official github repository
+wget -q https://cli.github.com/packages/githubcli-archive-keyring.gpg -O- | sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg >/dev/null
+# sudo chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg
+echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list >/dev/null
+
 # install apt packages
 sudo apt update
 sudo apt install {{ range .packages.ubuntu.apt -}}{{ . }} {{ end }}

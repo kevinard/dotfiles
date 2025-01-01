@@ -1,16 +1,19 @@
 #exec systemctl --user import-environment DISPLAY WAYLAND_DISPLAY SWAYSOCK XDG_CURRENT_DESKTOP
 #exec hash dbus-update-activation-environment 2>/dev/null && \
 #     dbus-update-activation-environment --systemd DISPLAY WAYLAND_DISPLAY SWAYSOCK XDG_CURRENT_DESKTOP
-exec systemctl --user import-environment
-exec hash dbus-update-activation-environment 2>/dev/null && \
-     dbus-update-activation-environment --systemd --all
+# exec systemctl --user import-environment
+# exec hash dbus-update-activation-environment 2>/dev/null && \
+     # dbus-update-activation-environment --systemd --all
+exec $XDG_CONFIG_HOME/sway/scripts/session.sh
 {{- if eq .env "home" }}
 exec --no-startup-id /usr/lib/polkit-kde-authentication-agent-1 &
 {{- end }}
 exec_always import-gsettings
 exec_always --no-startup-id autotiling &
-exec --no-startup-id kanshi &
-exec --no-startup-id mako &
+# exec --no-startup-id kanshi &
+# exec --no-startup-id mako &
+exec --no-startup-id wl-paste --type text --watch cliphist store &
+exec --no-startup-id wl-paste --type image --watch cliphist store &
 {{- if eq .env "home" }}
 exec "telegram-desktop &"
 {{- end }}
@@ -21,10 +24,10 @@ exec "slack &"
 exec --no-startup-id $BROWSER &
 exec --no-startup-id thunderbird &
 
-exec --no-startup-id swayidle -w \
-                timeout 300 'swaylock -f -i $XDG_CONFIG_HOME/wall.png' \
-                timeout 600 'swaymsg "output * dpms off"' \
-                     resume 'swaymsg "output * dpms on"' \
-                timeout 900 'systemctl suspend' \
-                before-sleep 'swaylock -f -i $XDG_CONFIG_HOME/wall.png' \
-                lock 'swaylock -f -i $XDG_CONFIG_HOME/wall.png' &
+# exec --no-startup-id swayidle -w \
+#                 timeout 300 'swaylock -f -i $XDG_CONFIG_HOME/wall.png' \
+#                 timeout 600 'swaymsg "output * dpms off"' \
+#                      resume 'swaymsg "output * dpms on"' \
+#                 timeout 900 'systemctl suspend' \
+#                 before-sleep 'swaylock -f -i $XDG_CONFIG_HOME/wall.png' \
+#                 lock 'swaylock -f -i $XDG_CONFIG_HOME/wall.png' &
