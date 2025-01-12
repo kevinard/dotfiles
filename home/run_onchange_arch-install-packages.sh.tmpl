@@ -1,5 +1,12 @@
 {{- if eq .chezmoi.osRelease.id "arch" -}}
 #!/bin/sh
 
-sudo pacman -S --needed {{ range .packages.arch.pacman -}}{{ . }} {{ end }}
+if ! type paru >/dev/null 2>&1; then
+  mkdir -p ~/.cache/paru/clone
+  git clone https://aur.archlinux.org/paru.git ~/.cache/paru/clone/paru
+  cd ~/.cache/paru/clone/paru
+  makepkg -si
+fi
+
+paru -S --needed {{ range .packages.arch.pacman -}}{{ . }} {{ end }}
 {{ end -}}

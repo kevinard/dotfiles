@@ -119,8 +119,8 @@ bindsym $mod+Shift+Right                        move right
 bindsym $mod+Shift+l		                        move right
 
 # session management
-bindsym $mod+x		                              exec swaylock -f -i $XDG_CONFIG_HOME/wall.png
-bindsym $mod+Shift+x		                        exec wlogout -c 20 -r 20 -m 300 -p layer-shell
+bindsym $mod+x		                              exec loginctl lock-session
+bindsym $mod+Shift+x		                        exec rofi -show powermenu -theme powermenu
 
 # hide waybar
 bindsym $mod+b			                            exec killall -SIGUSR1 waybar
@@ -190,6 +190,9 @@ bindsym $mod+m                                  swap container with mark "_swapm
 
 # launcher
 bindsym $mod+d			                            exec rofi -show drun
+
+# clipboard
+bindsym $mod+v                                  exec rofi -show cliphist -modi cliphist
 
 # dropdown app
 {{- if eq .env "home" }}

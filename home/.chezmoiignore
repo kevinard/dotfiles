@@ -12,5 +12,9 @@
 .local/bin/fd
 .local/share/applications/chromium.desktop
 .local/share/applications/code.desktop
+.local/share/applications/com.yubico.authenticator.desktop
 .config/systemd/user/startpage-work.service
+.local/share/fonts/NerdFontsSymbolsOnly
+.config/sway
+.config/swaylock
 {{- end }}

@@ -49,10 +49,11 @@
     "tooltip-format-ethernet": "{ifname}\n {bandwidthUpBits} -  {bandwidthDownBits}",
     "tooltip-format-disconnected": "Disconnected",
 {{- if eq .env "home" }}
-    "on-click": "$HOME/.config/waybar/scripts/wifimenu.sh",
+    "on-click": "iwmenu -m rofi",
+    "on-right-click": "kitty -e iwctl",
 {{- end }}
 {{- if eq .env "work" }}
-    "on-click": "$HOME/.config/waybar/scripts/wifimenu.sh",
+    "on-click": "$HOME/.config/rofi/scripts/wifimenu.sh",
     "on-right-click": "kitty -e nmtui",
 {{- end }}
     "interval": 20
@@ -99,7 +100,7 @@
   "custom/power": {
       "format": " ",
       "tooltip": false,
-      "on-click": "wlogout",
+      "on-click": "rofi -show powermenu -theme powermenu",
       "interval" : 86400
   },
 {{- if eq .env "home" }}
@@ -124,7 +125,7 @@
     "interval": 3600,                     // every hour
     "exec": "checkupdates | wc -l",       // # of updates
     "exec-if": "[[ `checkupdates | wc -l` -gt 0 ]]",
-    "on-click": "kitty sh -c 'yay -Syu'; pkill -SIGRTMIN+8 waybar", // update system
+    "on-click": "kitty sh -c 'paru -Syu'; pkill -SIGRTMIN+8 waybar", // update system
     "signal": 8
   }
 {{- end }}
