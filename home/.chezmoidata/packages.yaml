@@ -10,6 +10,8 @@ packages:
       - "fonts-inter"
       - "fonts-jetbrains-mono"
       - "fonts-croscore"
+      - "fonts-crosextra-caladea"
+      - "fonts-crosextra-carlito"
       - "gsfonts"
       - "ripgrep"
       - "kanshi"
