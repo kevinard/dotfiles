@@ -4,6 +4,8 @@ WLANInterfaceType=station
 
 [Network]
 DHCP=yes
+LLMNR=no
+MulticastDNS=yes
 IgnoreCarrierLoss=3s
 
 [DHCPv4]

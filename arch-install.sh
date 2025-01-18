@@ -33,10 +33,16 @@ mount --mkdir $bootPartition /mnt/efi
 
 pacstrap -K /mnt base linux linux-firmware intel-ucode neovim iwd efibootmgr sbctl sbsigntools git chezmoi reflector fwupd less sudo pacman-contrib base-devel nvidia nvidia-utils libva-nvidia-driver intel-media-driver
 
+# this needs to be done from outside the arch-chroot
+ln -sf ../run/systemd/resolve/stub-resolv.conf /mnt/etc/resolv.conf
+
 arch-chroot /mnt
 
-## download dotfiles and run arch-setup.sh
-## everything below should be moved to arch-setup.sh
+## download dotfiles
+
+# copy config files
+cp -r boot/* /boot/
+cp -r etc/* /etc/
 
 ln -sf /usr/share/zoneinfo/Europe/Paris /etc/localtime
 

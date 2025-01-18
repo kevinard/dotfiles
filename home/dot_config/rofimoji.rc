@@ -1,0 +1,6 @@
+action = type
+files = [emojis, nerd_font, math]
+skin-tone = neutral
+selector-args="-theme grid -kb-row-left Left -kb-row-right Right -kb-move-char-back Control+b -kb-move-char-forward Control+f"
+hidden-descriptions=false
+use-icons=True

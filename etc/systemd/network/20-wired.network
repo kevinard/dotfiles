@@ -4,6 +4,8 @@ Type=ether
 
 [Network]
 DHCP=yes
+LLMNR=no
+MulticastDNS=yes
 
 [DHCPv4]
 RouteMetric=100
