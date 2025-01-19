@@ -98,19 +98,27 @@ bind = CTRL ALT, Print, exec, grimblast save screen - | swappy -f -
 
 # #---Extra XF86 Keys---# #
 # These are the extra media keys that some keyboards have.
-bindl = , XF86AudioMute,		              exec, pactl set-sink-mute @DEFAULT_SINK@ toggle
-bindl = , XF86AudioLowerVolume,	          exec, pactl set-sink-volume @DEFAULT_SINK@ -5%
-bindl = SHIFT, XF86AudioLowerVolume,	    exec, pactl set-sink-volume @DEFAULT_SINK@ -10%
-bindl = CTRL, XF86AudioLowerVolume,	      exec, pactl set-sink-volume @DEFAULT_SINK@ -1%
-bindl = , XF86AudioRaiseVolume,	          exec, pactl set-sink-volume @DEFAULT_SINK@ +5%
-bindl = SHIFT, XF86AudioRaiseVolume,	    exec, pactl set-sink-volume @DEFAULT_SINK@ +10%
-bindl = CTRL, XF86AudioRaiseVolume,   	  exec, pactl set-sink-volume @DEFAULT_SINK@ +1%
-bindl = , XF86AudioMicMute,	              exec, pactl set-source-mute @DEFAULT_SOURCE@ toggle
+# bindl = , XF86AudioMute,		              exec, pactl set-sink-mute @DEFAULT_SINK@ toggle
+# bindl = , XF86AudioLowerVolume,	          exec, pactl set-sink-volume @DEFAULT_SINK@ -5%
+# bindl = SHIFT, XF86AudioLowerVolume,	    exec, pactl set-sink-volume @DEFAULT_SINK@ -10%
+# bindl = CTRL, XF86AudioLowerVolume,	      exec, pactl set-sink-volume @DEFAULT_SINK@ -1%
+# bindl = , XF86AudioRaiseVolume,	          exec, pactl set-sink-volume @DEFAULT_SINK@ +5%
+# bindl = SHIFT, XF86AudioRaiseVolume,	    exec, pactl set-sink-volume @DEFAULT_SINK@ +10%
+# bindl = CTRL, XF86AudioRaiseVolume,   	  exec, pactl set-sink-volume @DEFAULT_SINK@ +1%
+# bindl = , XF86AudioMicMute,	              exec, pactl set-source-mute @DEFAULT_SOURCE@ toggle
+bindl = , XF86AudioMute,		              exec, wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle && wpctl get-volume @DEFAULT_AUDIO_SINK@ | awk '{print $2*100}' | notify-progress audio
+bindl = , XF86AudioLowerVolume,	          exec, wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%- && wpctl get-volume @DEFAULT_AUDIO_SINK@ | awk '{print $2*100}' | notify-progress audio
+bindl = SHIFT, XF86AudioLowerVolume,	    exec, wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 10%- && wpctl get-volume @DEFAULT_AUDIO_SINK@ | awk '{print $2*100}' | notify-progress audio
+bindl = CTRL, XF86AudioLowerVolume,	      exec, wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 1%- && wpctl get-volume @DEFAULT_AUDIO_SINK@ | awk '{print $2*100}' | notify-progress audio
+bindl = , XF86AudioRaiseVolume,	          exec, wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+ && wpctl get-volume @DEFAULT_AUDIO_SINK@ | awk '{print $2*100}' | notify-progress audio
+bindl = SHIFT, XF86AudioRaiseVolume,	    exec, wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 10%+ && wpctl get-volume @DEFAULT_AUDIO_SINK@ | awk '{print $2*100}' | notify-progress audio
+bindl = CTRL, XF86AudioRaiseVolume,   	  exec, wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 1%+ && wpctl get-volume @DEFAULT_AUDIO_SINK@ | awk '{print $2*100}' | notify-progress audio
+bindl = , XF86AudioMicMute,	              exec, wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle
 bindl = , XF86AudioPlay,		              exec, playerctl play-pause
 bindl = , XF86AudioNext,		              exec, playerctl next
 bindl = , XF86AudioPrev,		              exec, playerctl previous
 bindl = , XF86AudioStop,		              exec, playerctl stop
 bindl = , XF86AudioRewind,		            exec, playerctl position 10-
 bindl = , XF86AudioForward,	              exec, playerctl position 10+
-bindl = , XF86MonBrightnessDown,	        exec, sudo brightnessctl s 5%-
-bindl = , XF86MonBrightnessUp,	          exec, sudo brightnessctl s +5%
+bindl = , XF86MonBrightnessDown,	        exec, sudo brightnessctl -m s 5%- | awk -F',' '{print $4+0}' | notify-progress brightness
+bindl = , XF86MonBrightnessUp,	          exec, sudo brightnessctl -m s +5% | awk -F',' '{print $4+0}' | notify-progress brightness

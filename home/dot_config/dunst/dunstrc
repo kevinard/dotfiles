@@ -1,0 +1,64 @@
+[global]
+    # NOTE: Dunst from version 1.11 and older don't support dynamic height
+    #       and width and the given value is treated as the maximum height
+    width = 350
+    width = (0, 350)
+    height = 300
+    height = (0, 300)
+
+    # NOTE: Dunst from version 1.11 and older use this alternative notation
+    # offset = 10x50
+    offset = 15x40
+    # offset = (15, 40)
+
+    follow = mouse
+    enable_posix_regex = true
+    origin = top-right
+    notification_limit = 5
+    progress_bar_frame_width = 0
+    progress_bar_corner_radius = 3
+    icon_corner_radius = 4
+    indicate_hidden = yes
+    padding = 8
+    horizontal_padding = 8
+    frame_width = 1
+    frame_color = "#89b4fa"
+    highlight = "#89b4fa"
+    gap_size = 8
+    sort = update
+    font = sans-serif 12
+    markup = full
+    format = "<small>%a</small>\n<big><b>%s</b></big>\n%b"
+    enable_recursive_icon_lookup = true
+    icon_theme = Papirus
+    history_length = 30
+    dmenu = rofi -dmenu -p 'dunst:'
+    corner_radius = 10
+
+[urgency_low]
+    background = "#1e1e2e"
+    foreground = "#cdd6f4"
+    timeout = 4
+    default_icon = dialog-information
+
+[urgency_normal]
+    background = "#1e1e2e"
+    foreground = "#cdd6f4"
+    timeout = 5
+    override_pause_level = 30
+    default_icon = dialog-information
+
+[urgency_critical]
+    background = "#1e1e2e"
+    foreground = "#cdd6f4"
+    frame_color = "#fab387"
+    timeout = 0
+    override_pause_level = 60
+    default_icon = dialog-warning
+
+[fullscreen_delay_everything]
+    fullscreen = delay
+
+[fullscreen_show_critical]
+    msg_urgency = critical
+    fullscreen = show

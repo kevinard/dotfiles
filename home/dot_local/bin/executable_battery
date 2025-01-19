@@ -4,25 +4,25 @@ BAT0_capacity=$(cat /sys/class/power_supply/BAT0/capacity) || exit
 BAT1_capacity=$(cat /sys/class/power_supply/BAT1/capacity) || exit
 
 case $BLOCK_BUTTON in
-    3) pgrep -x mako >/dev/null && notify-send "<b>🔋 Battery module:</b>
+3) pgrep -x dunst >/dev/null && notify-send "<b>🔋 Battery module:</b>
 ⚡: AC online
 ❗: battery very low!
 BAT0 capacity : $BAT0_capacity
 BAT1 capacity : $BAT1_capacity" ;;
 esac
 
-capacity=`ruby -e "puts ($BAT0_capacity*39/100)+($BAT1_capacity*60/100)"`
+capacity=$(ruby -e "puts ($BAT0_capacity*39/100)+($BAT1_capacity*60/100)")
 status=$(cat /sys/class/power_supply/AC/online)
 
 if [ "$capacity" -ge 75 ]; then
-	color="#b8bb26"
+  color="#b8bb26"
 elif [ "$capacity" -ge 50 ]; then
-	color="#ebdbb2"
+  color="#ebdbb2"
 elif [ "$capacity" -ge 25 ]; then
-	color="#fabd2f"
+  color="#fabd2f"
 else
-	color="#fb4934"
-	warn="❗"
+  color="#fb4934"
+  warn="❗"
 fi
 
 [ -z $warn ] && warn=" "

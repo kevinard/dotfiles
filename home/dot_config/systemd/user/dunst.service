@@ -1,11 +1,11 @@
 [Unit]
 Description=Notification daemon
-Documentation=man:mako(1)
+Documentation=man:dunst(1)
 PartOf=graphical-session.target
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/mako
+ExecStart=/usr/bin/dunst
 
 [Install]
 WantedBy=sway-session.target
