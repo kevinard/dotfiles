@@ -1,0 +1,9 @@
+[Unit]
+Description=Desktop alert warning of low remaining battery
+
+[Service]
+Type=oneshot
+ExecStart={{ .chezmoi.homeDir }}/.local/bin/check-low-battery
+
+[Install]
+WantedBy=graphical.target

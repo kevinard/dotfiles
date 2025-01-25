@@ -30,10 +30,10 @@ bindsym $mod+Shift+t                            move left; move right; layout to
 bindsym $mod+t			                            split toggle
 
 # focus the parent container
-bindsym $mod+Escape                             focus parent
+bindsym $mod+Shift+Escape                       focus parent
 
 # focus the child container
-bindsym $mod+Shift+Escape                       focus child
+# bindsym $mod+Shift+Escape                       focus child
 
 # Resize
 set $mode_resize Resize Window: ←/h, ↓/j, ↑/k, →/l
@@ -120,7 +120,7 @@ bindsym $mod+Shift+l		                        move right
 
 # session management
 bindsym $mod+x		                              exec loginctl lock-session
-bindsym $mod+Shift+x		                        exec rofi -show powermenu -theme powermenu
+bindsym $mod+Escape 		                        exec rofi -show powermenu -theme powermenu
 
 # hide waybar
 bindsym $mod+b			                            exec killall -SIGUSR1 waybar
@@ -197,15 +197,14 @@ mode "$mode_swap" {
 bindsym $mod+m                                  swap container with mark "_swapm"
 
 # launcher
-bindsym $mod+d			                            exec rofi -show drun
+bindsym $mod+r			                            exec rofi -show drun
 
 # clipboard
 bindsym $mod+v                                  exec rofi -show cliphist -modi cliphist
 
 # dropdown app
 {{- if eq .env "home" }}
-# bindsym $mod+a			                            exec ddspawnterm dropdowncalc
-bindsym $mod+a      	                          exec swaymsg [con_mark="dropdowncalc"] scratchpad show || exec kitty -T "dropdowncalc" dropdowncalc
+bindsym $mod+a      	                          exec rofi -show calc -modi calc -no-show-match -no-sort
 {{- end }}
 {{- if eq .env "work" }}
 bindsym $mod+a      	                          exec swaymsg [app_id="authenticator"] scratchpad show || exec authenticator

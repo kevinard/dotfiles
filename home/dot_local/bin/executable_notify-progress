@@ -2,19 +2,16 @@
 
 # progress-notify - Send audio and brightness notifications for dunst
 
-# dependencies: dunstify, ponymix, Papirus (icons)
+# dependencies: dunstify, wpctl, Papirus (icons)
 
 ### How to use: ###
 # Pass the values via stdin and provide the notification type
-# as an argument. Options are audio, brightness and muted
+# as an argument. Options are audio and brightness
 
 ### Audio notifications ###
-#   ponymix increase 5 | notify audio
-#   ponymix decrease 5 | notify audio
-#   pulsemixer --toggle-mute --get-mute | notify muted
+#   wpctl get-volume @DEFAULT_AUDIO_SINK@ | notify audio
 ### Brightness notifications ###
-#   xbacklight -inc 5  && xbacklight -get | notify brightness
-#   xbacklight -dec 5  && xbacklight -get | notify brightness
+#   sudo brightnessctl -m s 5%- | awk -F',' '{print $4+0}' | notify brightness
 
 notifyMuted() {
   volume="$1"
@@ -58,7 +55,6 @@ audio)
 brightness)
   notifyBrightness "$input"
   ;;
-
 *)
   echo "Not the right arguments"
   echo "$1"

@@ -32,6 +32,9 @@ papirus-folders -C cat-{{ .themeFlavour }}-{{ .themeColor }} --theme Papirus-$DA
 
 # startpage
 systemctl --user enable --now startpage.service
+{{- if eq .onBattery "yes" }}
+systemctl --user enable --now battery-alert.timer
+{{ end -}}
 
 # update plocate db
 sudo updatedb

@@ -91,6 +91,11 @@
 ##     stripComponents = 1
 ##     include = ["Inter Desktop/*"]
 
+[".local/share/sddm/themes"]
+type = "archive"
+url = "https://github.com/catppuccin/sddm/releases/latest/download/catppuccin-{{ .themeFlavour }}.zip"
+refreshPeriod = "744h"
+
 {{- if ne .env "work" }}
 # [".themes"]
 #     type = "archive"
@@ -100,11 +105,6 @@
 #     url = "https://github.com/catppuccin/gtk/releases/latest/download/Catppuccin-{{ title .themeFlavour }}-Standard-{{ title .themeColor }}-Dark.zip"
 # {{- end }}
 #     refreshPeriod = "744h"
-
-[".local/share/sddm/themes"]
-  type = "archive"
-  url = "https://github.com/catppuccin/sddm/releases/latest/download/catppuccin-{{ .themeFlavour }}.zip"
-  refreshPeriod = "744h"
 
 [".icons/Catppuccin-{{ title .themeFlavour }}-{{ title .themeCursorColor }}-Cursors"]
     type = "archive"

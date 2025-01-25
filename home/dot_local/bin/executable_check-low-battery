@@ -1,0 +1,28 @@
+#!/bin/sh
+
+# Base path for power supply
+POWER_SUPPLY_PATH="/sys/class/power_supply"
+
+total_capacity=0
+current_capacity=0
+
+# Iterate through all batteries
+for battery in "$POWER_SUPPLY_PATH"/BAT*; do
+  if [ -d "$battery" ]; then
+    total_capacity=$((total_capacity + $(cat "$battery/charge_full")))
+    current_capacity=$((current_capacity + $(cat "$battery/charge_now"))) # Assuming each battery is 100%
+  fi
+done
+
+# Calculate overall battery percentage
+if [ "$total_capacity" -gt 0 ]; then
+  overall_percent=$((current_capacity * 100 / total_capacity))
+else
+  echo "No batteries found."
+  exit 1
+fi
+
+# Check if overall battery is below 15% and not charging
+if [ "$overall_percent" -lt 15 ] && [ "$(cat /sys/class/power_supply/AC/online)" -eq 0 ]; then
+  dunstify --urgency=critical "Low Battery Warning" "Battery is at $overall_percent%. Please plug in your charger."
+fi

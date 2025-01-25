@@ -7,6 +7,7 @@
 {{- $themeCursorColor := promptStringOnce . "themeCursorColor" "Catppuccin Cursor Color ? (rosewater/maroon/pink/teal/peach/sapphire/red/flamingo/green/mauve/sky/yellow/blue/lavender/dark/light)" -}}
 {{- $projectsPaths := promptStringOnce . "projectsPaths" "Projects Paths ? (list of paths separated by a space)" -}}
 {{- $graphicsStack := promptStringOnce . "graphicsStack" "Graphics Stack ? (intel/nvidia)" -}}
+{{- $onBattery := promptStringOnce . "onBattery" "On Battery ? (yes/no)" -}}
 
 [data]
     env = {{ $env | quote }}
@@ -18,6 +19,7 @@
     themeCursorColor = {{ $themeCursorColor | quote }}
     projectsPaths = {{ $projectsPaths | quote }}
     graphicsStack = {{ $graphicsStack | quote }}
+    onBattery = {{ $onBattery | quote }}
 
 [hooks.read-source-state.pre]
     command = ".local/share/chezmoi/home/.install-password-manager.sh"
