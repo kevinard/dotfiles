@@ -3,6 +3,7 @@
 	name = {{ .fullname }}
 [diff]
 	algorithm = histogram
+  colorMoved = default
 [pull]
 	rebase = false
 [init]
@@ -10,14 +11,30 @@
 
 {{- if eq .env "work" }}
 [url "ssh://git@github.com/"]
-    insteadOf = https://github.com/
+  insteadOf = https://github.com/
 {{- end }}
 
 {{- if ne .gpgsign "no" }}
 # GPG Setup
 [user]
-    signingkey = {{ .gpgsign }}
+  signingkey = {{ .gpgsign }}
 
 [commit]
-    gpgsign = true
+  gpgsign = true
 {{- end }}
+
+[core]
+  pager = delta
+
+[interactive]
+  diffFilter = delta --color-only
+[include]
+	path = {{ .chezmoi.homeDir }}/delta/themes/catppuccin.gitconfig
+[delta]
+  features = catppuccin-mocha zebra-dark
+  navigate = true    # use n and N to move between diff sections
+  line-numbers = true
+  side-by-side = true
+
+[merge]
+  conflictstyle = zdiff3

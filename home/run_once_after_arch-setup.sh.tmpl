@@ -11,13 +11,12 @@ sudo systemctl enable sddm.service
 
 # setup polkit
 sudo usermod -aG storage,wheel {{ .chezmoi.username }}
-sudo mkdir -p /etc/polkit-1/rules.d
-sudo cp -r ~/.local/etc/polkit-1/rules.d/* /etc/polkit-1/rules.d/
 
 # setup cups
 sudo systemctl enable cups.socket
 
 sudo systemctl enable power-profiles-daemon
+sudo systemctl enable bluetooth.service
 
 # setup theme
 {{ if eq .themeFlavour "latte" }}
@@ -32,9 +31,12 @@ papirus-folders -C cat-{{ .themeFlavour }}-{{ .themeColor }} --theme Papirus-$DA
 
 # startpage
 systemctl --user enable --now startpage.service
-{{- if eq .onBattery "yes" }}
+
+{{ if eq .onBattery "yes" }}
 systemctl --user enable --now battery-alert.timer
-{{ end -}}
+{{ end }}
+
+bat cache --build
 
 # update plocate db
 sudo updatedb

@@ -101,6 +101,12 @@
       "on-click": "rofi -show powermenu -theme powermenu",
       "interval" : 86400
   },
+  "custom/dunst": {
+    "exec": "$HOME/.config/waybar/scripts/dunst.sh",
+    "on-click": "dunstctl set-paused toggle",
+    "return-type": "json",
+    "restart-interval": 1,
+  },
 {{- if eq .env "home" }}
   "custom/media": {
     "format": "{icon} {}",

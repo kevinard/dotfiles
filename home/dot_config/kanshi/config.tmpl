@@ -1,11 +1,20 @@
 {{- if eq .env "home" }}
-profile {
+profile laptop {
 	output "Chimei Innolux Corporation 0x14B1 0x00000000" position 0,0
 }
 
-profile {
+profile laptop-extended {
 	output "Chimei Innolux Corporation 0x14B1 0x00000000" position 0,0
 	output HDMI-A-2 position 1920,0
+}
+
+profile tower-1 {
+	output "Samsung Electric Company S24C650 0x5A584134" position 0,0
+}
+
+profile tower-2 {
+  output "Lenovo Group Limited L32p-30 U511GB2Z" position 0,0
+	output "Samsung Electric Company S24C650 0x5A584134" position 3840,0
 }
 {{- end }}
 {{- if eq .env "work" }}
