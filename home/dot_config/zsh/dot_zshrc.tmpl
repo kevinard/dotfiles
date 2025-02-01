@@ -42,6 +42,8 @@ source $SCALINGO_HOME/tools-and-hacks/zsh/scalingo
 # eval "$(rbenv init -)"
 eval "$(mise activate zsh)"
 alias ans="source $HOME/.local/venv/ansible/bin/activate"
+alias cat='batcat --paging=never'
+alias bat='batcat'
 {{- end }}
 {{- if eq .env "home" }}
 # pacman install

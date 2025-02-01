@@ -50,7 +50,9 @@ packages:
       - "pavucontrol"
       - "bat"
       - "git-delta"
-      - "ddcci-dkms"
+      - "ddcutil"
+      - "tlp"
+      - "smartmontools"
     snap:
       - "nvim --classic"
       - "chromium"

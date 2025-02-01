@@ -1,0 +1,1 @@
+ACTION=="change", SUBSYSTEM=="drm", RUN+="/home/kevin/.local/bin/brightness-control clear"
