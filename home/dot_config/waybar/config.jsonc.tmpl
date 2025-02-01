@@ -14,11 +14,11 @@
 {{- if eq .env "home" }}
   "modules-left": ["hyprland/workspaces", "hyprland/submap", "hyprland/window"],
   "modules-center": ["clock"],
-  "modules-right": ["tray", "power-profiles-daemon", "custom/pacman", "idle_inhibitor", "custom/dunst", "pulseaudio", "network", "battery", "custom/power"],
+  "modules-right": ["tray", "custom/pacman", "idle_inhibitor", "custom/dunst", "pulseaudio", "network", "battery", "custom/power"],
 {{- end }}
 {{- if eq .env "work" }}
   "modules-left": ["sway/workspaces", "sway/mode", "sway/window"],
   "modules-center": ["clock"],
-  "modules-right": ["tray", "power-profiles-daemon", "idle_inhibitor", "pulseaudio", "custom/dunst", "network", "battery", "custom/power"],
+  "modules-right": ["tray", "idle_inhibitor", "pulseaudio", "custom/dunst", "network", "battery", "custom/power"],
 {{- end }}
 }

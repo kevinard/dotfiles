@@ -1,0 +1,2 @@
+# see https://wiki.archlinux.org/title/Power_management#USB_autosuspend
+# ACTION=="add", SUBSYSTEM=="usb", TEST=="power/control", ATTR{power/control}="auto"

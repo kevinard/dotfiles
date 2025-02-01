@@ -1,0 +1,9 @@
+# see /usr/lib/systemd/network/99-default.link for original
+[Match]
+OriginalName=*
+
+[Link]
+NamePolicy=keep kernel database onboard slot path
+AlternativeNamesPolicy=database onboard slot path mac
+MACAddressPolicy=persistent
+WakeOnLan=off

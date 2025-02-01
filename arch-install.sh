@@ -31,7 +31,7 @@ mkfs.fat -F32 $bootPartition
 mount --mkdir /dev/mapper/root /mnt
 mount --mkdir $bootPartition /mnt/efi
 
-pacstrap -K /mnt base linux linux-firmware intel-ucode neovim iwd efibootmgr sbctl sbsigntools git chezmoi reflector fwupd less sudo pacman-contrib base-devel nvidia nvidia-utils libva-nvidia-driver intel-media-driver
+pacstrap -K /mnt base linux linux-firmware iwd efibootmgr sbctl sbsigntools git chezmoi reflector fwupd curl sudo pacman-contrib base-devel
 
 # this needs to be done from outside the arch-chroot
 ln -sf ../run/systemd/resolve/stub-resolv.conf /mnt/etc/resolv.conf
@@ -41,14 +41,12 @@ arch-chroot /mnt
 ## download dotfiles
 
 # copy config files
-cp -r boot/* /boot/
 cp -r etc/* /etc/
 
 ln -sf /usr/share/zoneinfo/Europe/Paris /etc/localtime
 
 hwclock --systohc
 
-# uncomment desired locales (en_US.UTF-8 and fr_FR.UTF-8) in /etc/locale.gen then
 locale-gen
 
 echo -e "LANG=en_US.UTF-8\nLC_TIME=fr_FR.UTF-8" >/etc/locale.conf

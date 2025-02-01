@@ -15,7 +15,9 @@ sudo usermod -aG storage,wheel {{ .chezmoi.username }}
 # setup cups
 sudo systemctl enable cups.socket
 
-sudo systemctl enable power-profiles-daemon
+sudo systemctl mask systemd-rfkill.socket
+sudo systemctl mask systemd-rfkill.service
+sudo systemctl enable tlp.service
 sudo systemctl enable bluetooth.service
 
 # setup theme
