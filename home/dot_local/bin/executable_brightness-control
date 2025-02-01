@@ -9,7 +9,7 @@ CACHE_FILE="${XDG_CACHE_DIR:-$HOME/.cache}/monitor_displays"
 
 # Function to detect monitors and cache results
 detect_monitors() {
-  sudo ddcutil detect | awk '/Display/{display=$2} /Model:/{model=$2; if (!(model in seen)) {print display, model; seen[model]=1}}' >"$CACHE_FILE"
+  ddcutil detect | awk '/Display/{display=$2} /Model:/{model=$2; if (!(model in seen)) {print display, model; seen[model]=1}}' >"$CACHE_FILE"
 }
 
 # Function to get all display numbers from cache or detect
@@ -86,7 +86,7 @@ adjust_brightness() {
   fi
 
   # Set new brightness
-  sudo ddcutil --display=$DISPLAY setvcp $VCP_BRIGHTNESS $NEW_BRIGHTNESS $STEP
+  ddcutil --noverify --display=$DISPLAY setvcp $VCP_BRIGHTNESS $NEW_BRIGHTNESS $STEP
 }
 
 # Adjust brightness on all selected displays

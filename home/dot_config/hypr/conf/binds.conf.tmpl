@@ -120,5 +120,11 @@ bindl = , XF86AudioPrev,		              exec, playerctl previous
 bindl = , XF86AudioStop,		              exec, playerctl stop
 bindl = , XF86AudioRewind,		            exec, playerctl position 10-
 bindl = , XF86AudioForward,	              exec, playerctl position 10+
+{{ if eq .onBattery "yes" }}
 bindl = , XF86MonBrightnessDown,	        exec, sudo brightnessctl -m s 5%- | awk -F',' '{print $4+0}' | notify-progress brightness
 bindl = , XF86MonBrightnessUp,	          exec, sudo brightnessctl -m s +5% | awk -F',' '{print $4+0}' | notify-progress brightness
+{{ end }}
+{{ if eq .onBattery "no" }}
+bindl = , XF86MonBrightnessDown,	        exec, brightness-control down 0
+bindl = , XF86MonBrightnessUp,	          exec, brightness-control up 0
+{{ end }}
