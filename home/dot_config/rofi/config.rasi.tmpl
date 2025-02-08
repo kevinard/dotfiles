@@ -14,6 +14,9 @@ configuration {
 	sort: true;
 	sorting-method: "fzf";
 	normalize-match: true;
+{{- if eq .env "home" }}
+  run-command: "uwsm app -- {cmd}";
+{{- end }}
 
 	drun {
 		/** Parse user desktop files. */

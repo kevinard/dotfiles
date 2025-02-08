@@ -34,15 +34,15 @@ target_address=""
 
 case $1 in
 class)
-	target_address=$(hyprctl clients -j | jq -r '[.[] | select(.class == "'$2'")] | sort_by(.focusHistoryID) | .[-1:] | .[] | .address')
-	;;
+  target_address=$(hyprctl clients -j | jq -r '[.[] | select(.class == "'$2'")] | sort_by(.focusHistoryID) | .[-1:] | .[] | .address')
+  ;;
 title)
-	target_address=$(hyprctl clients -j | jq -r '[.[] | select(.title | test("'$2'"))] | sort_by(.focusHistoryID) | .[-1:] | .[] | .address')
-	;;
+  target_address=$(hyprctl clients -j | jq -r '[.[] | select(.title | test("'$2'"))] | sort_by(.focusHistoryID) | .[-1:] | .[] | .address')
+  ;;
 esac
 
 if [[ -z $target_address ]]; then
-	hyprctl dispatch -- exec $3
+  hyprctl dispatch exec uwsm app -- $3
 else
-	hyprctl dispatch "focuswindow address:${target_address}"
+  hyprctl dispatch "focuswindow address:${target_address}"
 fi

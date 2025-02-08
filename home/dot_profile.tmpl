@@ -17,9 +17,16 @@ export PATH="$HOME/.tfenv/bin:$HOME/.rbenv/bin:$VOLTA_HOME/bin:$HOME/.local/bin:
 export EDITOR='nvim'
 export VISUAL='nvim'
 export PAGER='less'
+{{- if eq .env "home" }}
+export TERMINAL='uwsm app -- kitty'
+export BROWSER='uwsm app -- firefox'
+export READER='uwsm app -- zathura'
+{{- end }}
+{{- if eq .env "work" }}
 export TERMINAL='kitty'
 export BROWSER='firefox'
 export READER='zathura'
+{{- end }}
 export LANG='en_US.UTF-8'
 
 # less/man colors
@@ -33,6 +40,7 @@ export LESSHISTFILE="/dev/null"
 
 export CATPPUCCIN_FLAVOUR="{{ .themeFlavour }}"
 
+{{- if eq .env "work" }}
 if [[ $DESKTOP_SESSION = "sway" ]]; then
   export _JAVA_AWT_WM_NONREPARENTING=1
   export SDL_VIDEODRIVER=wayland
@@ -42,8 +50,11 @@ if [[ $DESKTOP_SESSION = "sway" ]]; then
   export SAL_USE_VCLPLUGIN=gtk3
   export XDG_CURRENT_DESKTOP=sway
   export XDG_SESSION_DESKTOP=sway
-{{- if eq .env "work" }}
   eval $(/usr/bin/gnome-keyring-daemon --start --components=pkcs11,secrets,ssh)
   export SSH_AUTH_SOCK
-{{- end }}
 fi
+{{- end }}
+
+{{- if eq .env "home" }}
+export UWSM_USE_SESSION_SLICE=true
+{{- end }}

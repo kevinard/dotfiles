@@ -213,4 +213,5 @@ packages:
     aur:
       - "iwmenu-git"
       - "wdisplays"
+      - "uwsm"
       # - "ddcci-driver-linux-dkms"

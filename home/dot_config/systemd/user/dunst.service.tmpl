@@ -1,6 +1,6 @@
 [Unit]
-Description=Startpage
-After=network.target
+Description=Dunst Notification Daemon
+Documentation=man:dunst(1)
 {{- if eq .env "work" }}
 After=sway-session.target
 {{- end }}
@@ -9,9 +9,12 @@ After=wayland-session@hyprland.desktop.target
 {{- end }}
 
 [Service]
-WorkingDirectory={{ .chezmoi.homeDir }}/.local/share/tilde
-ExecStart=python3 -m http.server 8080
-Restart=always
+Type=exec
+# Repurpose XDG Autostart filtering
+ExecCondition=/lib/systemd/systemd-xdg-autostart-condition "wlroots:sway:Wayfire:labwc:Hyprland" ""
+ExecStart=/usr/bin/dunst
+Restart=on-failure
+Slice=background-graphical.slice
 
 [Install]
 {{- if eq .env "work" }}

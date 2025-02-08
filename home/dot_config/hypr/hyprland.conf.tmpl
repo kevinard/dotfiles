@@ -1,33 +1,7 @@
-# Set env
-{{- if eq .graphicsStack "nvidia" }}
-env = LIBVA_DRIVER_NAME,nvidia
-env = __GLX_VENDOR_LIBRARY_NAME,nvidia
-env = NVD_BACKEND,direct
-env = MOZ_DISABLE_RDD_SANDBOX,1
-{{- end }}
-envd=XDG_CURRENT_DESKTOP,Hyprland
-envd=XDG_SESSION_TYPE,wayland
-envd=XDG_SESSION_DESKTOP,Hyprland
-envd=MOZ_DBUS_REMOTE,1
-envd=SAL_USE_VCLPLUGIN,gtk3
-envd=_JAVA_AWT_WM_NONREPARENTING,1
-envd=SDL_VIDEODRIVER,wayland
-envd=GDK_BACKEND,wayland
-envd=QT_QPA_PLATFORM,wayland
-envd=QT_WAYLAND_DISABLE_WINDOWDECORATION,1
-envd=QT_QPA_PLATFORMTHEME,qt6ct
-envd=QT_AUTO_SCREEN_SCALE_FACTOR,1
-envd=CLUTTER_BACKEND,wayland
-env = XCURSOR_SIZE,24
-env = XCURSOR_THEME,Catppuccin-{{ title .themeFlavour }}-{{ title .themeCursorColor }}-Cursors
-env = HYPRCURSOR_THEME,Catppuccin-{{ title .themeFlavour }}-{{ title .themeCursorColor }}-Hyprcursors
-env = HYPRCURSOR_SIZE,24
-
-
 # Set programs that you use
-$terminal = kitty
-$fileManager = thunar
-$menu = rofi -show drun
+$terminal = uwsm app -- kitty
+$fileManager = uwsm app -- thunar
+$menu = uwsm app -- rofi
 
 # Include config files
 source=~/.config/hypr/conf/inputs.conf

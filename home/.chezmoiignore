@@ -2,6 +2,8 @@
 .local/bin/hyprland-run-or-raise
 .local/bin/hyprland-samedir
 .config/hypr
+.config/systemd/user/hypr*
+.config/systemd/user/udiskie.service
 {{- end }}
 {{- if ne .env "work" }}
 .local/bin/authenticator
@@ -15,4 +17,5 @@
 .local/share/fonts/NerdFontsSymbolsOnly
 .config/sway
 .config/swaylock
+.config/systemd/user/sway*
 {{- end }}

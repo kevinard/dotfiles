@@ -10,7 +10,8 @@ if [ "$ROFI_RETV" = 1 ]; then
     ;;
   "logout")
     if [[ "$DESKTOP_SESSION" == 'hyprland' ]]; then
-      hyprctl dispatch exit 0
+      # hyprctl dispatch exit 0
+      loginctl terminate-session "$XDG_SESSION_ID"
     elif [[ "$DESKTOP_SESSION" == 'sway' ]]; then
       swaymsg exit
     fi

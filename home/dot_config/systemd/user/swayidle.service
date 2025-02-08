@@ -1,10 +1,13 @@
 [Unit]
-Description=Idle manager for Wayland
+Description=Sway idle and locking handler
 Documentation=man:swayidle(1)
-PartOf=graphical-session.target
+After=sway-session.target
 
 [Service]
-Type=simple
+Type=exec
+# Repurpose XDG Autostart filtering
+ExecCondition=/lib/systemd/systemd-xdg-autostart-condition "wlroots:sway:Wayfire:labwc:Hyprland" ""
+# assuming configuration file is used
 ExecStart=/usr/bin/swayidle -w \
                 timeout 300 'swaylock -f -i $XDG_CONFIG_HOME/wall.png' \
                 timeout 600 'swaymsg "output * dpms off"' \
@@ -12,5 +15,8 @@ ExecStart=/usr/bin/swayidle -w \
                 timeout 900 'systemctl suspend' \
                 before-sleep 'swaylock -f -i $XDG_CONFIG_HOME/wall.png' \
                 lock 'swaylock -f -i $XDG_CONFIG_HOME/wall.png'
+Restart=on-failure
+Slice=background-graphical.slice
+
 [Install]
 WantedBy=sway-session.target

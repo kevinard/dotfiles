@@ -1,0 +1,26 @@
+[Unit]
+Description=Kanshi Wayland output manager
+Documentation=man:kanshi(1) man:kanshi(5)
+{{- if eq .env "work" }}
+After=sway-session.target
+{{- end }}
+{{- if eq .env "home" }}
+After=wayland-session@hyprland.desktop.target
+{{- end }}
+
+[Service]
+Type=exec
+# Repurpose XDG Autostart filtering
+ExecCondition=/lib/systemd/systemd-xdg-autostart-condition "wlroots:sway:Wayfire:labwc:Hyprland" ""
+ExecStart=/usr/bin/kanshi
+ExecReload=kill -SIGHUP $MAINPID
+Restart=on-failure
+Slice=background-graphical.slice
+
+[Install]
+{{- if eq .env "work" }}
+WantedBy=sway-session.target
+{{- end }}
+{{- if eq .env "home" }}
+WantedBy=wayland-session@hyprland.desktop.target
+{{- end }}

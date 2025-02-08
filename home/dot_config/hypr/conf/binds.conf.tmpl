@@ -3,15 +3,14 @@ $mainMod = SUPER
 bind = $mainMod, return, exec, $terminal
 bind = $mainMod SHIFT, return, exec, hyprland-samedir
 bind = $mainMod SHIFT, Q, killactive,
-bind = $mainMod, M, exit,
 bind = $mainMod, E, exec, $fileManager
 bind = $mainMod SHIFT, space, togglefloating,
-bind = $mainMod, R, exec, $menu
-bind = $mainMod, Y, exec, rofi -show projects
-bind = $mainMod, A, exec, rofi -show calc -modi calc -no-show-match -no-sort
+bind = $mainMod, R, exec, $menu -show drun
+bind = $mainMod, Y, exec, $menu -show projects
+bind = $mainMod, A, exec, $menu -show calc -modi calc -no-show-match -no-sort
 bind = $mainMod, P, pseudo, # dwindle
 bind = $mainMod SHIFT, T, togglesplit, # dwindle
-bind = $mainMod, ESCAPE, exec, rofi -show powermenu -theme powermenu
+bind = $mainMod, ESCAPE, exec, $menu -show powermenu -theme powermenu
 bind = $mainMod, X, exec, loginctl lock-session
 
 bind = $mainMod, Z, togglefloating
@@ -23,13 +22,13 @@ bind = $mainMod, backspace, exec, forcerendererreload
 bind = $mainMod, F, fullscreen
 
 bind = $mainMod, B, exec, killall -SIGUSR1 waybar
-bind = $mainMod SHIFT, B, exec, killall -SIGUSR2 waybar
+bind = $mainMod SHIFT, B, exec, systemctl --user reload waybar
 
 bind = $mainMod, I, exec, hyprland-run-or-raise class thunderbird thunderbird
 bind = $mainMod, U, exec, hyprland-run-or-raise class "org.telegram.desktop" telegram-desktop
 
-bind = $mainMod, V, exec, rofi -show cliphist -modi cliphist
-bind = $mainMod SHIFT, V, exec, rofimoji
+bind = $mainMod, V, exec, $menu -show cliphist -modi cliphist -display-columns 2
+bind = $mainMod SHIFT, V, exec, uwsm app -- rofimoji
 
 # Move focus with mainMod + arrow keys
 bind = $mainMod, left, movefocus, l

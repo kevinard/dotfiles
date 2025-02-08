@@ -1,0 +1,26 @@
+[Unit]
+Description=Highly customizable Wayland bar for Sway and Wlroots based compositors.
+Documentation=man:waybar(5)
+{{- if eq .env "work" }}
+After=sway-session.target
+{{- end }}
+{{- if eq .env "home" }}
+After=wayland-session@hyprland.desktop.target
+{{- end }}
+
+[Service]
+Type=exec
+# Repurpose XDG Autostart filtering
+ExecCondition=/lib/systemd/systemd-xdg-autostart-condition "wlroots:sway:Wayfire:labwc:Hyprland" ""
+ExecStart=/usr/bin/waybar
+ExecReload=kill -SIGUSR2 $MAINPID
+Restart=on-failure
+Slice=app-graphical.slice
+
+[Install]
+{{- if eq .env "work" }}
+WantedBy=sway-session.target
+{{- end }}
+{{- if eq .env "home" }}
+WantedBy=wayland-session@hyprland.desktop.target
+{{- end }}

@@ -7,18 +7,9 @@ sudo cp -r ~/.local/etc/sddm.conf.d/wayland.conf /etc/sddm.conf.d/wayland.conf
 sudo cp -r ~/.local/share/sddm/themes/catppuccin-{{ .themeFlavour }} /usr/share/sddm/themes/
 sudo cp -r ~/.local/etc/sddm.conf.d/theme.conf.user /usr/share/sddm/themes/catppuccin-{{ .themeFlavour }}/
 sudo cp -r ~/.config/wall.jpg /usr/share/sddm/themes/catppuccin-{{ .themeFlavour }}/backgrounds/
-sudo systemctl enable sddm.service
 
-# setup polkit
-sudo usermod -aG storage,wheel {{ .chezmoi.username }}
-
-# setup cups
-sudo systemctl enable cups.socket
-
-sudo systemctl mask systemd-rfkill.socket
-sudo systemctl mask systemd-rfkill.service
-sudo systemctl enable tlp.service
-sudo systemctl enable bluetooth.service
+# add user to storage group
+sudo usermod -aG storage {{ .chezmoi.username }}
 
 # setup theme
 {{ if eq .themeFlavour "latte" }}
@@ -31,17 +22,35 @@ ln -sf $GTK_THEME_PATH "{{ .chezmoi.homeDir }}/.config/gtk-4.0/assets"
 sudo cp -r {{ .chezmoi.homeDir }}/.icons/papirus-folders/src/* /usr/share/icons/Papirus
 papirus-folders -C cat-{{ .themeFlavour }}-{{ .themeColor }} --theme Papirus-$DARK_OR_LIGHT
 
-# startpage
+# enable services
+sudo systemctl mask systemd-rfkill.socket
+sudo systemctl mask systemd-rfkill.service
+sudo systemctl enable --now tlp.service
+sudo systemctl enable sddm.service
+sudo systemctl enable cups.socket
+sudo systemctl enable bluetooth.service
 systemctl --user enable --now startpage.service
-
+systemctl --user enable --now waybar
+systemctl --user enable --now kanshi
+systemctl --user enable --now dunst
+systemctl --user enable --now hyprpaper
+systemctl --user enable --now hypridle
+systemctl --user enable --now udiskie
+systemctl --user enable --now cliphist@text.service
+systemctl --user enable --now cliphist@image.service
+{{- if eq .onBattery "yes" }}
+systemctl --user enable --now battery-alert.timer
+{{ end -}}
 {{ if eq .onBattery "yes" }}
 systemctl --user enable --now battery-alert.timer
 {{ end }}
 
+# build bat cache
 bat cache --build
 
 # update plocate db
 sudo updatedb
 
+# change default shell
 chsh -s /usr/bin/zsh
 {{ end -}}
