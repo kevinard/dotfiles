@@ -1,5 +1,3 @@
-$mainMod = SUPER
-
 bind = $mainMod, return, exec, $terminal
 bind = $mainMod SHIFT, return, exec, hyprland-samedir
 bind = $mainMod SHIFT, Q, killactive,
@@ -8,10 +6,18 @@ bind = $mainMod SHIFT, space, togglefloating,
 bind = $mainMod, R, exec, $menu -show drun
 bind = $mainMod, Y, exec, $menu -show projects
 bind = $mainMod, A, exec, $menu -show calc -modi calc -no-show-match -no-sort
-bind = $mainMod, P, pseudo, # dwindle
-bind = $mainMod SHIFT, T, togglesplit, # dwindle
 bind = $mainMod, ESCAPE, exec, $menu -show powermenu -theme powermenu
 bind = $mainMod, X, exec, loginctl lock-session
+
+bind = $mainMod, T, layoutmsg, orientationnext
+bind = $mainMod, M, layoutmsg, focusmaster
+bind = $mainMod SHIFT, M, layoutmsg, swapwithmaster
+bind = $mainMod CTRL, M, layoutmsg, addmaster
+bind = $mainMod CTRL SHIFT, M, layoutmsg, removemaster
+bind = $mainMod, Tab, layoutmsg, cyclenext
+bind = $mainMod SHIFT, Tab, layoutmsg, cycleprev
+bind = $mainMod CTRL, Tab, layoutmsg, swapnext
+bind = $mainMod CTRL SHIFT, Tab, layoutmsg, swapprev
 
 bind = $mainMod, Z, togglefloating
 bind = $mainMod, Z, pin
@@ -30,62 +36,14 @@ bind = $mainMod, U, exec, hyprland-run-or-raise class "org.telegram.desktop" tel
 bind = $mainMod, V, exec, $menu -show cliphist -modi cliphist -display-columns 2
 bind = $mainMod SHIFT, V, exec, uwsm app -- rofimoji
 
-# Move focus with mainMod + arrow keys
-bind = $mainMod, left, movefocus, l
-bind = $mainMod, right, movefocus, r
-bind = $mainMod, up, movefocus, u
-bind = $mainMod, down, movefocus, d
-bind = $mainMod, h, movefocus, l
-bind = $mainMod, l, movefocus, r
-bind = $mainMod, k, movefocus, u
-bind = $mainMod, j, movefocus, d
-
-# Move window
-bind = $mainMod SHIFT, left, movewindow, l
-bind = $mainMod SHIFT, right, movewindow, r
-bind = $mainMod SHIFT, up, movewindow, u
-bind = $mainMod SHIFT, down, movewindow, d
-bind = $mainMod SHIFT, h, movewindow, l
-bind = $mainMod SHIFT, l, movewindow, r
-bind = $mainMod SHIFT, k, movewindow, u
-bind = $mainMod SHIFT, j, movewindow, d
-
-# Switch workspaces with mainMod + [0-9]
-bind = $mainMod, 1, workspace, 1
-bind = $mainMod, 2, workspace, 2
-bind = $mainMod, 3, workspace, 3
-bind = $mainMod, 4, workspace, 4
-bind = $mainMod, 5, workspace, 5
-bind = $mainMod, 6, workspace, 6
-bind = $mainMod, 7, workspace, 7
-bind = $mainMod, 8, workspace, 8
-bind = $mainMod, 9, workspace, 9
-bind = $mainMod, 0, workspace, 10
-
-# Move active window to a workspace with mainMod + SHIFT + [0-9]
-bind = $mainMod SHIFT, 1, movetoworkspace, 1
-bind = $mainMod SHIFT, 2, movetoworkspace, 2
-bind = $mainMod SHIFT, 3, movetoworkspace, 3
-bind = $mainMod SHIFT, 4, movetoworkspace, 4
-bind = $mainMod SHIFT, 5, movetoworkspace, 5
-bind = $mainMod SHIFT, 6, movetoworkspace, 6
-bind = $mainMod SHIFT, 7, movetoworkspace, 7
-bind = $mainMod SHIFT, 8, movetoworkspace, 8
-bind = $mainMod SHIFT, 9, movetoworkspace, 9
-bind = $mainMod SHIFT, 0, movetoworkspace, 10
-
 # Example special workspace (scratchpad)
 bind = $mainMod, S, togglespecialworkspace, magic
 bind = $mainMod SHIFT, S, movetoworkspace, special:magic
 
-# Scroll through existing workspaces with mainMod + scroll
-bind = $mainMod, mouse_down, workspace, e+1
-bind = $mainMod, mouse_up, workspace, e-1
-
 # Move/resize windows with mainMod + LMB/RMB and dragging
 bindm = $mainMod, mouse:272, movewindow
 bindm = $mainMod, mouse:273, resizewindow
-
+bindm = $mainMod SHIFT, mouse:273, resizewindow 1 # keep aspect ratio
 
 # For screenshots and recording
 bindl = , Print, exec, grimblast save output
@@ -97,33 +55,25 @@ bind = CTRL ALT, Print, exec, grimblast save screen - | swappy -f -
 
 # #---Extra XF86 Keys---# #
 # These are the extra media keys that some keyboards have.
-# bindl = , XF86AudioMute,		              exec, pactl set-sink-mute @DEFAULT_SINK@ toggle
-# bindl = , XF86AudioLowerVolume,	          exec, pactl set-sink-volume @DEFAULT_SINK@ -5%
-# bindl = SHIFT, XF86AudioLowerVolume,	    exec, pactl set-sink-volume @DEFAULT_SINK@ -10%
-# bindl = CTRL, XF86AudioLowerVolume,	      exec, pactl set-sink-volume @DEFAULT_SINK@ -1%
-# bindl = , XF86AudioRaiseVolume,	          exec, pactl set-sink-volume @DEFAULT_SINK@ +5%
-# bindl = SHIFT, XF86AudioRaiseVolume,	    exec, pactl set-sink-volume @DEFAULT_SINK@ +10%
-# bindl = CTRL, XF86AudioRaiseVolume,   	  exec, pactl set-sink-volume @DEFAULT_SINK@ +1%
-# bindl = , XF86AudioMicMute,	              exec, pactl set-source-mute @DEFAULT_SOURCE@ toggle
 bindl = , XF86AudioMute,		              exec, wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle && wpctl get-volume @DEFAULT_AUDIO_SINK@ | awk '{print $2*100}' | notify-progress audio
-bindl = , XF86AudioLowerVolume,	          exec, wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%- && wpctl get-volume @DEFAULT_AUDIO_SINK@ | awk '{print $2*100}' | notify-progress audio
-bindl = SHIFT, XF86AudioLowerVolume,	    exec, wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 10%- && wpctl get-volume @DEFAULT_AUDIO_SINK@ | awk '{print $2*100}' | notify-progress audio
-bindl = CTRL, XF86AudioLowerVolume,	      exec, wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 1%- && wpctl get-volume @DEFAULT_AUDIO_SINK@ | awk '{print $2*100}' | notify-progress audio
-bindl = , XF86AudioRaiseVolume,	          exec, wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+ && wpctl get-volume @DEFAULT_AUDIO_SINK@ | awk '{print $2*100}' | notify-progress audio
-bindl = SHIFT, XF86AudioRaiseVolume,	    exec, wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 10%+ && wpctl get-volume @DEFAULT_AUDIO_SINK@ | awk '{print $2*100}' | notify-progress audio
-bindl = CTRL, XF86AudioRaiseVolume,   	  exec, wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 1%+ && wpctl get-volume @DEFAULT_AUDIO_SINK@ | awk '{print $2*100}' | notify-progress audio
+bindle = , XF86AudioLowerVolume,	          exec, wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%- && wpctl get-volume @DEFAULT_AUDIO_SINK@ | awk '{print $2*100}' | notify-progress audio
+bindle = SHIFT, XF86AudioLowerVolume,	    exec, wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 10%- && wpctl get-volume @DEFAULT_AUDIO_SINK@ | awk '{print $2*100}' | notify-progress audio
+bindle = CTRL, XF86AudioLowerVolume,	      exec, wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 1%- && wpctl get-volume @DEFAULT_AUDIO_SINK@ | awk '{print $2*100}' | notify-progress audio
+bindle = , XF86AudioRaiseVolume,	          exec, wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+ && wpctl get-volume @DEFAULT_AUDIO_SINK@ | awk '{print $2*100}' | notify-progress audio
+bindle = SHIFT, XF86AudioRaiseVolume,	    exec, wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 10%+ && wpctl get-volume @DEFAULT_AUDIO_SINK@ | awk '{print $2*100}' | notify-progress audio
+bindle = CTRL, XF86AudioRaiseVolume,   	  exec, wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 1%+ && wpctl get-volume @DEFAULT_AUDIO_SINK@ | awk '{print $2*100}' | notify-progress audio
 bindl = , XF86AudioMicMute,	              exec, wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle
 bindl = , XF86AudioPlay,		              exec, playerctl play-pause
 bindl = , XF86AudioNext,		              exec, playerctl next
 bindl = , XF86AudioPrev,		              exec, playerctl previous
 bindl = , XF86AudioStop,		              exec, playerctl stop
-bindl = , XF86AudioRewind,		            exec, playerctl position 10-
-bindl = , XF86AudioForward,	              exec, playerctl position 10+
+bindle = , XF86AudioRewind,		            exec, playerctl position 10-
+bindle = , XF86AudioForward,	              exec, playerctl position 10+
 {{ if eq .onBattery "yes" }}
-bindl = , XF86MonBrightnessDown,	        exec, sudo brightnessctl -m s 5%- | awk -F',' '{print $4+0}' | notify-progress brightness
-bindl = , XF86MonBrightnessUp,	          exec, sudo brightnessctl -m s +5% | awk -F',' '{print $4+0}' | notify-progress brightness
+bindle = , XF86MonBrightnessDown,	        exec, sudo brightnessctl -m s 5%- | awk -F',' '{print $4+0}' | notify-progress brightness
+bindle = , XF86MonBrightnessUp,	          exec, sudo brightnessctl -m s +5% | awk -F',' '{print $4+0}' | notify-progress brightness
 {{ end }}
 {{ if eq .onBattery "no" }}
-bindl = , XF86MonBrightnessDown,	        exec, brightness-control down 0
-bindl = , XF86MonBrightnessUp,	          exec, brightness-control up 0
+bindle = , XF86MonBrightnessDown,	        exec, brightness-control down 0
+bindle = , XF86MonBrightnessUp,	          exec, brightness-control up 0
 {{ end }}

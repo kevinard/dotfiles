@@ -1,54 +1,63 @@
 input {
 {{- if eq .env "home" }}
-    kb_layout = us
-    kb_variant = altgr-intl
+  kb_layout = us
+  kb_variant = altgr-intl
 {{- end }}
 {{- if eq .env "work" }}
-    kb_layout = fr
+  kb_layout = fr
 {{- end }}
-    kb_options = shift:both_capslock,caps:escape
-    numlock_by_default = true
-    repeat_rate = 40
-    repeat_delay = 300
+  kb_options = shift:both_capslock,caps:escape
+  numlock_by_default = true
+  repeat_rate = 40
+  repeat_delay = 300
 
-    touchpad {
-        disable_while_typing = false
-        natural_scroll = false
-        tap_button_map = lrm
-        clickfinger_behavior = true
-        tap-to-click = true
-        drag_lock = true
-        tap-and-drag = true
-        scroll_factor = 1.0
-    }
-
-    follow_mouse = 1
-    float_switch_override_focus = 2
-    special_fallthrough = true
-    accel_profile = adaptive
+  touchpad {
+    disable_while_typing = false
     natural_scroll = false
-    mouse_refocus = true
+    tap_button_map = lrm
+    clickfinger_behavior = true
+    tap-to-click = true
+    drag_lock = true
+    tap-and-drag = true
     scroll_factor = 1.0
-    sensitivity = 0 # -1.0 - 1.0, 0 means no modification.
-    resolve_binds_by_sym = 1
+  }
+
+  follow_mouse = 1
+  float_switch_override_focus = 2
+  special_fallthrough = true
+  accel_profile = adaptive
+  natural_scroll = false
+  mouse_refocus = true
+  scroll_factor = 1.0
+  sensitivity = 0 # -1.0 - 1.0, 0 means no modification.
+  resolve_binds_by_sym = 1
 }
 
 {{- if eq .env "work" }}
 device {
-    name = keychron-keychron-k2-pro
-    kb_layout = us
-    kb_variant = altgr-intl
+  name = keychron-keychron-k2-pro
+  kb_layout = us
+  kb_variant = altgr-intl
 }
 
 device {
-    name = keychron-keychron-k2
-    kb_layout = us
-    kb_variant = altgr-intl
+  name = keychron-keychron-k2
+  kb_layout = us
+  kb_variant = altgr-intl
 }
 
 device {
-    name = keychron-keychron-k8
-    kb_layout = us
-    kb_variant = altgr-intl
+  name = keychron-keychron-k8
+  kb_layout = us
+  kb_variant = altgr-intl
 }
 {{- end }}
+
+gestures {
+  workspace_swipe = true
+  workspace_swipe_fingers = 4
+  workspace_swipe_distance = 200
+  workspace_swipe_invert = false
+  workspace_swipe_cancel_ratio = 0.2
+  workspace_swipe_create_new = true
+}
