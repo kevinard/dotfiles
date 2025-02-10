@@ -32,6 +32,8 @@
 	path = {{ .chezmoi.homeDir }}/delta/themes/catppuccin.gitconfig
 [delta]
   features = catppuccin-mocha zebra-dark
+  hyperlinks = true
+  hyperlinks-file-link-format = "file-line-column://{path}:{line}"
   navigate = true    # use n and N to move between diff sections
   line-numbers = true
   side-by-side = true

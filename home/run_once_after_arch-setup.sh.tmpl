@@ -30,12 +30,13 @@ sudo systemctl enable sddm.service
 sudo systemctl enable cups.socket
 sudo systemctl enable bluetooth.service
 systemctl --user enable --now startpage.service
+systemctl --user enable --now thunar
 systemctl --user enable --now waybar
 systemctl --user enable --now kanshi
 systemctl --user enable --now dunst
 systemctl --user enable --now hyprpaper
 systemctl --user enable --now hypridle
-systemctl --user enable --now udiskie
+systemctl --user enable --now hyprpolkitagent
 systemctl --user enable --now cliphist@text.service
 systemctl --user enable --now cliphist@image.service
 {{- if eq .onBattery "yes" }}

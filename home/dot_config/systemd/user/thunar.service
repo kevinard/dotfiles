@@ -1,0 +1,16 @@
+[Unit]
+Description=Thunar file manager
+Documentation=man:Thunar(1)
+After=wayland-session@hyprland.desktop.target
+
+[Service]
+Type=dbus
+ExecStart=/usr/bin/Thunar --daemon
+# This is the name that is taken second, so by the time this one is taken,
+# we know everything is good.
+BusName=org.xfce.FileManager
+KillMode=process
+Slice=background-graphical.slice
+
+[Install]
+WantedBy=wayland-session@hyprland.desktop.target

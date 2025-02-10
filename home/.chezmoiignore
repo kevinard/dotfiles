@@ -10,6 +10,7 @@
 .local/bin/chromium
 .local/bin/slackium
 .local/bin/fd
+.local/bin/sway*
 .local/share/applications/chromium.desktop
 .local/share/applications/code.desktop
 .local/share/applications/com.yubico.authenticator.desktop
