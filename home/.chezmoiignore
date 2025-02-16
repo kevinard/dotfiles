@@ -1,9 +1,11 @@
 {{- if ne .env "home" }}
 .local/bin/hyprland-run-or-raise
 .local/bin/hyprland-samedir
+.local/share/dbus-1
 .config/hypr
 .config/systemd/user/hypr*
 .config/systemd/user/udiskie.service
+.config/autostart/gnome-keyring*
 {{- end }}
 {{- if ne .env "work" }}
 .local/bin/authenticator
