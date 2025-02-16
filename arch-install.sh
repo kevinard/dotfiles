@@ -49,35 +49,33 @@ hwclock --systohc
 
 locale-gen
 
-echo -e "LANG=en_US.UTF-8\nLC_TIME=fr_FR.UTF-8" >/etc/locale.conf
-
 echo "$hostname" >/etc/hostname
 echo "127.0.1.1        $hostname" >>/etc/hosts
 
 systemctl enable systemd-resolved.service
 systemctl enable iwd.service
 systemctl enable systemd-networkd.service
-systemctl enable systemd-tymesyncd.service
+systemctl enable systemd-timesyncd.service
 
 # setup reflector (update mirrors list)
 systemctl enable reflector.timer
 systemctl enable paccache.timer
 
 efibootmgr \
-  --create \
-  --label "Arch Linux" \
-  --index 0 \
-  --disk $targetDisk \
-  --part 1 \
-  --loader "\\arch-linux.efi"
+	--create \
+	--label "Arch Linux" \
+	--index 0 \
+	--disk $targetDisk \
+	--part 1 \
+	--loader "\\arch-linux.efi"
 
 efibootmgr \
-  --create \
-  --label "Arch Linux Fallback" \
-  --index 1 \
-  --disk $targetDisk \
-  --part 1 \
-  --loader "\\arch-linux-fallback.efi"
+	--create \
+	--label "Arch Linux Fallback" \
+	--index 1 \
+	--disk $targetDisk \
+	--part 1 \
+	--loader "\\arch-linux-fallback.efi"
 
 passwd root
 
@@ -112,6 +110,6 @@ useradd --create-home --uid 1000 --gid 1000 --groups wheel --shell /bin/bash $us
 passwd $username
 
 sed -i "/etc/pacman.conf" \
-  -e "s|^#Color|&\nColor\nILoveCandy|" \
-  -e "s|^#VerbosePkgLists|&\nVerbosePkgLists|" \
-  -e "s|^#ParallelDownloads.*|&\nParallelDownloads = 20|"
+	-e "s|^#Color|&\nColor\nILoveCandy|" \
+	-e "s|^#VerbosePkgLists|&\nVerbosePkgLists|" \
+	-e "s|^#ParallelDownloads.*|&\nParallelDownloads = 20|"
