@@ -24,14 +24,35 @@ cryptsetup luksFormat $systemPartition
 cryptsetup open $systemPartition root
 
 # format the partitions
-mkfs.ext4 /dev/mapper/root
+mkfs.btrfs /dev/mapper/root
 mkfs.fat -F32 $bootPartition
 
-# mount the partitions
+# create btrfs subvolumes
 mount --mkdir /dev/mapper/root /mnt
+btrfs subvolume create /mnt/@
+btrfs subvolume create /mnt/@home
+btrfs subvolume create /mnt/@snapshots
+btrfs subvolume create /mnt/@var_log
+btrfs subvolume create /mnt/@swap
+umount /mnt
+
+# mount the partitions
+mount --mkdir -o noatime,compress=zstd,space_cache=v2,subvol=@ /dev/mapper/root /mnt
+mount --mkdir -o noatime,compress=zstd,space_cache=v2,subvol=@home /dev/mapper/root /mnt/home
+mount --mkdir -o noatime,compress=zstd,space_cache=v2,subvol=@snapshots /dev/mapper/root /mnt/.snapshots
+mount --mkdir -o noatime,compress=zstd,space_cache=v2,subvol=@var_log /dev/mapper/root /mnt/var/log
+mount --mkdir -o noatime,subvol=@swap /dev/mapper/root /mnt/swap
 mount --mkdir $bootPartition /mnt/efi
 
-pacstrap -K /mnt base linux linux-firmware iwd efibootmgr sbctl sbsigntools git chezmoi reflector fwupd curl sudo pacman-contrib base-devel
+# setup swap
+btrfs filesystem mkswapfile --size 4g --uuid clear /mnt/swap/swapfile
+swapon /mnt/swap/swapfile
+
+# install system
+pacstrap -K /mnt base linux linux-firmware iwd efibootmgr sbctl sbsigntools git chezmoi reflector fwupd curl sudo pacman-contrib base-devel btrfs-progs
+
+# generate fstab
+# genfstab -U /mnt >> /mnt/etc/fstab
 
 # this needs to be done from outside the arch-chroot
 ln -sf ../run/systemd/resolve/stub-resolv.conf /mnt/etc/resolv.conf

@@ -1,1 +1,1 @@
-/dev/gpt-auto-root  /  ext4  defaults,noatime  0  1
+/dev/gpt-auto-root  /  btrfs  defaults,noatime,ssd,compress=zstd,space_cache=v2,subvol=/  0  0
