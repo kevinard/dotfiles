@@ -2,13 +2,6 @@ export XDG_CONFIG_HOME="$HOME/.config"
 export ZDOTDIR="$XDG_CONFIG_HOME/zsh"
 export HISTFILE="$ZDOTDIR/.zsh_history"
 
-export GPG_TTY=$(tty)
-gpg-connect-agent updatestartuptty /bye >/dev/null
-{{- if eq .env "home" }}
-unset SSH_AGENT_PID
-export SSH_AUTH_SOCK="${XDG_RUNTIME_DIR}/gnupg/S.gpg-agent.ssh"
-{{- end }}
-
 export SCALINGO_HOME=$HOME/scalingo
 export GOPATH=$HOME/go
 export VOLTA_HOME="$HOME/.volta"
@@ -40,7 +33,14 @@ export LESSHISTFILE="/dev/null"
 
 export CATPPUCCIN_FLAVOUR="{{ .themeFlavour }}"
 
+{{- if eq .env "home" }}
+export SSH_AUTH_SOCK="${XDG_RUNTIME_DIR}/ssh-agent.socket"
+{{- end }}
+
 {{- if eq .env "work" }}
+export GPG_TTY=$(tty)
+gpg-connect-agent updatestartuptty /bye >/dev/null
+
 if [[ $DESKTOP_SESSION = "sway" ]]; then
   export _JAVA_AWT_WM_NONREPARENTING=1
   export SDL_VIDEODRIVER=wayland

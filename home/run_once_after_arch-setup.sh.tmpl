@@ -29,6 +29,7 @@ sudo systemctl enable --now tlp.service
 sudo systemctl enable sddm.service
 sudo systemctl enable cups.socket
 sudo systemctl enable bluetooth.service
+systemctl --user enable --now ssh-agent.service
 systemctl --user enable --now startpage.service
 systemctl --user enable --now thunar
 systemctl --user enable --now waybar
