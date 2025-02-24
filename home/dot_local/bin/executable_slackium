@@ -2,4 +2,4 @@
 
 source $HOME/.profile
 
-exec /snap/bin/chromium --enable-features=UseOzonePlatform,WaylandWindowDecorations,WebRTCPipeWireCapturer --ozone-platform=wayland --new-window --kiosk https://app.slack.com/client/T02BUKFDJ/unreads
+exec /snap/bin/chromium --enable-features=UseOzonePlatform,WaylandWindowDecorations,WebRTCPipeWireCapturer --ozone-platform=wayland --app="https://app.slack.com/client/T02BUKFDJ/unreads"
