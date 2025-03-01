@@ -214,7 +214,7 @@ bindsym $mod+a      	                          exec swaymsg [app_id="authenticat
 bindsym $mod+z                                  exec sway-run-or-raise $BROWSER $BROWSER
 bindsym $mod+y			                            exec rofi -show projects
 {{- if eq .env "work" }}
-bindsym $mod+u                                  exec sway-run-or-raise Slack slack
+bindsym $mod+u                                  exec sway-run-or-raise Slack "gtk-launch slack.desktop"
 bindsym $mod+Shift+u                            exec sway-run-or-raise "Slack - Chromium" slackium
 bindsym $mod+i                                  exec sway-run-or-raise thunderbird thunderbird
 bindsym $mod+Shift+i                            exec sway-run-or-raise discord discord

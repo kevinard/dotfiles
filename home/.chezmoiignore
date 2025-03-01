@@ -15,6 +15,7 @@
 .local/bin/sway*
 .local/share/applications/chromium.desktop
 .local/share/applications/code.desktop
+.local/share/applications/slack.desktop
 .local/share/applications/com.yubico.authenticator.desktop
 .config/systemd/user/startpage-work.service
 .local/share/fonts/NerdFontsSymbolsOnly
