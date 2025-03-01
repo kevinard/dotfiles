@@ -1,4 +1,5 @@
-#!/usr/bin/env python
+{{- if eq .env "work" }}#!/usr/bin/env python3{{- end }}
+{{- if eq .env "home" }}#!/usr/bin/env python{{- end }}
 # -*- coding: UTF-8 -*-
 """
 This code is all in one file, and supports Python 2, in order that it can be wrapped conveniently

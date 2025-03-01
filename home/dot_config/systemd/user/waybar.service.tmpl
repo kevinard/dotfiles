@@ -3,6 +3,7 @@ Description=Highly customizable Wayland bar for Sway and Wlroots based composito
 Documentation=man:waybar(5)
 {{- if eq .env "work" }}
 After=sway-session.target
+After=graphical-session.target
 {{- end }}
 {{- if eq .env "home" }}
 After=wayland-session@hyprland.desktop.target

@@ -2,13 +2,16 @@
 
 if [ "$ROFI_RETV" = 1 ]; then
   case $@ in
-  "lock")
+  *Lock)
     loginctl lock-session
     ;;
-  "suspend")
+  *Suspend)
     loginctl lock-session && systemctl suspend
     ;;
-  "logout")
+  *Hibernate)
+    loginctl lock-session && systemctl hibernate
+    ;;
+  *Logout)
     if [[ "$DESKTOP_SESSION" == 'hyprland' ]]; then
       # hyprctl dispatch exit 0
       loginctl terminate-session "$XDG_SESSION_ID"
@@ -16,22 +19,14 @@ if [ "$ROFI_RETV" = 1 ]; then
       swaymsg exit
     fi
     ;;
-  "reboot")
+  *Reboot)
     systemctl reboot
     ;;
-  "shutdown")
+  *Shutdown)
     systemctl poweroff
     ;;
   esac
   exit 0
 fi
 
-echo_option() {
-  echo "$1\0display\x1f$2"
-}
-
-echo_option "lock" ""
-echo_option "suspend" "󰏦"
-echo_option "logout" "󰍃"
-echo_option "reboot" "⟲"
-echo_option "shutdown" ""
+echo -e "  Lock\n  Suspend\n  Hibernate\n  Logout\n  Reboot\n  Shutdown"

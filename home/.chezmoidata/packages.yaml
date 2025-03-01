@@ -56,7 +56,6 @@ packages:
     snap:
       - "nvim --classic"
       - "chromium"
-      - "slack"
       - "code"
   arch:
     nvidia_graphics:

@@ -1,13 +1,58 @@
 [user]
 	email = {{ .email }}
 	name = {{ .fullname }}
+
 [diff]
 	algorithm = histogram
-  colorMoved = default
+  colorMoved = plain
+  mnemonicPrefix = true
+  renames = true
 [pull]
-	rebase = false
+  rebase = true
 [init]
-  defaultBranch = master
+  defaultBranch = main
+[column]
+  ui = auto
+[branch]
+  sort = -committerdate
+[tag]
+  sort = version:refname
+[push]
+  default = simple
+  autoSetupRemote = true
+  followTags = true
+[fetch]
+  prune = true
+  pruneTags = true
+  all = true
+[help]
+  autocorrect = prompt
+[commit]
+  verbose = true
+[rerere]
+  enabled = true
+  autoupdate = true
+[rebase]
+  autoSquash = true
+  autoStash = true
+  updateRefs = true
+[merge]
+  conflictstyle = zdiff3
+
+# delta
+[core]
+  pager = delta
+[interactive]
+  diffFilter = delta --color-only
+[include]
+	path = {{ .chezmoi.homeDir }}/delta/themes/catppuccin.gitconfig
+[delta]
+  features = catppuccin-mocha zebra-dark
+  hyperlinks = true
+  hyperlinks-file-link-format = "file-line-column://{path}:{line}"
+  navigate = true    # use n and N to move between diff sections
+  line-numbers = true
+  side-by-side = true
 
 {{- if eq .env "work" }}
 [url "ssh://git@github.com/"]
@@ -22,21 +67,3 @@
 [commit]
   gpgsign = true
 {{- end }}
-
-[core]
-  pager = delta
-
-[interactive]
-  diffFilter = delta --color-only
-[include]
-	path = {{ .chezmoi.homeDir }}/delta/themes/catppuccin.gitconfig
-[delta]
-  features = catppuccin-mocha zebra-dark
-  hyperlinks = true
-  hyperlinks-file-link-format = "file-line-column://{path}:{line}"
-  navigate = true    # use n and N to move between diff sections
-  line-numbers = true
-  side-by-side = true
-
-[merge]
-  conflictstyle = zdiff3
