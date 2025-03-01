@@ -222,6 +222,8 @@ packages:
       - "libsecret"
       - "geoclue"
       - "nextcloud-client"
+      - "docker"
+      - "docker-compose"
     aur:
       - "iwmenu-git"
       - "wdisplays"

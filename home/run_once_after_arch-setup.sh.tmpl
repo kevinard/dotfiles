@@ -26,6 +26,7 @@ papirus-folders -C cat-{{ .themeFlavour }}-{{ .themeColor }} --theme Papirus-$DA
 sudo systemctl mask systemd-rfkill.socket
 sudo systemctl mask systemd-rfkill.service
 sudo systemctl enable --now tlp.service
+sudo systemctl enable --now docker.socket
 sudo systemctl enable sddm.service
 sudo systemctl enable cups.socket
 sudo systemctl enable bluetooth.service
