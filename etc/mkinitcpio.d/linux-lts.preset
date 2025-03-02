@@ -1,0 +1,9 @@
+# mkinitcpio preset file for the 'linux' package
+
+ALL_config="/etc/mkinitcpio-fallback.conf"
+ALL_kver="/boot/vmlinuz-linux-lts"
+
+PRESETS=('fallback')
+
+fallback_uki="/efi/EFI/Linux/arch-linux-lts-fallback.efi"
+fallback_options="--cmdline /etc/kernel/fallback_cmdline"

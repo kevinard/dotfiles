@@ -1,0 +1,10 @@
+rd.luks.options=discard,no-read-workqueue,no-write-workqueue,tpm2-device=auto
+
+## root directory
+root=gpt-auto
+ro
+# rootwait
+
+nowatchdog
+pcie_aspm.policy=powersupersave
+usbcore.autosuspend=5

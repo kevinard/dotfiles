@@ -49,7 +49,7 @@ btrfs filesystem mkswapfile --size 4g --uuid clear /mnt/swap/swapfile
 swapon /mnt/swap/swapfile
 
 # install system
-pacstrap -K /mnt base linux linux-firmware iwd efibootmgr sbctl sbsigntools git chezmoi reflector fwupd curl sudo pacman-contrib base-devel btrfs-progs
+pacstrap -K /mnt base linux linux-lts linux-firmware iwd efibootmgr sbctl sbsigntools systemd-ukify git chezmoi reflector fwupd curl sudo pacman-contrib base-devel btrfs-progs
 
 # generate fstab
 # genfstab -U /mnt >> /mnt/etc/fstab
@@ -82,21 +82,24 @@ systemctl enable systemd-timesyncd.service
 systemctl enable reflector.timer
 systemctl enable paccache.timer
 
-efibootmgr \
-	--create \
-	--label "Arch Linux" \
-	--index 0 \
-	--disk $targetDisk \
-	--part 1 \
-	--loader "\\arch-linux.efi"
+mkdir -p /efi/EFI/Linux/
+mkinitcpio -P
 
 efibootmgr \
-	--create \
-	--label "Arch Linux Fallback" \
-	--index 1 \
-	--disk $targetDisk \
-	--part 1 \
-	--loader "\\arch-linux-fallback.efi"
+  --create \
+  --label "Arch Linux" \
+  --index 0 \
+  --disk $targetDisk \
+  --part 1 \
+  --loader "\EFI\Linux\arch-linux.efi"
+
+efibootmgr \
+  --create \
+  --label "Arch Linux LTS Fallback" \
+  --index 1 \
+  --disk $targetDisk \
+  --part 1 \
+  --loader "\EFI\Linux\arch-linux-lts-fallback.efi"
 
 passwd root
 
@@ -114,8 +117,8 @@ sbctl create-keys
 
 sbctl enroll-keys -m
 
-sbctl sign -s /efi/arch-linux.efi
-sbctl sign -s /efi/arch-linux-fallback.efi
+sbctl sign -s /efi/EFI/Linux/arch-linux.efi
+sbctl sign -s /efi/EFI/Linux/arch-linux-lts-fallback.efi
 
 # reboot and enable Secure Boot in bios
 
@@ -131,6 +134,6 @@ useradd --create-home --uid 1000 --gid 1000 --groups wheel --shell /bin/bash $us
 passwd $username
 
 sed -i "/etc/pacman.conf" \
-	-e "s|^#Color|&\nColor\nILoveCandy|" \
-	-e "s|^#VerbosePkgLists|&\nVerbosePkgLists|" \
-	-e "s|^#ParallelDownloads.*|&\nParallelDownloads = 20|"
+  -e "s|^#Color|&\nColor\nILoveCandy|" \
+  -e "s|^#VerbosePkgLists|&\nVerbosePkgLists|" \
+  -e "s|^#ParallelDownloads.*|&\nParallelDownloads = 20|"
