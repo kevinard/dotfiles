@@ -223,8 +223,13 @@ packages:
       - "nextcloud-client"
       - "docker"
       - "docker-compose"
+      - "simple-scan"
+      - "ipp-usb"
+      - "sane-airscan"
     aur:
       - "iwmenu-git"
       - "wdisplays"
       - "uwsm"
+      - "brother-dcp1510"
+      - "brscan4"
       # - "ddcci-driver-linux-dkms"
