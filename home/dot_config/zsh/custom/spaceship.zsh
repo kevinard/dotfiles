@@ -28,7 +28,7 @@ SPACESHIP_PROMPT_ORDER=(
   # julia          # Julia section
   # crystal        # Crystal section
   # docker         # Docker section
-  docker_compose # Docker section
+  # docker_compose # Docker section
   # aws            # Amazon Web Services section
   # gcloud         # Google Cloud Platform section
   # azure          # Azure section
@@ -41,7 +41,7 @@ SPACESHIP_PROMPT_ORDER=(
   # purescript     # PureScript section
   # erlang         # Erlang section
   # kubectl        # Kubectl context section
-  ansible        # Ansible section
+  # ansible        # Ansible section
   terraform      # Terraform workspace section
   # pulumi         # Pulumi stack section
   # ibmcloud       # IBM Cloud section

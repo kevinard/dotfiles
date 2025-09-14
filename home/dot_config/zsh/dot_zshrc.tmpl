@@ -35,6 +35,7 @@ alias grep="grep --color=auto"
 alias diff="diff --color=auto"
 alias cat='bat --paging=never'
 
+alias rg="rg --hyperlink-format=file-line-column://{path}:{line}:{column}"
 alias fournill="ledger --file ~/fournill/ledger/main.journal"
 
 {{- if eq .env "work" }}
@@ -44,14 +45,4 @@ eval "$(mise activate zsh)"
 alias ans="source $HOME/.local/venv/ansible/bin/activate"
 alias cat='batcat --paging=never'
 alias bat='batcat'
-{{- end }}
-{{- if eq .env "home" }}
-# pacman install
-alias paci="yay -Slq | fzf --prompt=' ' --color=16 -m --preview 'cat <(yay -Si {1}) <(yay -Fl {1} | awk \"{print \$2}\")' | xargs -ro yay -S --needed"
-# pacman remove
-alias pacr="yay -Qq | fzf --prompt=' ' --color=16 -m --preview 'yay -Qi {1}' | xargs -ro yay -Rns"
-# pacman view
-alias pac="yay -Qq | fzf --prompt=' ' --color=16 -m --preview 'yay -Qi {1}'"
-# pacman clear
-alias pacc='yay -Qtdq | yay -Rns -'
 {{- end }}
