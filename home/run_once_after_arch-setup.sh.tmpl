@@ -30,6 +30,15 @@ sudo systemctl enable --now docker.socket
 sudo systemctl enable sddm.service
 sudo systemctl enable cups.socket
 sudo systemctl enable bluetooth.service
+sudo systemctl enable thermald
+
+systemctl --user add-wants niri.service waybar
+systemctl --user add-wants niri.service dunst
+systemctl --user add-wants niri.service hyprpaper
+systemctl --user add-wants niri.service hypridle
+systemctl --user add-wants niri.service cliphist@text.service
+systemctl --user add-wants niri.service cliphist@image.service
+
 systemctl --user enable --now ssh-agent.service
 systemctl --user enable --now startpage.service
 systemctl --user enable --now thunar

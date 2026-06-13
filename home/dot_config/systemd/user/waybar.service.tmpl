@@ -12,7 +12,7 @@ After=wayland-session@hyprland.desktop.target
 [Service]
 Type=exec
 # Repurpose XDG Autostart filtering
-ExecCondition=/lib/systemd/systemd-xdg-autostart-condition "wlroots:sway:Wayfire:labwc:Hyprland" ""
+ExecCondition=/lib/systemd/systemd-xdg-autostart-condition "wlroots:sway:Wayfire:labwc:niri:Hyprland" ""
 ExecStart=/usr/bin/waybar
 ExecReload=kill -SIGUSR2 $MAINPID
 Restart=on-failure

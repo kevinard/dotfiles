@@ -9,8 +9,15 @@ current_capacity=0
 # Iterate through all batteries
 for battery in "$POWER_SUPPLY_PATH"/BAT*; do
   if [ -d "$battery" ]; then
-    total_capacity=$((total_capacity + $(cat "$battery/charge_full")))
-    current_capacity=$((current_capacity + $(cat "$battery/charge_now"))) # Assuming each battery is 100%
+    if [ -f "$battery/charge_full" ]; then
+      charge_full=$(cat "$battery/charge_full")
+      charge_now=$(cat "$battery/charge_now")
+    else
+      charge_full=$(cat "$battery/energy_full")
+      charge_now=$(cat "$battery/energy_now")
+    fi
+    total_capacity=$((total_capacity + charge_full))
+    current_capacity=$((current_capacity + charge_now)) # Assuming each battery is 100%
   fi
 done
 

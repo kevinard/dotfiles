@@ -1,8 +1,8 @@
 {
   "layer": "top",
   "position": "top",
-  "mode": "dock",
-  "height": 30,
+  // "mode": "overlay",
+  // "height": 30,
   "fixed-center": true,
   "exclusive": true,
   "passthrough": false,
@@ -12,9 +12,11 @@
     "~/.config/waybar/default-modules.json",
   ],
 {{- if eq .env "home" }}
-  "modules-left": ["hyprland/workspaces", "hyprland/submap", "hyprland/window"],
-  "modules-center": ["clock"],
-  "modules-right": ["tray", "custom/pacman", "idle_inhibitor", "custom/dunst", "pulseaudio", "network", "battery", "custom/power"],
+  "modules-left": ["custom/smallspacer", "hyprland/workspaces", "niri/workspaces", "custom/spacer", "hyprland/submap", "custom/media"],
+	"modules-center": ["custom/padd","custom/l_end","custom/r_end","hyprland/window", "niri/window","custom/padd"],
+  // "modules-center": ["clock"],
+  // "modules-right": ["tray", "custom/pacman", "idle_inhibitor", "custom/dunst", "pulseaudio", "network", "battery", "custom/power"],
+	"modules-right": ["custom/padd","custom/l_end","group/expand","network","group/expand-3", "battery","clock","custom/dunst","custom/power","custom/padd"],
 {{- end }}
 {{- if eq .env "work" }}
   "modules-left": ["sway/workspaces", "sway/mode", "sway/window"],

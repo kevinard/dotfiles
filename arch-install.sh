@@ -137,3 +137,5 @@ sed -i "/etc/pacman.conf" \
   -e "s|^#Color|&\nColor\nILoveCandy|" \
   -e "s|^#VerbosePkgLists|&\nVerbosePkgLists|" \
   -e "s|^#ParallelDownloads.*|&\nParallelDownloads = 20|"
+
+btrfs quota disable /

@@ -23,28 +23,51 @@
     "max-length": 60,
     "separate-outputs": true
   },
+  "niri/workspaces": {
+    "all-outputs": false,
+    "format": "{icon}",
+    "format-icons": {
+	    "active": "●",
+	    "default": ""
+	  },
+    "disable-click": false
+  },
+  "niri/window": {
+    "separate-outputs": true
+  },
   "tray": {
     "spacing": 10,
     "reverse-direction": true,
+    //"icon-size": 16,
+    //"rotate": 0,
+    //"spacing": 3
   },
   "clock": {
     "format": "{:%a %d %b %H:%M}",
     "locale": "fr_FR.utf8",
-    "tooltip": false,
+    "tooltip": false
   },
   "battery": {
     "states": {
+      "good": 95,
       "warning": 20,
       "critical": 10
     },
-    "format": "{capacity}% {icon}",
-    "format-charging": "{capacity}% ",
-    "format-icons": ["", "", "", "", ""],
+    //"format": "{capacity}% {icon}",
+    "format": "{icon} ",
+    //"format-charging": "{capacity}% ",
+    //"format-charging": "{capacity}% {icon}󱐋",
+    "format-charging": "{icon}󱐋 ",
+    "format-plugged": "󰂄",
+    "tooltip-format": "{capacity}%\n{timeTo}\n{power}W",
+    //"format-icons": ["", "", "", "", ""],
+    "format-icons": ["󰂎", "󰁺", "󰁻", "󰁼", "󰁽", "󰁾", "󰁿", "󰂀", "󰂁", "󰂂", "󰁹"]
   },
   "network": {
-    "format-wifi": "",
-    "format-ethernet": "",
-    "format-disconnected": "⚠",
+    "format-wifi": " ",
+    //"format-ethernet": "",
+    "format-ethernet": "󰈀 ",
+    "format-disconnected": "⚠ ",
     "tooltip-format-wifi": "{essid} ({signalStrength}%)\nIP: {ipaddr}\n {bandwidthUpBits} -  {bandwidthDownBits}",
     "tooltip-format-ethernet": "{ifname}\n {bandwidthUpBits} -  {bandwidthDownBits}",
     "tooltip-format-disconnected": "Disconnected",
@@ -56,18 +79,21 @@
     "on-click": "$HOME/.config/rofi/scripts/wifimenu.sh",
     "on-right-click": "kitty -e nmtui",
 {{- end }}
-    "interval": 20
+    "interval": 2
   },
   "pulseaudio": {
-    "format": "{volume}% {icon}",
-    "format-bluetooth": "{volume}% {icon}",
-    "format-muted": "{volume}% 󰖁",
+    //"format": "{volume}% {icon}",
+    "format": "{icon} ",
+    //"format-bluetooth": "{volume}% {icon}",
+    //"format-muted": "{volume}% 󰖁",
+    "format-muted": "󰖁 ",
+    "tooltip-format": "{icon} {desc} // {volume}%",
     "format-icons": {
       "headphones": "",
       "headphone": "",
-      "handsfree": "󰂑",
-      "hands-free": "󰂑",
-      "headset": "󰂑",
+      "handsfree": "",
+      "hands-free": "",
+      "headset": "",
       "phone": "",
       "phone-muted": "",
       "portable": "",
@@ -77,11 +103,18 @@
     "on-click": "pavucontrol",
     "on-right-click": "qpwgraph"
   },
+  "pulseaudio/slider": {
+    "min": 5,
+    "max": 100,
+    "rotate": 0,
+    "device": "pulseaudio",
+    "scroll-step": 1,
+  },
   "idle_inhibitor": {
     "format": "{icon}",
     "format-icons": {
-      "activated": "",
-      "deactivated": ""
+      "activated": " ",
+      "deactivated": " "
     }
   },
   "power-profiles-daemon": {
@@ -107,6 +140,50 @@
     "return-type": "json",
     "restart-interval": 1,
   },
+
+"custom/smallspacer":{
+"format": " ",
+},
+   "group/expand": {
+     "orientation": "horizontal",
+     "drawer": {
+         "transition-duration": 600,
+         "children-class": "not-power",
+       "transition-to-left": true,
+       //  "click-to-reveal": true
+     },
+     "modules": ["custom/menu","custom/spacer","tray", "custom/pacman", "idle_inhibitor"]
+   },
+ "custom/menu":{
+ "format": "󰅃",
+ "rotate": 90,
+ },
+    "custom/spacer":{
+    "format": "|"
+    },
+    "group/expand-3": {
+     "orientation": "horizontal",
+     "drawer": {
+         "transition-duration": 600,
+         "children-class": "not-power",
+       "transition-to-left": true,
+         //"click-to-reveal": true
+     },
+     "modules": ["pulseaudio","pulseaudio/slider"]
+   },
+// modules for padding //
+    "custom/l_end": {
+        "format": " ",
+        "interval" : "once",
+        "tooltip": false
+    },
+    "custom/padd": {
+        "format": "  ",
+        "interval" : "once",
+        "tooltip": false
+    },
+
+
 {{- if eq .env "home" }}
   "custom/media": {
     "format": "{icon} {}",

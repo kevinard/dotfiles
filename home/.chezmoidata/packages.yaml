@@ -66,10 +66,13 @@ packages:
       - "intel-media-driver"
       - "vulkan-intel"
       - "libva-intel-driver"
+      - "libvpl"
+      - "vpl-gpu-rt"
     amd_graphics:
       - "vulkan-radeon"
     intel_cpu:
       - "intel-ucode"
+      - "thermald"
     amd_cpu:
       - "amd-ucode"
     pacman:
@@ -226,6 +229,7 @@ packages:
       - "simple-scan"
       - "ipp-usb"
       - "sane-airscan"
+      - "ast-grep"
     aur:
       - "iwmenu-git"
       - "wdisplays"
