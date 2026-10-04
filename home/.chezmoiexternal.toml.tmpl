@@ -1,17 +1,3 @@
-{{- if eq .chezmoi.osRelease.id "arch" }}
-[".local/bin/grimblast"]
-    type = "file"
-    url = "https://raw.githubusercontent.com/hyprwm/contrib/main/grimblast/grimblast"
-    refreshPeriod = "168h"
-    executable = true
-
-[".local/bin/rofi-screenshot"]
-    type = "file"
-    url = "https://raw.githubusercontent.com/hyprwm/contrib/main/grimblast/screenshot.sh"
-    refreshPeriod = "168h"
-    executable = true
-{{- end }}
-
 [".config/nvim"]
     type = "git-repo"
     url = "https://github.com/kevinard/nvim.git"
@@ -43,12 +29,6 @@
     refreshPeriod = "168h"
 
 {{- if eq .env "work" }}
-[".local/bin/autotiling"]
-    type = "file"
-    url = "https://raw.githubusercontent.com/nwg-piotr/autotiling/master/autotiling/main.py"
-    refreshPeriod = "168h"
-    executable = true
-
 [".local/share/yubico-authenticator"]
     type = "archive"
     url = "https://developers.yubico.com/yubioath-flutter/Releases/yubico-authenticator-latest-linux.tar.gz"

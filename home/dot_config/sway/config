@@ -1,6 +1,0 @@
-set $term --no-startup-id $TERMINAL
-set $mod Mod4
-
-floating_modifier $mod
-
-include $XDG_CONFIG_HOME/sway/sway.d/*

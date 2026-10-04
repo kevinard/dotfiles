@@ -2,8 +2,6 @@
 .local/bin/hyprland-run-or-raise
 .local/bin/hyprland-samedir
 .local/share/dbus-1
-.config/hypr
-.config/systemd/user/hypr*
 .config/systemd/user/udiskie.service
 .config/autostart/gnome-keyring*
 {{- end }}
@@ -12,14 +10,10 @@
 .local/bin/chromium
 .local/bin/slackium
 .local/bin/fd
-.local/bin/sway*
 .local/share/applications/chromium.desktop
 .local/share/applications/code.desktop
 .local/share/applications/slack.desktop
 .local/share/applications/com.yubico.authenticator.desktop
 .config/systemd/user/startpage-work.service
 .local/share/fonts/NerdFontsSymbolsOnly
-.config/sway
-.config/swaylock
-.config/systemd/user/sway*
 {{- end }}
