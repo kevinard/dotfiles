@@ -1,0 +1,9 @@
+# Pinned to the previously installed, tested checkouts. chezmoi owns updates.
+{{- $targets := dict "ohmyzsh" ".config/zsh/oh-my-zsh" "spaceship" ".config/zsh/custom/themes/spaceship-prompt" "autosuggestions" ".config/zsh/custom/plugins/zsh-autosuggestions" "syntax" ".config/zsh/custom/plugins/zsh-syntax-highlighting" "substring" ".config/zsh/custom/plugins/zsh-history-substring-search" }}
+{{ range $name, $path := $targets }}
+[{{ $path | quote }}]
+type = "archive"
+url = {{ (index $.externals $name).url | quote }}
+stripComponents = 1
+checksum.sha256 = {{ (index $.externals $name).sha256 | quote }}
+{{ end }}

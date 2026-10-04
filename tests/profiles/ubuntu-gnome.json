@@ -1,0 +1,22 @@
+{
+  "env": "work",
+  "email": "test@example.test",
+  "fullname": "Dotfiles Test",
+  "gpgsign": "no",
+  "themeFlavour": "mocha",
+  "themeColor": "lavender",
+  "projectPaths": [
+    "/tmp/test projects"
+  ],
+  "desktop": "gnome",
+  "desktopShell": "gnome",
+  "hasBattery": true,
+  "cpuVendor": "intel",
+  "gpuVendor": "intel",
+  "powerManager": "native",
+  "chezmoi": {
+    "osRelease": {
+      "id": "ubuntu"
+    }
+  }
+}

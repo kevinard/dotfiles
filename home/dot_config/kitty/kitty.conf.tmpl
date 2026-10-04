@@ -15,10 +15,8 @@ tab_bar_edge bottom
 tab_bar_style powerline
 tab_powerline_style slanted
 tab_title_template          {title}{' :{}:'.format(num_windows) if num_windows > 1 else ''}
-allow_remote_control yes
-# listen_on unix:@mykitty
-listen_on unix:/tmp/kitty
-clipboard_control write-clipboard read-clipboard
+allow_remote_control no
+clipboard_control write-clipboard read-clipboard-ask
 
 mouse_map left click ungrabbed mouse_handle_click selection link prompt
 

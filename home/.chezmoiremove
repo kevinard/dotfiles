@@ -1,0 +1,14 @@
+.local/bin/hyprland-run-or-raise
+.local/bin/hyprland-samedir
+.local/bin/papirus-folders
+.local/bin/mise
+.config/uwsm/env
+.config/xdg-desktop-portal/sway-portals.conf
+.config/systemd/user/udiskie.service
+.config/waybar/old_style.css
+.config/rofi/themes/powermenu.old.rasi
+.config/rofi/scripts/wifimenu.sh
+.local/share/applications/chromium.desktop
+.local/share/applications/code.desktop
+.config/rofi/scripts/projects.sh
+.local/bin/color-picker

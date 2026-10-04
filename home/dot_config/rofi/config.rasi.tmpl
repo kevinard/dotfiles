@@ -1,5 +1,5 @@
 configuration {
-/*  modi: "run,drun,projects";*/
+  modi: "drun,run,projects:~/.config/rofi/scripts/projects.py,powermenu:~/.config/rofi/scripts/powermenu.sh";
   show-icons: true;
   icon-theme: "Papirus";
   font: "sans-serif 14";
@@ -14,9 +14,6 @@ configuration {
 	sort: true;
 	sorting-method: "fzf";
 	normalize-match: true;
-{{- if eq .env "home" }}
-  run-command: "uwsm app -- {cmd}";
-{{- end }}
 
 	drun {
 		/** Parse user desktop files. */

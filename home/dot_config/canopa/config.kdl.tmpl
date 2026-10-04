@@ -1,0 +1,128 @@
+// Shared configuration for Canopa shell and notifications.
+schema-version 1
+
+appearance {
+    color-scheme "{{ if eq .themeFlavour "latte" }}light{{ else }}dark{{ end }}"
+}
+
+shell {
+    bar "main" {
+      edge "left"
+      collapsed-width 42
+      modules {
+        start "launcher" "workspaces"
+        center "focused-window"
+        end "tray" "notifications" "network" "volume" "battery" "clock"
+      }
+      panel {
+        presentation "drawer"
+        // drawer-mode "push-bar"
+        width 480
+        start "launcher"
+        center "focused-window"
+        end "network" "volume" "battery" "clock"
+      }
+      actions {
+        click { toggle-panel }
+        Super+Space { toggle-menu "main" }
+        Ctrl+E { toggle-menu "apps" }
+      }
+    }
+
+
+    modules {
+
+        module "launcher" {
+            type "button"
+            icon "󰀻"
+            label "Apps"
+            horizontal-format "{icon} {label}"
+            tooltip "Search installed applications"
+            actions {
+                click { toggle-menu "apps" }
+                right-click { toggle-menu "main" }
+            }
+        }
+
+        // Clicking opens the built-in Wi-Fi provider.
+        module "network" {
+            icons {
+                icon "" state="full"
+                icon "" state="limited"
+                icon "⚠" state="none"
+            }
+        }
+
+        module "volume" {
+            format {
+                segment "{icon}" {
+                    style color="accent"
+                    style state="quiet" color="warning"
+                    style state="muted" color="warning"
+                }
+                // segment "{value}%"
+            }
+            states {
+                state "quiet" threshold=33
+            }
+            icons {
+                icon "" at=61
+                icon "" at=31
+                icon "" at=0
+                icon "󰖁" state="muted"
+            }
+            actions {
+                click { open-panel }
+                right-click { launch "pavucontrol" }
+                // right-click { launch "qpwgraph" }
+            }
+        }
+
+        module "battery" {
+            icons {
+                icon "󰂎" at=0
+                icon "󰁺" at=9
+                icon "󰁻" at=19
+                icon "󰁼" at=29
+                icon "󰁽" at=39
+                icon "󰁾" at=49
+                icon "󰁿" at=59
+                icon "󰂀" at=69
+                icon "󰂁" at=79
+                icon "󰂂" at=89
+                icon "󰁹" at=99
+                icon "󱐋" state="charging"
+            }
+        }
+
+        // Click: calendar. Right-click: main menu.
+        module "clock" {
+            format "{time}"
+            actions {
+                right-click { toggle-menu "main" }
+            }
+        }
+    }
+
+    menus {
+        menu "main" show-icons=#true prompt="Menu" {
+            item "Terminal" {
+                launch "kitty"
+                icon "kitty"
+            }
+            item "Browser" {
+                launch "firefox"
+                icon "firefox"
+            }
+        }
+
+        menu "apps" show-icons=#true prompt="Applications" {
+            source "installed-apps"
+        }
+    }
+}
+
+notifications {
+    sound enabled=#true theme="freedesktop" default="message-new-instant"
+    icons theme="hicolor" scale=1
+}

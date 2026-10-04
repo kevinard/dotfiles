@@ -1,4 +1,5 @@
 #!/bin/sh
+set -eu
 
 mkdir -p "$HOME/Downloads"
 mkdir -p "$HOME/.templates"

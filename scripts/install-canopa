@@ -1,0 +1,33 @@
+#!/bin/bash
+set -euo pipefail
+# Independent application builds are explicit, never hidden inside chezmoi apply.
+# A temporary checkout leaves the development repository and running shell alone.
+revision=c2d1d369e25a20975672350dc8d1012d74ef9fd4
+work_dir=$(mktemp -d)
+trap 'rm -rf -- "$work_dir"' EXIT
+if [[ ${1:-} == --help ]]; then
+    echo 'Build and install the recorded Canopa revision. Optional argument: local checkout to clone.'
+    exit 0
+fi
+git clone --no-checkout "${1:-https://github.com/kevinard/canopa.git}" "$work_dir/source"
+git -C "$work_dir/source" checkout --detach "$revision"
+cd "$work_dir/source"
+CARGO_TARGET_DIR="$work_dir/target" cargo build --release --workspace --bins --locked
+config_file="${XDG_CONFIG_HOME:-$HOME/.config}/canopa/config.kdl"
+if [[ ! -f "$config_file" ]]; then
+    echo 'Apply the Canopa configuration before running this installer.' >&2
+    exit 1
+fi
+"$work_dir/target/release/canopa" config check --file "$config_file"
+install -d -m 0755 "$HOME/.local/bin"
+for binary in canopa canopa-shell canopa-notify canopa-wifi-provider canopa-audio-provider canopa-media-provider; do
+    test -x "$work_dir/target/release/$binary"
+done
+for binary in canopa canopa-shell canopa-notify canopa-wifi-provider canopa-audio-provider canopa-media-provider; do
+    install -m 0755 "$work_dir/target/release/$binary" "$HOME/.local/bin/$binary.new"
+    mv -f "$HOME/.local/bin/$binary.new" "$HOME/.local/bin/$binary"
+done
+state_dir="${XDG_STATE_HOME:-$HOME/.local/state}/canopa"
+mkdir -p "$state_dir"
+printf '%s\n' "$revision" > "$state_dir/dotfiles-installed-revision"
+echo 'Canopa installed. Log out and back in to use the new binaries.'

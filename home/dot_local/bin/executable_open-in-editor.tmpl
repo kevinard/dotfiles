@@ -1,33 +1,28 @@
-{{- if eq .env "work" }}#!/usr/bin/env python3{{- end }}
-{{- if eq .env "home" }}#!/usr/bin/env python{{- end }}
+#!/usr/bin/env python3
 # -*- coding: UTF-8 -*-
-"""
-This code is all in one file, and supports Python 2, in order that it can be wrapped conveniently
-as a MacOS application bundle (e.g. using https://github.com/sveinbjornt/Platypus).
-"""
+"""Open local file URLs from terminal hyperlinks in the selected editor."""
 from __future__ import print_function
 import datetime
+import json
+import re
 import os
 import subprocess
 import sys
 
-try:
-    from urllib.parse import urlparse
-except ImportError:
-    # Python 2
-    from urlparse import urlparse
+from urllib.parse import urlsplit, unquote
 
-LOGFILE        = "/tmp/open-in-editor.log"
+LOGFILE = os.path.join(os.getenv("XDG_STATE_HOME", os.path.expanduser("~/.local/state")), "open-in-editor", "log")
 OPEN_IN_EDITOR = os.getenv("OPEN_IN_EDITOR")
 EDITOR         = os.getenv("EDITOR")
 
 def main():
     try:
         editor = BaseEditor.infer_from_environment_variables()
-        (url,) = sys.argv[1:]
-        path, line, column = parse_url(url)
-        log_info("path=%s line=%s column=%s" % (path, line, column))
-        editor.visit_file(path, line or 1, column or 1)
+        if not sys.argv[1:]:
+            raise ValueError("expected at least one file URL")
+        for url in sys.argv[1:]:
+            path, line, column = parse_url(url)
+            editor.visit_file(path, line or 1, column or 1)
     except Exception:
         from traceback import format_exc
 
@@ -54,21 +49,24 @@ def parse_url(url):  # type: (str) -> (str, Optional[int], Optional[int]):
     >>> parse_url("file://localhost/a/b/myfile.txt:7:77")
     ('/a/b/myfile.txt', 7, 77)
     """
-    path, _, line_and_column = urlparse(url).path.partition(":")
-    line, _, column = line_and_column.partition(":")
-    try:
-        line = int(line)
-    except ValueError:
-        line = None
-    try:
-        column = int(column)
-    except ValueError:
-        column = None
+    parts = urlsplit(url)
+    if parts.scheme not in ("file", "file-line-column") or parts.netloc not in ("", "localhost"):
+        raise ValueError("expected a local file URL")
+    # Parse location before decoding, so encoded colons in a filename stay literal.
+    match = re.fullmatch(r"(.*?)(?::([0-9]+)(?::([0-9]+))?)?", parts.path)
+    path = unquote(match[1], errors="strict")
+    if not path.startswith("/") or "\0" in path:
+        raise ValueError("expected an absolute local path")
+    line = int(match[2]) if match[2] else None
+    column = int(match[3]) if match[3] else None
+    if any(value is not None and value < 1 for value in (line, column)):
+        raise ValueError("line and column must be positive")
     return path, line, column
 
 
 def log(line):
     time = datetime.datetime.now().isoformat(" ").split(".")[0]
+    os.makedirs(os.path.dirname(LOGFILE), mode=0o700, exist_ok=True)
     with open(LOGFILE, "a") as fp:
         print(time, file=fp)
         print(line, file=fp)
@@ -116,7 +114,7 @@ class BaseEditor(object):
         """
         Infer the editor type and its executable path heuristically from environment variables.
         """
-        executable_path_with_arguments_maybe = OPEN_IN_EDITOR or EDITOR
+        executable_path_with_arguments_maybe = OPEN_IN_EDITOR or EDITOR or "nvim"
 
         return cls.infer_editor_from_path(executable_path_with_arguments_maybe)
 
@@ -134,7 +132,7 @@ class Emacs(BaseEditor):
             self.executable,
             "--no-wait",
             "--eval",
-            '(find-file "%s")' % path,
+            '(find-file %s)' % json.dumps(path),
             "--eval",
             "(goto-line %d)" % line,
             "--eval",

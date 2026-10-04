@@ -1,9 +1,3 @@
 [Icon Theme]
 Name=Default
-Comment=Default Cursor Theme
-{{- if eq .env "home" }}
-Inherits=Catppuccin-{{ title .themeFlavour }}-{{ title .themeCursorColor }}-Cursors
-{{- end }}
-{{- if eq .env "work" }}
-Inherits=Yaru
-{{- end }}
+Inherits={{ if eq .chezmoi.osRelease.id "ubuntu" }}Yaru{{ else }}Adwaita{{ end }}

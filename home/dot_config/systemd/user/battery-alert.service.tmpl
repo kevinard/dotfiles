@@ -1,9 +1,7 @@
 [Unit]
-Description=Desktop alert warning of low remaining battery
+Description=Low battery notification
+{{ includeTemplate "graphical-unit" . }}
 
 [Service]
 Type=oneshot
-ExecStart={{ .chezmoi.homeDir }}/.local/bin/check-low-battery
-
-[Install]
-WantedBy=graphical.target
+ExecStart=%h/.local/bin/check-low-battery

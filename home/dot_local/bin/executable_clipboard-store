@@ -1,0 +1,5 @@
+#!/bin/sh
+set -eu
+# wl-clipboard marks password-manager selections as sensitive.
+case "${CLIPBOARD_STATE:-data}" in sensitive|clear|nil) exit 0 ;; esac
+exec cliphist store

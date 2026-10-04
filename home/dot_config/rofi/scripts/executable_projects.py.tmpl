@@ -1,0 +1,42 @@
+#!/usr/bin/env python3
+"""Rofi script mode: list directories and launch without shell interpolation."""
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+{{- $paths := get . "projectPaths" -}}
+{{- if not $paths }}{{ $paths = regexSplit "\\s+" (get . "projectsPaths" | default "") -1 }}{{ end }}
+ROOTS = json.loads({{ $paths | toJson | quote }})
+DOTFILES = {{ .chezmoi.workingTree | quote }}
+NVIM = {{ joinPath .chezmoi.homeDir ".config/nvim" | quote }}
+
+
+def projects():
+    entries = {"dotfiles": DOTFILES, "nvim": NVIM}
+    for root in ROOTS:
+        if not root:
+            continue
+        parent = Path(root).expanduser()
+        if parent.is_dir():
+            for child in sorted(parent.iterdir()):
+                if child.is_dir() and "\n" not in str(child):
+                    entries[str(child)] = str(child)
+    return entries
+
+
+def main():
+    entries = projects()
+    if os.environ.get("ROFI_RETV", "0") == "1":
+        path = entries.get(" ".join(sys.argv[1:]))
+        if path:
+            subprocess.Popen(["kitty", "--directory", path, "nvim"],
+                             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                             start_new_session=True)
+    else:
+        print("\n".join(entries))
+
+
+if __name__ == "__main__":
+    main()

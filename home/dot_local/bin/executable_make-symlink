@@ -1,0 +1,8 @@
+#!/usr/bin/env python3
+"""Create links beside the selected files, without overwriting existing entries."""
+from pathlib import Path
+import sys
+
+for argument in sys.argv[1:]:
+    source = Path(argument).absolute()
+    source.with_name(source.name + " (symlink)").symlink_to(source)

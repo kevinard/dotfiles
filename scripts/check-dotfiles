@@ -1,0 +1,159 @@
+#!/usr/bin/env python3
+"""Offline validation: render into /tmp, never apply or run deployment scripts."""
+import ast
+import configparser
+import json
+import os
+from pathlib import Path
+import shutil
+import subprocess
+import tempfile
+import tomllib
+import xml.etree.ElementTree as ET
+
+os.environ["PYTHONDONTWRITEBYTECODE"] = "1"
+
+REPO = Path(__file__).resolve().parents[1]
+
+
+def run(argv, **kwargs):
+    result = subprocess.run(argv, text=True, capture_output=True, **kwargs)
+    if result.returncode:
+        raise RuntimeError(f"{' '.join(map(str, argv))}\n{result.stdout}{result.stderr}")
+    return result.stdout
+
+
+def validate_file(path, contents):
+    if not contents:
+        return
+    if contents.startswith("#!/usr/bin/env python") or contents.startswith("#!/usr/bin/python"):
+        ast.parse(contents, filename=str(path))
+    elif contents.startswith("#!"):
+        interpreter = "zsh" if "zsh" in contents.splitlines()[0] else (
+            "bash" if "bash" in contents.splitlines()[0] else "sh")
+        run([interpreter, "-n", str(path)])
+    elif path.suffix in (".service", ".timer", ".desktop", ".target", ".ini"):
+        parser = configparser.ConfigParser(interpolation=None, strict=False)
+        parser.read_string(contents)
+    if path.suffix == ".xml":
+        ET.fromstring(contents)
+    if path.suffix == ".tmTheme":
+        ET.fromstring(contents)
+    if path.suffix == ".desktop" and shutil.which("desktop-file-validate"):
+        run(["desktop-file-validate", str(path)])
+    if path.name in ("config.jsonc", "default-modules.json"):
+        json.loads(contents) # Deliberately keep the managed Waybar files strict JSON.
+
+
+def check_profile(fixture, source, work):
+    data = json.loads(fixture.read_text())
+    override = work / "override.json"
+    # Never use local identity data or credentials during validation.
+    data.setdefault("chezmoi", {}).update(homeDir=str(work / "home"), username="dotfiles-test",
+                                        arch="amd64", workingTree=str(REPO))
+    override.write_text(json.dumps(data))
+    config = work / "config.json"
+    config.write_text('{"data":{}}')
+    destination = work / "home"
+    command = ["chezmoi", "--config", str(config), "--source", str(source),
+               "--destination", str(destination), "--cache", str(work / "cache"),
+               "--persistent-state", str(work / "state"), "--override-data-file", str(override)]
+    rendered = json.loads(run(command + ["dump", "--format=json"]))
+    for name, entry in rendered.items():
+        if entry["type"] not in ("file", "script"):
+            continue
+        path = destination / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        contents = entry.get("contents", "")
+        path.write_text(contents)
+        validate_file(path, contents)
+    # Manifests are checked separately; acquisition is intentionally outside this suite.
+    for manifest in (REPO / "home/.chezmoiexternals").glob("*.tmpl"):
+        tomllib.loads(run(command + ["execute-template", "--file", str(manifest)]))
+    desktop = data.get("desktop", "gnome" if data["chezmoi"]["osRelease"]["id"] == "ubuntu" else "niri")
+    shell = data.get("desktopShell", "gnome" if desktop == "gnome" else "canopa")
+    units = ".config/systemd/user/"
+    assert (units + "swayidle.service" in rendered) == (desktop == "niri")
+    assert (units + "canopa-shell.service" in rendered) == (shell == "canopa")
+    assert (units + "waybar.service" in rendered) == (shell == "waybar")
+    assert (".config/niri/config.kdl" in rendered) == (desktop == "niri")
+    assert not any("hyprland" in name or "sway-session" in name for name in rendered)
+    for name in ("startpage.service", "startpage-work.service"):
+        if units + name in rendered:
+            assert "--bind 127.0.0.1" in rendered[units + name]["contents"]
+    script = rendered[".chezmoiscripts/90-session.sh"]["contents"]
+    if desktop == "gnome":
+        assert "add-wants niri.service" not in script
+    package_name = "10-" + data["chezmoi"]["osRelease"]["id"] + "-packages.sh"
+    package_script = rendered[".chezmoiscripts/" + package_name]["contents"]
+    if desktop == "gnome":
+        assert " swaylock " not in package_script and " sway " not in package_script
+        assert " sddm " not in package_script and " tlp " not in package_script
+    if desktop == "niri" and shutil.which("niri"):
+        run(["niri", "validate", "--config", str(destination / ".config/niri/config.kdl")])
+    if shell == "canopa" and shutil.which("canopa"):
+        run(["canopa", "config", "check", "--file", str(destination / ".config/canopa/config.kdl")])
+    profile = destination / ".profile"
+    # Exercise .profile under all supported shells, not just their parsers.
+    environment = {"HOME": str(destination), "PATH": "/usr/bin:/bin", "LESSOPEN": ""}
+    for interpreter in ("sh", "bash", "zsh"):
+        run([interpreter, "-c", '. "$1"', "dotfiles-test", str(profile)], env=environment)
+    run(["zsh", "-n", str(destination / ".zshenv")])
+    run(["zsh", "-n", str(destination / ".config/zsh/.zprofile")])
+    run(["zsh", "-f", "-c", 'source "$HOME/.config/zsh/.zshrc"; test "$SCALINGO_HOME" = "$HOME/scalingo"'], env=environment)
+    run(["git", "config", "--file", str(destination / ".config/git/config"), "--list"])
+    # The init template must also produce valid TOML from these complete choices.
+    init_data = dict(data)
+    init_data.setdefault("desktop", desktop)
+    init_data.setdefault("desktopShell", shell)
+    init_data.setdefault("hasBattery", True)
+    init_data.setdefault("cpuVendor", "intel")
+    init_data.setdefault("gpuVendor", "intel")
+    init_data.setdefault("powerManager", "native" if desktop == "gnome" else "tlp")
+    override.write_text(json.dumps(init_data))
+    tomllib.loads(run(command + ["execute-template", "--init", "--file", str(source / ".chezmoi.toml.tmpl")]))
+    # Simulated prompts are keyed by their displayed question, not the data key.
+    choices = {"Identity": data["env"], "Catppuccin flavour": data["themeFlavour"],
+               "Catppuccin accent": data["themeColor"], "Desktop": desktop,
+               "niri shell": shell, "CPU vendor": "intel",
+               "GPU vendor (none keeps distribution defaults)": "intel",
+               "Power policy (native for stock Ubuntu)": "native" if desktop == "gnome" else "tlp"}
+    prompts = ["execute-template", "--init", "--file", str(source / ".chezmoi.toml.tmpl")]
+    for question, answer in choices.items():
+        prompts.extend(["--promptChoice", question + "=" + answer])
+    for question, answer in {"Email address": "test@example.test", "Full name": "Test User",
+                             "GPG Key (no to disable)": "no"}.items():
+        prompts.extend(["--promptString", question + "=" + answer])
+    prompts.extend(["--promptBool", "Has a battery=true"])
+    override.write_text(json.dumps({"chezmoi": data["chezmoi"]}))
+    fresh = tomllib.loads(run(command + prompts))["data"]
+    assert fresh["desktop"] == desktop and fresh["desktopShell"] == shell
+    assert fresh["env"] == data["env"] and fresh["email"] == "test@example.test"
+    print(f"PASS {fixture.stem}: {len(rendered)} targets")
+
+
+def main():
+    for executable in ("chezmoi", "python3", "bash", "zsh", "git"):
+        if not shutil.which(executable):
+            raise SystemExit(f"Required validator missing: {executable}")
+    with tempfile.TemporaryDirectory(prefix="dotfiles-check-") as temporary:
+        root = Path(temporary)
+        source = root / "source"
+        shutil.copytree(REPO / "home", source, ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
+        shutil.rmtree(source / ".chezmoiexternals") # No network or external acquisition.
+        for fixture in sorted((REPO / "tests/profiles").glob("*.json")):
+            work = root / fixture.stem
+            work.mkdir()
+            check_profile(fixture, source, work)
+    run(["python3", "-m", "unittest", "discover", "-s", str(REPO / "tests"), "-v"], cwd=REPO)
+    for path in (REPO / "scripts").iterdir():
+        if path.is_file():
+            validate_file(path, path.read_text())
+    print("PASS helper regressions and repository scripts")
+    for executable in ("niri", "canopa", "desktop-file-validate"):
+        if not shutil.which(executable):
+            print(f"SKIP optional {executable} validation (not installed)")
+
+
+if __name__ == "__main__":
+    main()

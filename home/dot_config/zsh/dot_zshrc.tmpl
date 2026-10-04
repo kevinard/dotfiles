@@ -1,5 +1,9 @@
 #!/bin/zsh
 
+# GNOME-launched terminals can start a non-login shell without reading .profile.
+[[ -o login ]] || source "$HOME/.profile"
+typeset -gU path
+
 source "${ZDOTDIR:-$HOME}/custom/themes/catppuccin_{{ .themeFlavour }}-zsh-syntax-highlighting.zsh"
 
 # xrdb -merge $XDG_CONFIG_HOME/xresources
@@ -39,10 +43,20 @@ alias rg="rg --hyperlink-format=file-line-column://{path}:{line}:{column}"
 alias fournill="ledger --file ~/fournill/ledger/main.journal"
 
 {{- if eq .env "work" }}
-source $SCALINGO_HOME/tools-and-hacks/zsh/scalingo
+[[ -r "$SCALINGO_HOME/tools-and-hacks/zsh/scalingo" ]] && source "$SCALINGO_HOME/tools-and-hacks/zsh/scalingo"
 # eval "$(rbenv init -)"
-eval "$(mise activate zsh)"
+
 alias ans="source $HOME/.local/venv/ansible/bin/activate"
+{{- end }}
+{{- if eq .chezmoi.osRelease.id "ubuntu" }}
 alias cat='batcat --paging=never'
 alias bat='batcat'
 {{- end }}
+
+export HISTFILE="$ZDOTDIR/.zsh_history"
+alias wget="wget --hsts-file=${XDG_DATA_HOME:-$HOME/.local/share}/wget-hsts"
+if (( $+commands[mise] )); then eval "$(mise activate zsh)"; fi
+if [[ -t 0 ]] && (( $+commands[gpg-connect-agent] )); then
+    export GPG_TTY=$(tty)
+    gpg-connect-agent updatestartuptty /bye >/dev/null
+fi

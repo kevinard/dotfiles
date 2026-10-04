@@ -1,0 +1,11 @@
+[Unit]
+Description=niri automatic locking and display power
+PartOf=graphical-session.target
+After=graphical-session.target
+Requisite=graphical-session.target
+ConditionEnvironment=XDG_CURRENT_DESKTOP=niri
+
+[Service]
+ExecStart=/usr/bin/swayidle -w timeout 600 "swaylock -f" timeout 660 "niri msg action power-off-monitors" resume "niri msg action power-on-monitors" before-sleep "swaylock -f" lock "swaylock -f"
+Restart=on-failure
+RestartSec=3

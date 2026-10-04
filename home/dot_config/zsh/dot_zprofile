@@ -1,3 +1,5 @@
+source "$HOME/.profile"
+
 #
 # Paths
 #
@@ -18,5 +20,3 @@ path=(
   /usr/local/{,s}bin(N)
   $path
 )
-
-eval "$(mise activate zsh --shims)"

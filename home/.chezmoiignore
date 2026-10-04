@@ -1,19 +1,59 @@
-{{- if ne .env "home" }}
-.local/bin/hyprland-run-or-raise
-.local/bin/hyprland-samedir
-.local/share/dbus-1
-.config/systemd/user/udiskie.service
-.config/autostart/gnome-keyring*
-{{- end }}
-{{- if ne .env "work" }}
+{{- $m := includeTemplate "machine" . | fromJson }}
+**/__pycache__
+**/*.pyc
+{{ if ne $m.desktop "niri" }}
+.config/niri
+.config/kanshi
+.config/rofi
+.config/rofimoji.rc
+.config/swappy
+.config/xdg-desktop-portal/niri-portals.conf
+.config/systemd/user/cliphist@.service
+.config/systemd/user/kanshi.service
+.config/systemd/user/swayidle.service
+.config/systemd/user/thunar.service
+.config/systemd/user/battery-alert.*
+.local/bin/clipboard-store
+.local/bin/brightness-control
+{{ end }}
+{{ if ne $m.shell "canopa" }}
+.config/canopa
+.config/systemd/user/canopa-shell.service
+.config/systemd/user/canopa-notify.service
+{{ end }}
+{{ if ne $m.shell "waybar" }}
+.config/waybar
+.config/systemd/user/waybar.service
+{{ end }}
+{{ if or (ne $m.desktop "niri") (eq .chezmoi.osRelease.id "arch") }}
+.config/systemd/user/polkit-agent.service
+{{ end }}
+{{ if not $m.battery }}
+.config/systemd/user/battery-alert.*
+{{ end }}
+{{ if ne .env "home" }}
+.local/share/dbus-1/services/org.freedesktop.secrets.service
+.config/systemd/user/ssh-agent.service
+{{ end }}
+{{ if ne .env "work" }}
 .local/bin/authenticator
 .local/bin/chromium
 .local/bin/slackium
-.local/bin/fd
-.local/share/applications/chromium.desktop
-.local/share/applications/code.desktop
 .local/share/applications/slack.desktop
 .local/share/applications/com.yubico.authenticator.desktop
 .config/systemd/user/startpage-work.service
-.local/share/fonts/NerdFontsSymbolsOnly
-{{- end }}
+{{ end }}
+
+{{ if eq .chezmoi.osRelease.id "arch" }}
+.local/bin/chromium
+.local/bin/slackium
+.local/share/applications/slack.desktop
+{{ end }}
+{{ if eq $m.desktop "gnome" }}
+.config/xfce4
+.config/Thunar
+{{ end }}
+
+{{ if ne .chezmoi.osRelease.id "ubuntu" }}
+.local/bin/fd
+{{ end }}

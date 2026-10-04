@@ -29,7 +29,7 @@ window-rule {
 }
 
 // Example: block out two password managers from screen capture.
-// (This example rule is commented out with a "/-" in front.)
+// Active: protect the database even when it is unlocked.
 window-rule {
     match app-id=r#"^org\.keepassxc\.KeePassXC$"#
     match app-id=r#"^org\.gnome\.World\.Secrets$"#
@@ -42,7 +42,7 @@ window-rule {
 
 // Block out notifications from screencasts.
 layer-rule {
-    match namespace="^notifications$"
+    match namespace="^(notifications|canopa-notify-banners)$"
 
     block-out-from "screencast"
 }

@@ -1,25 +1,11 @@
 [Unit]
-Description=Clipboard history “manager” for wayland (%I)
-Documentation=https://github.com/sentriz/cliphist
-{{- if eq .env "work" }}
-After=sway-session.target
-{{- end }}
-{{- if eq .env "home" }}
-After=wayland-session@hyprland.desktop.target
-{{- end }}
+Description=Clipboard history (%I)
+PartOf=graphical-session.target
+After=graphical-session.target
+Requisite=graphical-session.target
+ConditionEnvironment=XDG_CURRENT_DESKTOP=niri
 
 [Service]
-Type=exec
-# Repurpose XDG Autostart filtering
-ExecCondition=/lib/systemd/systemd-xdg-autostart-condition "wlroots:sway:Wayfire:labwc:niri:Hyprland" ""
-ExecStart=wl-paste --type %i --watch cliphist store
+ExecStart=wl-paste --type %i --watch %h/.local/bin/clipboard-store
 Restart=on-failure
-Slice=app-graphical.slice
-
-[Install]
-{{- if eq .env "work" }}
-WantedBy=sway-session.target
-{{- end }}
-{{- if eq .env "home" }}
-WantedBy=wayland-session@hyprland.desktop.target
-{{- end }}
+RestartSec=3

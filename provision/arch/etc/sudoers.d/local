@@ -1,0 +1,2 @@
+# Arbitrary mounts and package changes require authentication.
+%wheel ALL=(ALL:ALL) ALL

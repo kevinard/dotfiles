@@ -1,0 +1,39 @@
+{{- if eq .chezmoi.osRelease.id "ubuntu" -}}
+#!/bin/bash
+set -euo pipefail
+work_dir=$(mktemp -d)
+trap 'rm -rf -- "$work_dir"' EXIT
+sudo apt-get update
+sudo apt-get install --yes curl ca-certificates gnupg software-properties-common
+mkdir -m 700 "$work_dir/gnupg"
+export GNUPGHOME="$work_dir/gnupg"
+sudo install -d -m 0755 /etc/apt/keyrings
+
+install_key() {
+    local url=$1 fingerprint=$2 name=$3 actual
+    curl --fail --silent --show-error --location "$url" -o "$work_dir/$name"
+    actual=$(gpg --batch --show-keys --with-colons "$work_dir/$name" | awk -F: '$1 == "fpr" {print $10; exit}')
+    if [[ "$actual" != "$fingerprint" ]]; then
+        printf 'Unexpected signing key for %s: %s\n' "$name" "$actual" >&2
+        return 1
+    fi
+    sudo install -m 0644 "$work_dir/$name" "/etc/apt/keyrings/$name"
+}
+install_key https://packages.mozilla.org/apt/repo-signing-key.gpg 35BAA0B33E9EB396F59CA838C0BA5CE6DC6315A3 packages.mozilla.org.asc
+printf '%s\n' 'deb [signed-by=/etc/apt/keyrings/packages.mozilla.org.asc] https://packages.mozilla.org/apt mozilla main' | sudo tee /etc/apt/sources.list.d/mozilla.list >/dev/null
+# Official mise instructions for Ubuntu 26.04+: Launchpad manages the PPA key.
+sudo add-apt-repository --yes ppa:jdxcode/mise
+sudo tee /etc/apt/preferences.d/mozilla >/dev/null <<'EOF'
+Package: firefox* thunderbird*
+Pin: origin packages.mozilla.org
+Pin-Priority: 1000
+EOF
+# gh uses Ubuntu's signed archive; remove only the source owned by the old installer.
+sudo rm -f /etc/apt/sources.list.d/github-cli.list
+sudo apt-get update
+sudo apt-get install --yes {{ includeTemplate "package-list" . }}
+{{ range .packages.ubuntu.snap -}}
+sudo snap install {{ .name | shellQuote }}{{ if .classic }} --classic{{ end }}
+{{ end -}}
+# Lazygit is a pinned, checksummed chezmoi external rather than a root download.
+{{ end -}}

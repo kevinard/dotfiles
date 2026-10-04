@@ -1,68 +1,38 @@
-export XDG_CONFIG_HOME="$HOME/.config"
-export XDG_DATA_HOME="$HOME/.local/share"
-export XDG_CACHE_HOME="$HOME/.cache"
+# Portable login environment (also read by niri-session).
+export XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
+export XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
+export XDG_CACHE_HOME="${XDG_CACHE_HOME:-$HOME/.cache}"
+export XDG_STATE_HOME="${XDG_STATE_HOME:-$HOME/.local/state}"
 export ZDOTDIR="$XDG_CONFIG_HOME/zsh"
-export HISTFILE="$ZDOTDIR/.zsh_history"
-
-export SCALINGO_HOME=$HOME/scalingo
-export GOPATH=$HOME/go
-export VOLTA_HOME="$HOME/.volta"
-export PATH="$HOME/.local/share/cargo/bin:$HOME/.tfenv/bin:$HOME/.rbenv/bin:$VOLTA_HOME/bin:$HOME/.local/bin:$PATH:$GOPATH/bin:/usr/local/go/bin"
-
-export EDITOR='nvim'
-export VISUAL='nvim'
-export PAGER='less'
-{{- if eq .env "home" }}
-export TERMINAL='uwsm app -- kitty'
-export BROWSER='uwsm app -- firefox'
-export READER='uwsm app -- zathura'
-{{- end }}
-{{- if eq .env "work" }}
-export TERMINAL='kitty'
-export BROWSER='firefox'
-export READER='zathura'
-{{- end }}
-export LANG='en_US.UTF-8'
-
-# less/man colors
-export LESS='-g -i -M -R -S -w -X -z-4'
-# Set the Less input preprocessor.
-# Try both `lesspipe` and `lesspipe.sh` as either might exist on a system.
-if [[ -z "$LESSOPEN" ]] && (( $#commands[(i)lesspipe(|.sh)] )); then
-  export LESSOPEN="| /usr/bin/env $commands[(i)lesspipe(|.sh)] %s 2>&-"
-fi
-export LESSHISTFILE="/dev/null"
-
-# clean up home directory
-alias wget="wget --hsts-file=$XDG_DATA_HOME/wget-hsts"
+export SCALINGO_HOME="$HOME/scalingo"
+export GOPATH="$HOME/go"
 export CARGO_HOME="$XDG_DATA_HOME/cargo"
 export ANSIBLE_HOME="$XDG_DATA_HOME/ansible"
 export DOCKER_CONFIG="$XDG_DATA_HOME/docker"
-
-export CATPPUCCIN_FLAVOUR="{{ .themeFlavour }}"
-
-{{- if eq .env "home" }}
-export SSH_AUTH_SOCK="${XDG_RUNTIME_DIR}/ssh-agent.socket"
-{{- end }}
-
-{{- if eq .env "work" }}
-export GPG_TTY=$(tty)
-gpg-connect-agent updatestartuptty /bye >/dev/null
-
-if [[ $DESKTOP_SESSION = "sway" ]]; then
-  export _JAVA_AWT_WM_NONREPARENTING=1
-  export SDL_VIDEODRIVER=wayland
-  export QT_QPA_PLATFORM=wayland
-  export QT_WAYLAND_DISABLE_WINDOWDECORATION="1"
-  export MOZ_DBUS_REMOTE=1
-  export SAL_USE_VCLPLUGIN=gtk3
-  export XDG_CURRENT_DESKTOP=sway
-  export XDG_SESSION_DESKTOP=sway
-  eval $(/usr/bin/gnome-keyring-daemon --start --components=pkcs11,secrets,ssh)
-  export SSH_AUTH_SOCK
+export PATH="$HOME/.local/bin:$CARGO_HOME/bin:$GOPATH/bin:$PATH"
+# GUI launches can use mise shims without evaluating an interactive activation.
+if [ -d "$XDG_DATA_HOME/mise/shims" ]; then export PATH="$XDG_DATA_HOME/mise/shims:$PATH"; fi
+# Preserve existing legacy managers until their tool versions have been migrated.
+export VOLTA_HOME="$HOME/.volta"
+for tool_bin in "$HOME/.tfenv/bin" "$HOME/.rbenv/bin" "$VOLTA_HOME/bin" /usr/local/go/bin; do
+    if [ -d "$tool_bin" ]; then export PATH="$PATH:$tool_bin"; fi
+done
+export EDITOR=nvim VISUAL=nvim PAGER=less
+export TERMINAL=kitty BROWSER=firefox READER=zathura
+export LANG=en_US.UTF-8
+export LESS='-g -i -M -R -S -w -X -z-4'
+export LESSHISTFILE=/dev/null
+if [ -z "${LESSOPEN:-}" ]; then
+    for preprocessor in lesspipe lesspipe.sh; do
+        if command -v "$preprocessor" >/dev/null 2>&1; then
+            LESSOPEN="| $preprocessor %s"
+            export LESSOPEN
+            break
+        fi
+    done
 fi
-{{- end }}
-
-{{- if eq .env "home" }}
-export UWSM_USE_SESSION_SLICE=true
-{{- end }}
+export CATPPUCCIN_FLAVOUR={{ .themeFlavour | shellQuote }}
+# Keep the existing GNOME/work agent; Arch uses the managed SSH agent socket.
+{{ if and (eq .env "home") (eq .chezmoi.osRelease.id "arch") }}
+if [ -n "${XDG_RUNTIME_DIR:-}" ]; then export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/ssh-agent.socket"; fi
+{{ end }}

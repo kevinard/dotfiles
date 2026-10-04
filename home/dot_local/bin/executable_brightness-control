@@ -1,95 +1,69 @@
-#!/bin/bash
+#!/usr/bin/env python3
+"""Adjust each DDC display, including identical models, from the user session."""
+import fcntl
+import hashlib
+import json
+import os
+from pathlib import Path
+import re
+import subprocess
+import sys
+import time
 
-# Monitor VCP Code for Brightness
-VCP_BRIGHTNESS=10
-# Brightness adjustment step
-STEP=10
-# Cache file to store detected displays
-CACHE_FILE="${XDG_CACHE_DIR:-$HOME/.cache}/monitor_displays"
 
-# Function to detect monitors and cache results
-detect_monitors() {
-  ddcutil detect | awk '/Display/{display=$2} /Model:/{model=$2; if (!(model in seen)) {print display, model; seen[model]=1}}' >"$CACHE_FILE"
-}
+def topology(root=Path("/sys/class/drm")):
+    digest = hashlib.sha256()
+    for connector in sorted(root.glob("card*-*")):
+        for name in ("status", "edid"):
+            try:
+                digest.update(str(connector / name).encode())
+                digest.update((connector / name).read_bytes())
+            except OSError:
+                pass
+    return digest.hexdigest()
 
-# Function to get all display numbers from cache or detect
-get_monitor_displays() {
-  # If cache does not exist, refresh it
-  if [[ ! -f "$CACHE_FILE" ]]; then
-    detect_monitors
-  fi
-  cat "$CACHE_FILE"
-}
 
-# Function to clear cache
-clear_cache() {
-  echo "Clearing monitor cache..."
-  rm -f "$CACHE_FILE"
-  detect_monitors
-  echo "Cache refreshed!"
-  exit 0
-}
+def displays(output):
+    return re.findall(r"^Display\s+(\d+)\b", output, re.MULTILINE)
 
-# Check if "clear" was passed as an argument
-if [[ "$1" == "clear" ]]; then
-  clear_cache
-fi
 
-# Get all detected displays
-DISPLAY_LIST=($(get_monitor_displays | awk '{print $1}'))
+def main():
+    if len(sys.argv) < 2 or sys.argv[1] not in ("up", "down", "clear"):
+        raise SystemExit("Usage: brightness-control {up|down} {zero-based-index|all}, or clear")
+    action = sys.argv[1]
+    cache_dir = Path(os.environ.get("XDG_CACHE_HOME", Path.home() / ".cache")) / "ddc-brightness"
+    cache_dir.mkdir(mode=0o700, parents=True, exist_ok=True)
+    cache = cache_dir / "displays.json"
+    with (cache_dir / "lock").open("w") as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        if action == "clear":
+            cache.unlink(missing_ok=True)
+            return
+        if len(sys.argv) != 3:
+            raise SystemExit("Expected a display index or all")
+        fingerprint = topology()
+        try:
+            record = json.loads(cache.read_text())
+        except (OSError, ValueError):
+            record = {}
+        if record.get("topology") != fingerprint or time.time() - record.get("time", 0) > 30:
+            result = subprocess.run(["ddcutil", "detect", "--brief"], check=True, capture_output=True, text=True)
+            record = {"topology": fingerprint, "time": time.time(), "displays": displays(result.stdout)}
+            cache.write_text(json.dumps(record))
+        selected = record["displays"]
+        if sys.argv[2] != "all":
+            if not sys.argv[2].isdigit() or int(sys.argv[2]) >= len(selected):
+                raise SystemExit("Invalid display index")
+            selected = [selected[int(sys.argv[2])]]
+        if not selected:
+            raise SystemExit("No DDC displays detected")
+        for display in selected:
+            result = subprocess.run(["ddcutil", "--display", display, "setvcp", "10",
+                                     "+" if action == "up" else "-", "10"])
+            if result.returncode:
+                cache.unlink(missing_ok=True)
+                raise SystemExit(result.returncode)
 
-if [ ${#DISPLAY_LIST[@]} -eq 0 ]; then
-  echo "No external monitors detected."
-  exit 1
-fi
 
-# Validate input arguments
-if [[ "$#" -lt 2 ]]; then
-  echo "Usage: $0 {up|down|clear} {display_index|all}"
-  echo "Example: $0 up 0    # Increase brightness on display 0"
-  echo "         $0 down all # Decrease brightness on all displays"
-  echo "         $0 clear    # Clear the cache and re-detect monitors"
-  exit 1
-fi
-
-ACTION=$1 # "up" or "down"
-TARGET=$2 # Display index or "all"
-
-# Validate action argument
-if [[ "$ACTION" != "up" && "$ACTION" != "down" ]]; then
-  echo "Invalid action: $ACTION"
-  echo "Usage: $0 {up|down|clear} {display_index|all}"
-  exit 1
-fi
-
-# Select display(s) to adjust
-if [[ "$TARGET" =~ ^[0-9]+$ ]] && [[ "$TARGET" -ge 0 ]] && [[ "$TARGET" -lt "${#DISPLAY_LIST[@]}" ]]; then
-  SELECTED_DISPLAY=${DISPLAY_LIST[$TARGET]}
-  DISPLAY_LIST=("$SELECTED_DISPLAY") # Adjust only the selected display
-elif [[ "$TARGET" != "all" ]]; then
-  echo "Invalid display selection: $TARGET"
-  echo "Available displays:"
-  for i in "${!DISPLAY_LIST[@]}"; do
-    echo "  [$i] Display ${DISPLAY_LIST[$i]}"
-  done
-  exit 1
-fi
-
-# Function to adjust brightness
-adjust_brightness() {
-  local DISPLAY=$1
-
-  if [[ "$ACTION" == "up" ]]; then
-    NEW_BRIGHTNESS="+"
-  elif [[ "$ACTION" == "down" ]]; then
-    NEW_BRIGHTNESS="-"
-  fi
-
-  # Set new brightness
-  ddcutil --noverify --display=$DISPLAY setvcp $VCP_BRIGHTNESS $NEW_BRIGHTNESS $STEP
-}
-
-# Adjust brightness on all selected displays
-for DISPLAY in "${DISPLAY_LIST[@]}"; do
-  adjust_brightness "$DISPLAY"
-done
+if __name__ == "__main__":
+    main()

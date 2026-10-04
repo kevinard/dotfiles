@@ -1,0 +1,39 @@
+{
+  "externals": {
+    "ohmyzsh": {
+      "url": "https://codeload.github.com/ohmyzsh/ohmyzsh/tar.gz/4d4cfc287e9d887b81242c0e431b5f49f9cec5c1",
+      "revision": "4d4cfc287e9d887b81242c0e431b5f49f9cec5c1",
+      "sha256": "d3af1bf5f3c59e84f1f3051d3a994b557b8ffd3cbdf64b2811ac532c38f6b5ee"
+    },
+    "spaceship": {
+      "url": "https://codeload.github.com/spaceship-prompt/spaceship-prompt/tar.gz/109989cf3fcd6696b38445d9303e8a22fb3dbb22",
+      "revision": "109989cf3fcd6696b38445d9303e8a22fb3dbb22",
+      "sha256": "302b40bd95c57c5c79de1ea8b6d50472b9674093e2817c880ac33a48e011f59c"
+    },
+    "autosuggestions": {
+      "url": "https://codeload.github.com/zsh-users/zsh-autosuggestions/tar.gz/85919cd1ffa7d2d5412f6d3fe437ebdbeeec4fc5",
+      "revision": "85919cd1ffa7d2d5412f6d3fe437ebdbeeec4fc5",
+      "sha256": "20665e469e720e674964a66854d5534b9af78cdfd438512746ecd1ade8e819ce"
+    },
+    "syntax": {
+      "url": "https://codeload.github.com/zsh-users/zsh-syntax-highlighting/tar.gz/0bfcb582e71d3abe604ce67bc0fe5a21f377507e",
+      "revision": "0bfcb582e71d3abe604ce67bc0fe5a21f377507e",
+      "sha256": "898766fe913588bb8e022ccddc263fc618a1308da914d397cd8b0c305b8ad3aa"
+    },
+    "substring": {
+      "url": "https://codeload.github.com/zsh-users/zsh-history-substring-search/tar.gz/a0bdb0d47dbaba31dba2db7af8c48a5d9c74049a",
+      "revision": "a0bdb0d47dbaba31dba2db7af8c48a5d9c74049a",
+      "sha256": "b9edc11a4a04d2a5cc23bb7bafd8f02935240a45efe8a2fa61605b7636ecb22f"
+    },
+    "yubico": {
+      "url": "https://developers.yubico.com/yubioath-flutter/Releases/yubico-authenticator-7.4.1-linux.tar.gz",
+      "version": "7.4.1",
+      "sha256": "5c8f49cf3653ae9dd3911b53ca60475b03c8c957eb7385b1bd3d49ec4767ddac"
+    },
+    "lazygit": {
+      "version": "v0.65.1",
+      "url": "https://github.com/jesseduffield/lazygit/releases/download/v0.65.1/lazygit_0.65.1_linux_x86_64.tar.gz",
+      "sha256": "02beacbcda0fa342e50ae3480ba8147307353af3fb28e1d5f790e02329c201a6"
+    }
+  }
+}

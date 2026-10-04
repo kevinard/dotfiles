@@ -1,0 +1,36 @@
+#!/bin/bash
+set -uo pipefail
+{{- $m := includeTemplate "machine" . | fromJson }}
+failed=0
+check_command() {
+    if command -v "$1" >/dev/null; then printf 'OK   %s\n' "$1";
+    else printf 'FAIL missing %s\n' "$1"; failed=1; fi
+}
+check_unit() {
+    if systemctl --user is-active --quiet "$1"; then printf 'OK   %s\n' "$1";
+    else printf 'FAIL inactive %s\n' "$1"; failed=1; fi
+}
+printf 'Configured desktop: {{ $m.desktop }} / {{ $m.shell }}\n'
+printf 'Current desktop: %s\n' "${XDG_CURRENT_DESKTOP:-unset}"
+{{ if eq $m.desktop "niri" }}
+for executable in niri swaylock swayidle kanshi cliphist wl-paste rofi; do check_command "$executable"; done
+for unit in niri.service swayidle.service kanshi.service cliphist@text.service cliphist@image.service; do check_unit "$unit"; done
+{{ if eq $m.shell "canopa" }}
+for executable in canopa canopa-shell canopa-notify canopa-wifi-provider canopa-audio-provider canopa-media-provider; do check_command "$executable"; done
+for unit in canopa-shell.service canopa-notify.service; do check_unit "$unit"; done
+if command -v canopa >/dev/null; then canopa config check || failed=1; fi
+{{ else }}
+check_command waybar; check_command dunstctl
+check_unit waybar.service; check_unit dunst.service
+{{ end }}
+{{ else }}
+check_command gnome-shell
+if gnome-extensions list --enabled | grep -Fxq paperwm@paperwm.github.com; then
+    echo 'OK   PaperWM enabled'
+else echo 'FAIL PaperWM not enabled'; failed=1; fi
+{{ end }}
+check_unit xdg-desktop-portal.service
+if systemctl is-active --quiet tlp.service && systemctl is-active --quiet power-profiles-daemon.service; then
+    echo 'FAIL conflicting power managers'; failed=1
+fi
+exit "$failed"

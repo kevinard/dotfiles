@@ -1,0 +1,7 @@
+{{- if eq .chezmoi.osRelease.id "arch" -}}
+#!/bin/bash
+set -euo pipefail
+# Keep Arch upgrades coherent; avoid installing against an old synchronized database.
+sudo pacman -Syu --needed {{ includeTemplate "package-list" . }}
+# Printer drivers from AUR are optional and installed explicitly; see docs/bootstrap.md.
+{{ end -}}

@@ -1,2 +1,2 @@
-source "$HOME/.profile"
-skip_global_compinit=1
+# Read by every zsh, including noninteractive scripts. No commands or agents here.
+export ZDOTDIR="${XDG_CONFIG_HOME:-$HOME/.config}/zsh"

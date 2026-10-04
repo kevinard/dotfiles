@@ -1,0 +1,11 @@
+[Unit]
+Description=Canopa desktop shell
+PartOf=graphical-session.target
+After=graphical-session.target
+Requisite=graphical-session.target
+ConditionEnvironment=XDG_CURRENT_DESKTOP=niri
+
+[Service]
+ExecStart=%h/.local/bin/canopa-shell
+Restart=on-failure
+RestartSec=3

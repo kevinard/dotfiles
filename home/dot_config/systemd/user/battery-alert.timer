@@ -1,12 +1,9 @@
 [Unit]
-Description=Check battery status every few minutes to warn the user in case of low battery
-Requires=battery-alert.service
+Description=Check remaining battery
+PartOf=graphical-session.target
+After=graphical-session.target
+Requisite=graphical-session.target
 
 [Timer]
-# Start 1 minute after boot...
-OnBootSec=1m
-# ...and again every 5 minutes after `battery-alert.service` runs
-OnUnitActiveSec=5m
-
-[Install]
-WantedBy=timers.target
+OnActiveSec=1m
+OnUnitActiveSec=2m

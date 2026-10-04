@@ -1,2 +1,0 @@
-# see https://wiki.archlinux.org/title/Power_management#PCI_Runtime_Power_Management
-# SUBSYSTEM=="pci", ATTR{power/control}="auto"

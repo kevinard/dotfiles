@@ -2,7 +2,7 @@ export ZSH="${ZDOTDIR:-$HOME}/oh-my-zsh"
 
 ZSH_THEME="spaceship"
 
-zstyle ':omz:update' mode auto      # update automatically without asking
+zstyle ':omz:update' mode disabled      # updated through the pinned chezmoi external
 
 # Uncomment the following line to change how often to auto-update (in days).
 # zstyle ':omz:update' frequency 13

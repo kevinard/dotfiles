@@ -1,0 +1,22 @@
+{
+  "env": "home",
+  "email": "test@example.test",
+  "fullname": "Dotfiles Test",
+  "gpgsign": "no",
+  "themeFlavour": "mocha",
+  "themeColor": "lavender",
+  "projectPaths": [
+    "/tmp/test projects"
+  ],
+  "desktop": "niri",
+  "desktopShell": "canopa",
+  "hasBattery": true,
+  "cpuVendor": "intel",
+  "gpuVendor": "intel",
+  "powerManager": "tlp",
+  "chezmoi": {
+    "osRelease": {
+      "id": "arch"
+    }
+  }
+}

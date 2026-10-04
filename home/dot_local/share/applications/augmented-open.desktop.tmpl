@@ -4,12 +4,7 @@ Name=AugmentedOpen
 GenericName=Open a file at a certain position
 Comment=Opens URLs of the type file-line-column://<path>[:<line>[:<column>]] in the configured editor and positions the cursor
 Icon=text-editor
-{{- if eq .env "work" }}
-Exec=kitty -e open-in-editor %U
-{{- end }}
-{{- if eq .env "home" }}
-Exec=uwsm app -- kitty -e open-in-editor %U
-{{- end }}
+Exec=kitty -e "{{ .chezmoi.homeDir }}/.local/bin/open-in-editor" %U
 Categories=Utility;Core;
 StartupNotify=false
-MimeType=x-scheme-handler/file-line-column
+MimeType=x-scheme-handler/file-line-column;

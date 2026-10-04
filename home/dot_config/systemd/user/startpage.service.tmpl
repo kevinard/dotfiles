@@ -1,22 +1,13 @@
 [Unit]
-Description=Startpage
-After=network.target
-{{- if eq .env "work" }}
-After=sway-session.target
-{{- end }}
-{{- if eq .env "home" }}
-After=wayland-session@hyprland.desktop.target
-{{- end }}
+Description=Local start page (8080)
+{{ includeTemplate "graphical-unit" . }}
+ConditionPathIsDirectory=%h/.local/share/tilde
 
 [Service]
-WorkingDirectory={{ .chezmoi.homeDir }}/.local/share/tilde
-ExecStart=python3 -m http.server 8080
-Restart=always
+WorkingDirectory=%h/.local/share/tilde
+ExecStart=/usr/bin/python3 -m http.server 8080 --bind 127.0.0.1
+Restart=on-failure
+NoNewPrivileges=true
 
 [Install]
-{{- if eq .env "work" }}
-WantedBy=sway-session.target
-{{- end }}
-{{- if eq .env "home" }}
-WantedBy=wayland-session@hyprland.desktop.target
-{{- end }}
+WantedBy=graphical-session.target

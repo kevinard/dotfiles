@@ -1,19 +1,6 @@
 [Settings]
-gtk-application-prefer-dark-theme=0
+gtk-application-prefer-dark-theme={{ if eq .themeFlavour "latte" }}0{{ else }}1{{ end }}
 gtk-font-name=sans-serif 11
-{{- if eq .env "work" }}
-gtk-theme-name=Yaru-purple-dark
-; gtk-icon-theme-name=Yaru-purple-dark
-gtk-icon-theme-name=Papirus-Dark
-gtk-cursor-theme-name=Yaru
-{{- end }}
-{{- if eq .env "home" }}
-{{- if eq .themeFlavour "latte" }}
-gtk-theme-name=Catppuccin-{{ title .themeFlavour }}-Standard-{{ title .themeColor }}-Light
-gtk-icon-theme-name=Papirus-Light
-{{- else }}
-gtk-theme-name=Catppuccin-{{ title .themeFlavour }}-Standard-{{ title .themeColor }}-Dark
-gtk-icon-theme-name=Papirus-Dark
-{{- end }}
-gtk-cursor-theme-name=Catppuccin-{{ title .themeFlavour }}-{{ title .themeCursorColor }}-Cursors
-{{- end }}
+gtk-theme-name={{ if eq .chezmoi.osRelease.id "ubuntu" }}Yaru{{ else }}Adwaita{{ end }}{{ if ne .themeFlavour "latte" }}-dark{{ end }}
+gtk-icon-theme-name=Papirus-{{ if eq .themeFlavour "latte" }}Light{{ else }}Dark{{ end }}
+gtk-cursor-theme-name={{ if eq .chezmoi.osRelease.id "ubuntu" }}Yaru{{ else }}Adwaita{{ end }}

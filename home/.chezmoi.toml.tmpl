@@ -1,22 +1,33 @@
-{{- $env := promptStringOnce . "env" "Env ? (home/work)" -}}
+{{- $env := promptChoiceOnce . "env" "Identity" (list "home" "work") -}}
 {{- $email := promptStringOnce . "email" "Email address" -}}
 {{- $fullname := promptStringOnce . "fullname" "Full name" -}}
 {{- $gpgsign := promptStringOnce . "gpgsign" "GPG Key (no to disable)" -}}
-{{- $themeFlavour := promptStringOnce . "themeFlavour" "Catppuccin Flavour ? (mocha/macchiato/frappe/latte)" -}}
-{{- $themeColor := promptStringOnce . "themeColor" "Catppuccin Accent Color ? (rosewater/maroon/pink/teal/peach/sapphire/red/flamingo/green/mauve/sky/yellow/blue/lavender)" -}}
-{{- $themeCursorColor := promptStringOnce . "themeCursorColor" "Catppuccin Cursor Color ? (rosewater/maroon/pink/teal/peach/sapphire/red/flamingo/green/mauve/sky/yellow/blue/lavender/dark/light)" -}}
-{{- $projectsPaths := promptStringOnce . "projectsPaths" "Projects Paths ? (list of paths separated by a space)" -}}
-{{- $graphicsStack := promptStringOnce . "graphicsStack" "Graphics Stack ? (intel/nvidia)" -}}
-{{- $onBattery := promptStringOnce . "onBattery" "On Battery ? (yes/no)" -}}
+{{- $flavour := promptChoiceOnce . "themeFlavour" "Catppuccin flavour" (list "mocha" "macchiato" "frappe" "latte") -}}
+{{- $accent := promptChoiceOnce . "themeColor" "Catppuccin accent" (list "rosewater" "maroon" "pink" "teal" "peach" "sapphire" "red" "flamingo" "green" "mauve" "sky" "yellow" "blue" "lavender") -}}
+{{- $desktop := promptChoiceOnce . "desktop" "Desktop" (list "niri" "gnome") -}}
+{{- $shell := "gnome" -}}
+{{- if eq $desktop "niri" }}{{ $shell = promptChoiceOnce . "desktopShell" "niri shell" (list "canopa" "waybar") }}{{ end -}}
+{{- $battery := promptBoolOnce . "hasBattery" "Has a battery" -}}
+{{- $cpu := promptChoiceOnce . "cpuVendor" "CPU vendor" (list "intel" "amd" "none") -}}
+{{- $gpu := promptChoiceOnce . "gpuVendor" "GPU vendor (none keeps distribution defaults)" (list "intel" "amd" "nvidia" "none") -}}
+{{- $power := promptChoiceOnce . "powerManager" "Power policy (native for stock Ubuntu)" (list "native" "tlp" "none") -}}
+{{- $projects := get . "projectPaths" -}}
+{{- if not $projects -}}
+{{- if get . "projectsPaths" }}{{ $projects = regexSplit "\\s+" .projectsPaths -1 }}{{ else }}{{ $projects = list (joinPath .chezmoi.homeDir "projects") }}{{ end -}}
+{{- end -}}
 
 [data]
-    env = {{ $env | quote }}
-    email = {{ $email | quote }}
-    fullname = {{ $fullname | quote }}
-    gpgsign = {{ $gpgsign | quote }}
-    themeFlavour = {{ $themeFlavour | quote }}
-    themeColor = {{ $themeColor | quote }}
-    themeCursorColor = {{ $themeCursorColor | quote }}
-    projectsPaths = {{ $projectsPaths | quote }}
-    graphicsStack = {{ $graphicsStack | quote }}
-    onBattery = {{ $onBattery | quote }}
+env = {{ $env | quote }} # Identity only, retained for backwards compatibility.
+email = {{ $email | quote }}
+fullname = {{ $fullname | quote }}
+gpgsign = {{ $gpgsign | quote }}
+themeFlavour = {{ $flavour | quote }}
+themeColor = {{ $accent | quote }}
+desktop = {{ $desktop | quote }}
+desktopShell = {{ $shell | quote }}
+hasBattery = {{ $battery }}
+cpuVendor = {{ $cpu | quote }}
+gpuVendor = {{ $gpu | quote }}
+powerManager = {{ $power | quote }}
+projectPaths = {{ $projects | toJson }}
+# Edit projectPaths here to add other project roots (paths may contain spaces).

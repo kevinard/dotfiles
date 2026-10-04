@@ -1,35 +1,62 @@
-#!/bin/sh
+#!/usr/bin/env python3
+"""Aggregate energy across batteries and notify once per threshold crossing."""
+import fcntl
+import os
+from pathlib import Path
+import subprocess
 
-# Base path for power supply
-POWER_SUPPLY_PATH="/sys/class/power_supply"
 
-total_capacity=0
-current_capacity=0
+def number(path):
+    try:
+        return int(path.read_text().strip())
+    except (OSError, ValueError):
+        return 0
 
-# Iterate through all batteries
-for battery in "$POWER_SUPPLY_PATH"/BAT*; do
-  if [ -d "$battery" ]; then
-    if [ -f "$battery/charge_full" ]; then
-      charge_full=$(cat "$battery/charge_full")
-      charge_now=$(cat "$battery/charge_now")
-    else
-      charge_full=$(cat "$battery/energy_full")
-      charge_now=$(cat "$battery/energy_now")
-    fi
-    total_capacity=$((total_capacity + charge_full))
-    current_capacity=$((current_capacity + charge_now)) # Assuming each battery is 100%
-  fi
-done
 
-# Calculate overall battery percentage
-if [ "$total_capacity" -gt 0 ]; then
-  overall_percent=$((current_capacity * 100 / total_capacity))
-else
-  echo "No batteries found."
-  exit 1
-fi
+def battery_status(root=Path("/sys/class/power_supply")):
+    total = remaining = 0
+    discharging = False
+    plugged_in = False
+    for device in root.iterdir():
+        try:
+            kind = (device / "type").read_text().strip()
+            if kind != "Battery":
+                plugged_in |= number(device / "online") == 1
+                continue
+            status = (device / "status").read_text().strip()
+        except OSError:
+            continue
+        if (device / "present").exists() and not number(device / "present"):
+            continue
+        full = number(device / "energy_full")
+        current = number(device / "energy_now")
+        if not full:
+            voltage = number(device / "voltage_min_design") or number(device / "voltage_now")
+            full = number(device / "charge_full") * voltage / 1_000_000
+            current = number(device / "charge_now") * voltage / 1_000_000
+        if full > 0:
+            total += full
+            remaining += current
+            discharging |= status == "Discharging"
+    return (min(100, int(remaining * 100 / total)) if total else None,
+            discharging and not plugged_in)
 
-# Check if overall battery is below 15% and not charging
-if [ "$overall_percent" -lt 15 ] && [ "$(cat /sys/class/power_supply/AC/online)" -eq 0 ]; then
-  dunstify --urgency=critical "Low Battery Warning" "Battery is at $overall_percent%. Please plug in your charger."
-fi
+
+def main():
+    state_dir = Path(os.environ.get("XDG_STATE_HOME", Path.home() / ".local/state")) / "battery-alert"
+    state_dir.mkdir(mode=0o700, parents=True, exist_ok=True)
+    with (state_dir / "lock").open("w") as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        percentage, on_battery = battery_status()
+        level = 5 if on_battery and percentage is not None and percentage <= 5 else (
+            15 if on_battery and percentage is not None and percentage <= 15 else 0)
+        state = state_dir / "level"
+        previous = number(state)
+        if level and (not previous or level < previous):
+            subprocess.run(["notify-send", "--urgency=critical", "Low battery",
+                            f"Battery is at {percentage}%. Please connect the charger."], check=True)
+        state.write_text(str(level))
+
+
+if __name__ == "__main__":
+    main()

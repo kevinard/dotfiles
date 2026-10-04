@@ -13,9 +13,9 @@ application/x-extension-xhtml=firefox.desktop;
 application/x-extension-xht=firefox.desktop;
 image/jpeg=imv.desktop;
 application/x-php=nvim.desktop;
-image/png=imv-folder.desktop;
-application/zip=pcmanfm.desktop;
-x-scheme-handler/tg=userapp-Telegram Desktop-NV0WH1.desktop;org.telegram.desktop.desktop;
+image/png=imv.desktop;
+application/zip=thunar.desktop;
+x-scheme-handler/tg=org.telegram.desktop.desktop;
 
 [Default Applications]
 application/pdf=org.pwmt.zathura.desktop
@@ -35,12 +35,12 @@ x-scheme-handler/file-line-column=augmented-open.desktop
 {{- end }}
 {{- if eq .env "work" }}
 [Default Applications]
-text/html=firefox_firefox.desktop
+text/html=firefox.desktop
 x-scheme-handler/mailto=thunderbird_thunderbird.desktop
 x-scheme-handler/mid=thunderbird_thunderbird.desktop
-x-scheme-handler/http=firefox_firefox.desktop
-x-scheme-handler/https=firefox_firefox.desktop
-x-scheme-handler/about=firefox_firefox.desktop
-x-scheme-handler/unknown=firefox_firefox.desktop
+x-scheme-handler/http=firefox.desktop
+x-scheme-handler/https=firefox.desktop
+x-scheme-handler/about=firefox.desktop
+x-scheme-handler/unknown=firefox.desktop
 x-scheme-handler/file-line-column=augmented-open.desktop
 {{- end }}

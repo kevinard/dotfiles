@@ -1,26 +1,9 @@
+{{- $m := includeTemplate "machine" . | fromJson -}}
 {
   "layer": "top",
   "position": "top",
-  // "mode": "overlay",
-  // "height": 30,
-  "fixed-center": true,
-  "exclusive": true,
-  "passthrough": false,
-  "gtk-layer-shell": true,
-  "reload_style_on_change": true,
-  "include": [
-    "~/.config/waybar/default-modules.json",
-  ],
-{{- if eq .env "home" }}
-  "modules-left": ["custom/smallspacer", "hyprland/workspaces", "niri/workspaces", "custom/spacer", "hyprland/submap", "custom/media"],
-	"modules-center": ["custom/padd","custom/l_end","custom/r_end","hyprland/window", "niri/window","custom/padd"],
-  // "modules-center": ["clock"],
-  // "modules-right": ["tray", "custom/pacman", "idle_inhibitor", "custom/dunst", "pulseaudio", "network", "battery", "custom/power"],
-	"modules-right": ["custom/padd","custom/l_end","group/expand","network","group/expand-3", "battery","clock","custom/dunst","custom/power","custom/padd"],
-{{- end }}
-{{- if eq .env "work" }}
-  "modules-left": ["sway/workspaces", "sway/mode", "sway/window"],
+  "include": ["~/.config/waybar/default-modules.json"],
+  "modules-left": ["niri/workspaces", "niri/window"],
   "modules-center": ["clock"],
-  "modules-right": ["tray", "idle_inhibitor", "pulseaudio", "custom/dunst", "network", "battery", "custom/power"],
-{{- end }}
+  "modules-right": ["tray", "idle_inhibitor", "pulseaudio", "network"{{ if $m.battery }}, "battery"{{ end }}, "custom/dunst", "custom/power"]
 }

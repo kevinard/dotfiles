@@ -1,0 +1,52 @@
+{{- $m := includeTemplate "machine" . | fromJson -}}
+#!/bin/bash
+set -euo pipefail
+unit_dir="${XDG_CONFIG_HOME:-$HOME/.config}/systemd/user"
+mkdir -p "$unit_dir"
+# Remove only enablement links for units previously owned by this repository.
+# This also removes the untracked default.target link that kept the start page alive.
+for target in default.target graphical-session.target sway-session.target wayland-session@hyprland.desktop.target niri.service timers.target; do
+    for unit in startpage.service startpage-work.service thunar.service udiskie.service kanshi.service waybar.service cliphist@text.service cliphist@image.service battery-alert.timer hypridle.service swayidle.service canopa-shell.service canopa-notify.service canopa-session.target dunst.service hyprpolkitagent.service polkit-agent.service; do
+        rm -f -- "$unit_dir/$target.wants/$unit"
+    done
+done
+systemctl --user daemon-reload
+systemctl --user enable startpage.service
+{{ if eq .env "work" -}}
+systemctl --user enable startpage-work.service
+{{ end -}}
+{{ if eq $m.desktop "niri" -}}
+for unit in kanshi.service swayidle.service cliphist@text.service cliphist@image.service; do
+    systemctl --user add-wants niri.service "$unit"
+done
+{{ if eq .chezmoi.osRelease.id "arch" -}}
+for unit in thunar.service hyprpolkitagent.service; do systemctl --user add-wants niri.service "$unit"; done
+{{ else -}}
+for unit in thunar.service polkit-agent.service; do systemctl --user add-wants niri.service "$unit"; done
+{{ end -}}
+{{ if eq $m.shell "canopa" -}}
+for unit in canopa-shell.service canopa-notify.service; do systemctl --user add-wants niri.service "$unit"; done
+{{ else -}}
+for unit in waybar.service dunst.service; do systemctl --user add-wants niri.service "$unit"; done
+{{ end -}}
+{{ if $m.battery -}}
+systemctl --user add-wants niri.service battery-alert.timer
+{{ end -}}
+{{ end -}}
+# Apply takes effect at next login; no mid-session daemon replacement or restart.
+{{ if eq .chezmoi.osRelease.id "arch" -}}
+sudo systemctl enable docker.socket cups.socket bluetooth.service
+{{ if eq .env "home" }}systemctl --user enable ssh-agent.service{{ end }}
+{{ if eq $m.power "tlp" -}}
+sudo systemctl enable tlp.service
+{{ end -}}
+{{ if eq $m.cpu "intel" -}}
+sudo systemctl enable thermald.service
+{{ end -}}
+{{ else -}}
+sudo systemctl enable pcscd.socket
+{{ if eq $m.power "tlp" -}}
+sudo systemctl enable tlp.service
+{{ end -}}
+{{ end -}}
+if command -v bat >/dev/null; then bat cache --build; elif command -v batcat >/dev/null; then batcat cache --build; fi

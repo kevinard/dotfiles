@@ -28,7 +28,7 @@
 	<name>Create symlink</name>
 	<submenu></submenu>
 	<unique-id>1739117217483857-2</unique-id>
-	<command>ln -Ts %f %n&quot; (symlink)</command>
+	<command>make-symlink %f</command>
 	<description></description>
 	<range>*</range>
 	<patterns>*</patterns>

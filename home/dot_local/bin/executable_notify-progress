@@ -1,54 +1,56 @@
 #!/usr/bin/env sh
 
-# progress-notify - Send audio and brightness notifications for dunst
+# progress-notify - Send audio and brightness notifications for the desktop notification daemon
 
-# dependencies: dunstify, wpctl, Papirus (icons)
+# dependencies: notify-send, wpctl, Papirus (icons)
 
 ### How to use: ###
 # Pass the values via stdin and provide the notification type
 # as an argument. Options are audio and brightness
 
 ### Audio notifications ###
-#   wpctl get-volume @DEFAULT_AUDIO_SINK@ | notify audio
+#   wpctl get-volume @DEFAULT_AUDIO_SINK@ | awk '{print int($2 * 100)}' | notify-progress audio
 ### Brightness notifications ###
-#   sudo brightnessctl -m s 5%- | awk -F',' '{print $4+0}' | notify brightness
+#   brightnessctl -m s 5%- | awk -F',' '{print $4+0}' | notify-progress brightness
 
 notifyMuted() {
   volume="$1"
-  dunstify -h string:x-canonical-private-synchronous:audio "Muted" -h int:value:"$volume" -t 1500 --icon audio-volume-muted
+  notify-send -h string:x-canonical-private-synchronous:audio "Muted" -h int:value:"$volume" -t 1500 --icon audio-volume-muted
 }
 
 notifyAudio() {
   volume="$1"
-  muted=$(wpctl get-volume @DEFAULT_AUDIO_SINK@ | awk '$3 != "" {print 1}')
+  muted=$(wpctl get-volume @DEFAULT_AUDIO_SINK@ | awk '{print ($3 == "[MUTED]" ? 1 : 0)}')
 
-  if [ $muted -eq 1 ] || [ $volume -eq 0 ]; then
+  if [ "${muted:-0}" -eq 1 ] || [ $volume -eq 0 ]; then
     notifyMuted "$volume"
   elif [ $volume -le 30 ]; then
-    dunstify -h string:x-canonical-private-synchronous:audio "Volume: " -h int:value:"$volume" -t 1500 --icon audio-volume-low
+    notify-send -h string:x-canonical-private-synchronous:audio "Volume: " -h int:value:"$volume" -t 1500 --icon audio-volume-low
   elif [ $volume -le 70 ]; then
-    dunstify -h string:x-canonical-private-synchronous:audio "Volume: " -h int:value:"$volume" -t 1500 --icon audio-volume-medium
+    notify-send -h string:x-canonical-private-synchronous:audio "Volume: " -h int:value:"$volume" -t 1500 --icon audio-volume-medium
   else
-    dunstify -h string:x-canonical-private-synchronous:audio "Volume: " -h int:value:"$volume" -t 1500 --icon audio-volume-high
+    notify-send -h string:x-canonical-private-synchronous:audio "Volume: " -h int:value:"$volume" -t 1500 --icon audio-volume-high
   fi
 }
 
 notifyBrightness() {
   brightness="$1"
   if [ $brightness -eq 0 ]; then
-    dunstify -h string:x-canonical-private-synchronous:brightness "Brightness: " -h int:value:"$brightness" -t 1500 --icon display-brightness-off-symbolic
+    notify-send -h string:x-canonical-private-synchronous:brightness "Brightness: " -h int:value:"$brightness" -t 1500 --icon display-brightness-off-symbolic
   elif [ $brightness -le 30 ]; then
-    dunstify -h string:x-canonical-private-synchronous:brightness "Brightness: " -h int:value:"$brightness" -t 1500 --icon display-brightness-low-symbolic
+    notify-send -h string:x-canonical-private-synchronous:brightness "Brightness: " -h int:value:"$brightness" -t 1500 --icon display-brightness-low-symbolic
   elif [ $brightness -le 70 ]; then
-    dunstify -h string:x-canonical-private-synchronous:brightness "Brightness: " -h int:value:"$brightness" -t 1500 --icon display-brightness-medium-symbolic
+    notify-send -h string:x-canonical-private-synchronous:brightness "Brightness: " -h int:value:"$brightness" -t 1500 --icon display-brightness-medium-symbolic
   else
-    dunstify -h string:x-canonical-private-synchronous:brightness "Brightness: " -h int:value:"$brightness" -t 1500 --icon display-brightness-high-symbolic
+    notify-send -h string:x-canonical-private-synchronous:brightness "Brightness: " -h int:value:"$brightness" -t 1500 --icon display-brightness-high-symbolic
   fi
 }
 
+set -eu
 input=$(cat /dev/stdin)
+case "$input" in ""|*[!0-9]*) echo "Expected an integer percentage" >&2; exit 2 ;; esac
 
-case "$1" in
+case "${1:-}" in
 audio)
   notifyAudio "$input"
   ;;
@@ -57,7 +59,7 @@ brightness)
   ;;
 *)
   echo "Not the right arguments"
-  echo "$1"
+  echo "${1:-}"
   exit 2
   ;;
 esac

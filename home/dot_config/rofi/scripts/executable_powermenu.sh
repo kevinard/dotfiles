@@ -1,32 +1,14 @@
-#!/bin/zsh
-
-if [ "$ROFI_RETV" = 1 ]; then
-  case $@ in
-  *Lock)
-    loginctl lock-session
-    ;;
-  *Suspend)
-    loginctl lock-session && systemctl suspend
-    ;;
-  *Hibernate)
-    loginctl lock-session && systemctl hibernate
-    ;;
-  *Logout)
-    if [[ "$DESKTOP_SESSION" == 'hyprland' ]]; then
-      # hyprctl dispatch exit 0
-      loginctl terminate-session "$XDG_SESSION_ID"
-    elif [[ "$DESKTOP_SESSION" == 'sway' ]]; then
-      swaymsg exit
-    fi
-    ;;
-  *Reboot)
-    systemctl reboot
-    ;;
-  *Shutdown)
-    systemctl poweroff
-    ;;
-  esac
-  exit 0
+#!/bin/sh
+set -eu
+if [ "${ROFI_RETV:-0}" = 1 ]; then
+    case "$*" in
+        *Lock) swaylock -f ;;
+        *Suspend) swaylock -f && systemctl suspend ;;
+        *Hibernate) swaylock -f && systemctl hibernate ;;
+        *Logout) niri msg action quit ;;
+        *Reboot) systemctl reboot ;;
+        *Shutdown) systemctl poweroff ;;
+    esac
+else
+    printf '%s\n' '  Lock' '  Suspend' '  Hibernate' '  Logout' '  Reboot' '  Shutdown'
 fi
-
-echo -e "  Lock\n  Suspend\n  Hibernate\n  Logout\n  Reboot\n  Shutdown"

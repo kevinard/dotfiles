@@ -1,6 +1,7 @@
 [user]
-	email = {{ .email }}
-	name = {{ .fullname }}
+  useConfigOnly = true
+	email = {{ .email | quote }}
+	name = {{ .fullname | quote }}
 
 [diff]
 	algorithm = histogram
@@ -45,24 +46,20 @@
 [interactive]
   diffFilter = delta --color-only
 [include]
-	path = {{ .chezmoi.homeDir }}/delta/themes/catppuccin.gitconfig
+	path = {{ printf "%s/.config/delta/themes/catppuccin.gitconfig" .chezmoi.homeDir | quote }}
 [delta]
-  features = catppuccin-mocha zebra-dark
+  features = catppuccin-{{ .themeFlavour }}{{ if ne .themeFlavour "latte" }} zebra-dark{{ end }}
   hyperlinks = true
   hyperlinks-file-link-format = "file-line-column://{path}:{line}"
   navigate = true    # use n and N to move between diff sections
   line-numbers = true
   side-by-side = true
 
-{{- if eq .env "work" }}
-[url "ssh://git@github.com/"]
-  insteadOf = https://github.com/
-{{- end }}
 
 {{- if ne .gpgsign "no" }}
 # GPG Setup
 [user]
-  signingkey = {{ .gpgsign }}
+  signingkey = {{ .gpgsign | quote }}
 
 [commit]
   gpgsign = true
