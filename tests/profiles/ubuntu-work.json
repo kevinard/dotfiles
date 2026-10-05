@@ -8,12 +8,6 @@
   "projectPaths": [
     "/tmp/test projects"
   ],
-  "desktop": "niri",
-  "desktopShell": "waybar",
-  "hasBattery": true,
-  "cpuVendor": "intel",
-  "gpuVendor": "intel",
-  "powerManager": "native",
   "chezmoi": {
     "osRelease": {
       "id": "ubuntu"

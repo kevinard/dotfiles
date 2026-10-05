@@ -3,16 +3,16 @@
 `scripts/check-dotfiles` renders synthetic profiles without downloading externals,
 installing packages, applying files, enabling units, or contacting secret providers.
 It validates generated formats, exercises portable shell startup and helper behavior,
-and checks desktop exclusions. If available, niri and Canopa also validate their
-configurations. CI reports missing optional validators; a passing render does not
-prove packages exist on Ubuntu or that suspend works on the hardware.
+and enforces the complete terminal-only Ubuntu target set. If available, niri and
+Canopa also validate their configurations. CI reports missing optional validators;
+a passing render does not prove packages exist on Ubuntu or that suspend works on
+the hardware.
 
 At a dependency update, change one recorded revision/version and checksum together.
 The shell archives are pinned to the checkouts installed when this branch was made;
-oh-my-zsh self updates are disabled. Yubico uses its official 7.4.1 Linux archive with
-a SHA256 calculated from the downloaded archive. Consult upstream signatures when
-updating; the checksum protects subsequent acquisition, not independent publisher
-authentication. Lazygit on Ubuntu uses its official 0.65.1 archive, checked against the release checksum manifest.
+oh-my-zsh self updates are disabled. Lazygit on Ubuntu uses its official 0.65.1
+archive, checked against the release checksum manifest. Yubico and other work desktop
+applications are installed and updated outside this repository.
 Mise follows its supported signed package source, rather than a frozen
 2024 binary. The personal nvim repository is the deliberate rolling exception:
 retain its Git checkout, review its changes, and commit your own editor changes there.
@@ -22,12 +22,13 @@ their selected tool versions explicitly before removing those directories.
 
 Bat's four vendored themes come from `catppuccin/bat` commit
 `6810349b28055dce54076712fc05fc68da4b8ec0`. Font assets remain vendored. GTK uses
-installed Adwaita/Yaru and the desktop's dark-style preference; Catppuccin remains
+installed Adwaita on Arch and the desktop's dark-style preference; Catppuccin remains
 selected for terminal, shell, Git, bat, tmux and niri. No downloaded script modifies
 root icon directories. Custom cursors were replaced by distribution-provided cursors
 to remove an unchecked latest-release dependency.
 
-Cliphist retains 500 items and skips selections marked sensitive by wl-clipboard.
+The following desktop policies apply only to Arch. Cliphist retains 500 items and
+skips selections marked sensitive by wl-clipboard.
 This relies on the producer supplying that marker: manually verify KeePassXC copies
 never enter `cliphist list`. Clear old history with `cliphist wipe` if necessary;
 apply does not erase existing history. KeePassXC locks its database with the session

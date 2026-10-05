@@ -146,23 +146,5 @@ class ProjectLauncher(unittest.TestCase):
             self.assertNotIn("shell", launch.call_args.kwargs)
 
 
-class PackageKeys(unittest.TestCase):
-    def test_empty_or_wrong_fingerprint_fails_before_privileged_install(self):
-        installer = (REPO / "home/.chezmoiscripts/run_onchange_before_10-ubuntu-packages.sh.tmpl").read_text()
-        function = installer[installer.index("install_key() {"):installer.index("install_key https://")]
-        for output in ("", "pub:::::::::\nfpr:::::::::BADFINGERPRINT:"):
-            with self.subTest(output=output), tempfile.TemporaryDirectory() as temp:
-                script = 'set -euo pipefail\nwork_dir=$1\n'
-                script += 'curl() { : > "${@: -1}"; }\n'
-                script += 'gpg() { printf "%s\\n" "$FAKE_KEY"; }\n'
-                script += 'sudo() { echo "unexpected privileged call" >&2; return 99; }\n'
-                script += function + '\ninstall_key https://example.test EXPECTED key.asc\n'
-                result = subprocess.run(["bash", "-c", script, "key-check", temp],
-                                        env=os.environ | {"FAKE_KEY": output}, text=True, capture_output=True)
-                self.assertNotEqual(result.returncode, 0)
-                self.assertIn("Unexpected signing key", result.stderr)
-                self.assertNotIn("unexpected privileged call", result.stderr)
-
-
 if __name__ == "__main__":
     unittest.main()

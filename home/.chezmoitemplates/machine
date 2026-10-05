@@ -1,15 +1,24 @@
-{{- /* Defaults also support older machine configs. */ -}}
-{{- $desktop := get . "desktop" | default (ternary "gnome" "niri" (eq .chezmoi.osRelease.id "ubuntu")) -}}
-{{- $shell := get . "desktopShell" | default (ternary "gnome" "canopa" (eq $desktop "gnome")) -}}
-{{- $battery := eq (get . "onBattery") "yes" -}}
+{{- /* Arch owns the niri desktop; Ubuntu owns terminal configuration only.
+      Ignore stale desktop/hardware fields on Ubuntu instead of deploying them. */ -}}
+{{- if not (has .chezmoi.osRelease.id (list "arch" "ubuntu")) }}{{ fail "supported distributions are arch and ubuntu" }}{{ end -}}
+{{- $desktop := "none" -}}
+{{- $shell := "none" -}}
+{{- $battery := false -}}
+{{- $cpu := "none" -}}
+{{- $gpu := "none" -}}
+{{- $power := "none" -}}
+{{- if eq .chezmoi.osRelease.id "arch" -}}
+{{- $desktop = "niri" -}}
+{{- $shell = get . "desktopShell" | default "canopa" -}}
+{{- $battery = eq (get . "onBattery") "yes" -}}
 {{- if hasKey . "hasBattery" }}{{ $battery = .hasBattery }}{{ end -}}
-{{- $cpu := get . "cpuVendor" | default "none" -}}
-{{- $gpu := get . "gpuVendor" | default (get . "graphicsStack" | default "none") -}}
-{{- $power := get . "powerManager" | default (ternary "native" (ternary "tlp" "none" $battery) (eq .chezmoi.osRelease.id "ubuntu")) -}}
-{{- if not (has $desktop (list "gnome" "niri")) }}{{ fail "desktop must be gnome or niri" }}{{ end -}}
-{{- if or (and (eq $desktop "gnome") (ne $shell "gnome")) (and (eq $desktop "niri") (not (has $shell (list "canopa" "waybar")))) }}{{ fail "desktopShell must match desktop: gnome, or canopa/waybar for niri" }}{{ end -}}
+{{- $cpu = get . "cpuVendor" | default "none" -}}
+{{- $gpu = get . "gpuVendor" | default (get . "graphicsStack" | default "none") -}}
+{{- $power = get . "powerManager" | default (ternary "tlp" "none" $battery) -}}
+{{- if not (has $shell (list "canopa" "waybar")) }}{{ fail "desktopShell must be canopa or waybar on Arch" }}{{ end -}}
 {{- if not (kindIs "bool" $battery) }}{{ fail "hasBattery must be a boolean" }}{{ end -}}
 {{- if not (has $cpu (list "intel" "amd" "none")) }}{{ fail "cpuVendor must be intel, amd or none" }}{{ end -}}
 {{- if not (has $gpu (list "intel" "amd" "nvidia" "none")) }}{{ fail "gpuVendor must be intel, amd, nvidia or none" }}{{ end -}}
 {{- if not (has $power (list "native" "tlp" "none")) }}{{ fail "powerManager must be native, tlp or none" }}{{ end -}}
+{{- end -}}
 {{- dict "desktop" $desktop "shell" $shell "battery" $battery "cpu" $cpu "gpu" $gpu "power" $power | toJson -}}

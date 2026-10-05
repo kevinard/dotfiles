@@ -1,6 +1,6 @@
 [Settings]
 gtk-application-prefer-dark-theme={{ if eq .themeFlavour "latte" }}0{{ else }}1{{ end }}
 gtk-font-name=sans-serif 11
-gtk-theme-name={{ if eq .chezmoi.osRelease.id "ubuntu" }}Yaru{{ else }}Adwaita{{ end }}{{ if ne .themeFlavour "latte" }}-dark{{ end }}
+gtk-theme-name=Adwaita{{ if ne .themeFlavour "latte" }}-dark{{ end }}
 gtk-icon-theme-name=Papirus-{{ if eq .themeFlavour "latte" }}Light{{ else }}Dark{{ end }}
-gtk-cursor-theme-name={{ if eq .chezmoi.osRelease.id "ubuntu" }}Yaru{{ else }}Adwaita{{ end }}
+gtk-cursor-theme-name=Adwaita

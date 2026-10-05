@@ -1,18 +1,9 @@
 #!/bin/sh
 set -eu
-case ":${XDG_CURRENT_DESKTOP:-}:" in *:niri:*|*:GNOME:*) ;; *) exit 0 ;; esac
+case ":${XDG_CURRENT_DESKTOP:-}:" in *:niri:*) ;; *) exit 0 ;; esac
 # Applied in a graphical login, where the session D-Bus and dconf are available.
 gsettings set org.gnome.desktop.interface color-scheme {{ if eq .themeFlavour "latte" }}default{{ else }}prefer-dark{{ end }}
 gsettings set org.gnome.desktop.interface font-name 'sans-serif 11'
-{{- $m := includeTemplate "machine" . | fromJson }}
-{{ if eq $m.desktop "gnome" }}
-gsettings set org.gnome.desktop.input-sources sources "[('xkb', 'us+altgr-intl')]"
-gsettings set org.gnome.desktop.input-sources xkb-options "['shift:both_capslock', 'caps:escape']"
-gsettings set org.gnome.desktop.screensaver lock-enabled true
-gsettings set org.gnome.desktop.session idle-delay 'uint32 600'
-# PaperWM's own shortcuts and settings remain owned by the extension.
-{{ else }}
-gsettings set org.gnome.desktop.interface gtk-theme {{ if eq .chezmoi.osRelease.id "ubuntu" }}Yaru{{ else }}Adwaita{{ end }}{{ if ne .themeFlavour "latte" }}-dark{{ end }}
+gsettings set org.gnome.desktop.interface gtk-theme Adwaita{{ if ne .themeFlavour "latte" }}-dark{{ end }}
 gsettings set org.gnome.desktop.interface icon-theme {{ if eq .themeFlavour "latte" }}Papirus-Light{{ else }}Papirus-Dark{{ end }}
-gsettings set org.gnome.desktop.interface cursor-theme {{ if eq .chezmoi.osRelease.id "ubuntu" }}Yaru{{ else }}Adwaita{{ end }}
-{{ end }}
+gsettings set org.gnome.desktop.interface cursor-theme Adwaita

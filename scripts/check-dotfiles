@@ -6,6 +6,7 @@ import json
 import os
 from pathlib import Path
 import shutil
+import shlex
 import subprocess
 import tempfile
 import tomllib
@@ -68,10 +69,12 @@ def check_profile(fixture, source, work):
         path.write_text(contents)
         validate_file(path, contents)
     # Manifests are checked separately; acquisition is intentionally outside this suite.
+    manifests = {}
     for manifest in (REPO / "home/.chezmoiexternals").glob("*.tmpl"):
-        tomllib.loads(run(command + ["execute-template", "--file", str(manifest)]))
-    desktop = data.get("desktop", "gnome" if data["chezmoi"]["osRelease"]["id"] == "ubuntu" else "niri")
-    shell = data.get("desktopShell", "gnome" if desktop == "gnome" else "canopa")
+        manifests.update(tomllib.loads(run(command + ["execute-template", "--file", str(manifest)])))
+    arch = data["chezmoi"]["osRelease"]["id"] == "arch"
+    desktop = "niri" if arch else "none"
+    shell = data.get("desktopShell", "canopa") if arch else "none"
     units = ".config/systemd/user/"
     assert (units + "swayidle.service" in rendered) == (desktop == "niri")
     assert (units + "canopa-shell.service" in rendered) == (shell == "canopa")
@@ -81,14 +84,40 @@ def check_profile(fixture, source, work):
     for name in ("startpage.service", "startpage-work.service"):
         if units + name in rendered:
             assert "--bind 127.0.0.1" in rendered[units + name]["contents"]
-    script = rendered[".chezmoiscripts/90-session.sh"]["contents"]
-    if desktop == "gnome":
-        assert "add-wants niri.service" not in script
+    script = rendered.get(".chezmoiscripts/90-session.sh", {}).get("contents", "")
+    if not arch:
+        assert not script.strip()
+        removals = run(command + ["execute-template", "--file", str(source / ".chezmoiremove")])
+        assert removals.split() == [".local/bin/mise"], "Work migration removes desktop files"
+        # Check the complete work target set so new desktop files cannot leak in.
+        shared_configs = ("bat", "delta", "git", "kitty", "lazygit", "tmux", "zsh")
+        prefixes = tuple(".config/" + name + "/" for name in shared_configs) + (
+            ".gnupg/", ".local/share/fonts/NerdFontsSymbolsOnly/",
+            ".local/share/fonts/atkinson-hyperlegible-next-mono/")
+        files = {".profile", ".zshenv", ".hushlogin", ".local/bin/fd", ".local/bin/dnuke"}
+        scripts = {".chezmoiscripts/10-ubuntu-packages.sh", ".chezmoiscripts/80-bat-cache.sh"}
+        for name, entry in rendered.items():
+            if entry["type"] == "script" and not entry.get("contents", "").strip():
+                continue
+            if entry["type"] in ("file", "symlink", "script"):
+                assert name in files | scripts or name.startswith(prefixes), f"Work profile manages {name}"
+                assert "systemctl" not in entry.get("contents", "")
+                assert "gsettings" not in entry.get("contents", "")
+        assert set(manifests) == {".config/nvim", ".local/bin/lazygit",
+                                 ".config/zsh/oh-my-zsh", ".config/zsh/custom/themes/spaceship-prompt",
+                                 ".config/zsh/custom/plugins/zsh-autosuggestions",
+                                 ".config/zsh/custom/plugins/zsh-syntax-highlighting",
+                                 ".config/zsh/custom/plugins/zsh-history-substring-search"}
     package_name = "10-" + data["chezmoi"]["osRelease"]["id"] + "-packages.sh"
     package_script = rendered[".chezmoiscripts/" + package_name]["contents"]
-    if desktop == "gnome":
-        assert " swaylock " not in package_script and " sway " not in package_script
-        assert " sddm " not in package_script and " tlp " not in package_script
+    if not arch:
+        installed = set()
+        for line in package_script.splitlines():
+            if line.startswith("sudo apt-get install "):
+                installed.update(shlex.split(line)[3:])
+        assert not {"sway", "swaylock", "sddm", "tlp", "gnome-tweaks", "firefox",
+                    "thunderbird", "keepassxc", "chromium", "code", "niri"} & installed
+        assert "snap install" not in package_script and "packages.mozilla.org" not in package_script
     if desktop == "niri" and shutil.which("niri"):
         run(["niri", "validate", "--config", str(destination / ".config/niri/config.kdl")])
     if shell == "canopa" and shutil.which("canopa"):
@@ -104,30 +133,36 @@ def check_profile(fixture, source, work):
     run(["git", "config", "--file", str(destination / ".config/git/config"), "--list"])
     # The init template must also produce valid TOML from these complete choices.
     init_data = dict(data)
-    init_data.setdefault("desktop", desktop)
     init_data.setdefault("desktopShell", shell)
     init_data.setdefault("hasBattery", True)
     init_data.setdefault("cpuVendor", "intel")
     init_data.setdefault("gpuVendor", "intel")
-    init_data.setdefault("powerManager", "native" if desktop == "gnome" else "tlp")
+    init_data.setdefault("powerManager", "tlp")
     override.write_text(json.dumps(init_data))
     tomllib.loads(run(command + ["execute-template", "--init", "--file", str(source / ".chezmoi.toml.tmpl")]))
     # Simulated prompts are keyed by their displayed question, not the data key.
     choices = {"Identity": data["env"], "Catppuccin flavour": data["themeFlavour"],
-               "Catppuccin accent": data["themeColor"], "Desktop": desktop,
-               "niri shell": shell, "CPU vendor": "intel",
-               "GPU vendor (none keeps distribution defaults)": "intel",
-               "Power policy (native for stock Ubuntu)": "native" if desktop == "gnome" else "tlp"}
+               "Catppuccin accent": data["themeColor"]}
+    if arch:
+        choices.update({"niri shell": shell, "CPU vendor": "intel",
+                        "GPU vendor (none keeps distribution defaults)": "intel",
+                        "Power policy": "tlp"})
     prompts = ["execute-template", "--init", "--file", str(source / ".chezmoi.toml.tmpl")]
     for question, answer in choices.items():
         prompts.extend(["--promptChoice", question + "=" + answer])
     for question, answer in {"Email address": "test@example.test", "Full name": "Test User",
                              "GPG Key (no to disable)": "no"}.items():
         prompts.extend(["--promptString", question + "=" + answer])
-    prompts.extend(["--promptBool", "Has a battery=true"])
+    if arch:
+        prompts.extend(["--promptBool", "Has a battery=" + str(data.get("hasBattery", True)).lower()])
     override.write_text(json.dumps({"chezmoi": data["chezmoi"]}))
     fresh = tomllib.loads(run(command + prompts))["data"]
-    assert fresh["desktop"] == desktop and fresh["desktopShell"] == shell
+    assert "desktop" not in fresh
+    if arch:
+        assert fresh["desktopShell"] == shell
+        assert fresh["hasBattery"] == data.get("hasBattery", True)
+    else:
+        assert not {"desktopShell", "hasBattery", "cpuVendor", "gpuVendor", "powerManager"} & fresh.keys()
     assert fresh["env"] == data["env"] and fresh["email"] == "test@example.test"
     print(f"PASS {fixture.stem}: {len(rendered)} targets")
 

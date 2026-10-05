@@ -18,7 +18,10 @@ for tool_bin in "$HOME/.tfenv/bin" "$HOME/.rbenv/bin" "$VOLTA_HOME/bin" /usr/loc
     if [ -d "$tool_bin" ]; then export PATH="$PATH:$tool_bin"; fi
 done
 export EDITOR=nvim VISUAL=nvim PAGER=less
-export TERMINAL=kitty BROWSER=firefox READER=zathura
+export TERMINAL=kitty
+{{ if eq .chezmoi.osRelease.id "arch" -}}
+export BROWSER=firefox READER=zathura
+{{ end -}}
 export LANG=en_US.UTF-8
 export LESS='-g -i -M -R -S -w -X -z-4'
 export LESSHISTFILE=/dev/null

@@ -1,7 +1,8 @@
+.local/bin/mise
+{{ if eq .chezmoi.osRelease.id "arch" -}}
 .local/bin/hyprland-run-or-raise
 .local/bin/hyprland-samedir
 .local/bin/papirus-folders
-.local/bin/mise
 .config/uwsm/env
 .config/xdg-desktop-portal/sway-portals.conf
 .config/systemd/user/udiskie.service
@@ -12,3 +13,4 @@
 .local/share/applications/code.desktop
 .config/rofi/scripts/projects.sh
 .local/bin/color-picker
+{{ end -}}

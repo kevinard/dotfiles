@@ -1,4 +1,3 @@
-{{- if eq .env "home" }}
 [Added Associations]
 application/pdf=org.pwmt.zathura.desktop;
 x-scheme-handler/http=firefox.desktop;
@@ -15,7 +14,9 @@ image/jpeg=imv.desktop;
 application/x-php=nvim.desktop;
 image/png=imv.desktop;
 application/zip=thunar.desktop;
+{{ if eq .env "home" -}}
 x-scheme-handler/tg=org.telegram.desktop.desktop;
+{{ end -}}
 
 [Default Applications]
 application/pdf=org.pwmt.zathura.desktop
@@ -30,17 +31,7 @@ application/xhtml+xml=firefox.desktop
 application/x-extension-xhtml=firefox.desktop
 application/x-extension-xht=firefox.desktop
 image/jpeg=imv.desktop
+{{ if eq .env "home" -}}
 x-scheme-handler/tg=org.telegram.desktop.desktop
+{{ end -}}
 x-scheme-handler/file-line-column=augmented-open.desktop
-{{- end }}
-{{- if eq .env "work" }}
-[Default Applications]
-text/html=firefox.desktop
-x-scheme-handler/mailto=thunderbird_thunderbird.desktop
-x-scheme-handler/mid=thunderbird_thunderbird.desktop
-x-scheme-handler/http=firefox.desktop
-x-scheme-handler/https=firefox.desktop
-x-scheme-handler/about=firefox.desktop
-x-scheme-handler/unknown=firefox.desktop
-x-scheme-handler/file-line-column=augmented-open.desktop
-{{- end }}

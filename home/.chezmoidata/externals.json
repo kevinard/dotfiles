@@ -25,11 +25,6 @@
       "revision": "a0bdb0d47dbaba31dba2db7af8c48a5d9c74049a",
       "sha256": "b9edc11a4a04d2a5cc23bb7bafd8f02935240a45efe8a2fa61605b7636ecb22f"
     },
-    "yubico": {
-      "url": "https://developers.yubico.com/yubioath-flutter/Releases/yubico-authenticator-7.4.1-linux.tar.gz",
-      "version": "7.4.1",
-      "sha256": "5c8f49cf3653ae9dd3911b53ca60475b03c8c957eb7385b1bd3d49ec4767ddac"
-    },
     "lazygit": {
       "version": "v0.65.1",
       "url": "https://github.com/jesseduffield/lazygit/releases/download/v0.65.1/lazygit_0.65.1_linux_x86_64.tar.gz",

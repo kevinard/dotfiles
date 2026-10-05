@@ -4,15 +4,6 @@ type = "git-repo"
 url = "https://github.com/kevinard/nvim.git"
 refreshPeriod = "744h"
 
-{{ if eq .env "work" }}
-{{ if ne .chezmoi.arch "amd64" }}{{ fail "Yubico Linux archive requires amd64; choose a distribution package on other architectures" }}{{ end }}
-[".local/share/yubico-authenticator"]
-type = "archive"
-url = {{ .externals.yubico.url | quote }}
-stripComponents = 1
-checksum.sha256 = {{ .externals.yubico.sha256 | quote }}
-{{ end }}
-
 {{ if eq .chezmoi.osRelease.id "ubuntu" }}
 {{ if ne .chezmoi.arch "amd64" }}{{ fail "Pinned lazygit archive requires amd64; use an architecture-specific package otherwise" }}{{ end }}
 [".local/bin/lazygit"]

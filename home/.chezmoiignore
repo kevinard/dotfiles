@@ -1,20 +1,51 @@
 {{- $m := includeTemplate "machine" . | fromJson }}
 **/__pycache__
 **/*.pyc
-{{ if ne $m.desktop "niri" }}
-.config/niri
+{{ if eq .chezmoi.osRelease.id "ubuntu" }}
+# Work laptop: terminal/development configuration only.
+.config/autostart
+.config/canopa
+.config/cliphist
+.config/electron-flags.conf
+.config/fontconfig
 .config/kanshi
+.config/keepassxc
+.config/niri
 .config/rofi
 .config/rofimoji.rc
 .config/swappy
-.config/xdg-desktop-portal/niri-portals.conf
-.config/systemd/user/cliphist@.service
-.config/systemd/user/kanshi.service
-.config/systemd/user/swayidle.service
-.config/systemd/user/thunar.service
-.config/systemd/user/battery-alert.*
-.local/bin/clipboard-store
+.config/systemd
+.config/xdg-desktop-portal
+.config/xfce4
+.config/Thunar
+.config/gtk-2.0
+.config/gtk-3.0
+.config/gtk-4.0
+.config/mimeapps.list
+.config/mozilla
+.config/user-dirs.dirs
+.config/wall.jpg
+.config/wall.png
+.config/waybar
+.config/xresources
+.config/zathura
+.icons
+.ledgerrc
 .local/bin/brightness-control
+.local/bin/check-low-battery
+.local/bin/clipboard-store
+.local/bin/desktop-health
+.local/bin/import-gsettings
+.local/bin/make-symlink
+.local/bin/notify-progress
+.local/bin/open-in-editor
+.local/share/applications
+.local/share/dbus-1
+.local/share/fonts/Mont
+.local/share/tilde
+create-xdg-folders.sh
+{{ else }}
+.local/bin/fd
 {{ end }}
 {{ if ne $m.shell "canopa" }}
 .config/canopa
@@ -25,35 +56,10 @@
 .config/waybar
 .config/systemd/user/waybar.service
 {{ end }}
-{{ if or (ne $m.desktop "niri") (eq .chezmoi.osRelease.id "arch") }}
-.config/systemd/user/polkit-agent.service
-{{ end }}
 {{ if not $m.battery }}
 .config/systemd/user/battery-alert.*
 {{ end }}
 {{ if ne .env "home" }}
 .local/share/dbus-1/services/org.freedesktop.secrets.service
 .config/systemd/user/ssh-agent.service
-{{ end }}
-{{ if ne .env "work" }}
-.local/bin/authenticator
-.local/bin/chromium
-.local/bin/slackium
-.local/share/applications/slack.desktop
-.local/share/applications/com.yubico.authenticator.desktop
-.config/systemd/user/startpage-work.service
-{{ end }}
-
-{{ if eq .chezmoi.osRelease.id "arch" }}
-.local/bin/chromium
-.local/bin/slackium
-.local/share/applications/slack.desktop
-{{ end }}
-{{ if eq $m.desktop "gnome" }}
-.config/xfce4
-.config/Thunar
-{{ end }}
-
-{{ if ne .chezmoi.osRelease.id "ubuntu" }}
-.local/bin/fd
 {{ end }}

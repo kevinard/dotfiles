@@ -4,13 +4,19 @@
 {{- $gpgsign := promptStringOnce . "gpgsign" "GPG Key (no to disable)" -}}
 {{- $flavour := promptChoiceOnce . "themeFlavour" "Catppuccin flavour" (list "mocha" "macchiato" "frappe" "latte") -}}
 {{- $accent := promptChoiceOnce . "themeColor" "Catppuccin accent" (list "rosewater" "maroon" "pink" "teal" "peach" "sapphire" "red" "flamingo" "green" "mauve" "sky" "yellow" "blue" "lavender") -}}
-{{- $desktop := promptChoiceOnce . "desktop" "Desktop" (list "niri" "gnome") -}}
-{{- $shell := "gnome" -}}
-{{- if eq $desktop "niri" }}{{ $shell = promptChoiceOnce . "desktopShell" "niri shell" (list "canopa" "waybar") }}{{ end -}}
-{{- $battery := promptBoolOnce . "hasBattery" "Has a battery" -}}
-{{- $cpu := promptChoiceOnce . "cpuVendor" "CPU vendor" (list "intel" "amd" "none") -}}
-{{- $gpu := promptChoiceOnce . "gpuVendor" "GPU vendor (none keeps distribution defaults)" (list "intel" "amd" "nvidia" "none") -}}
-{{- $power := promptChoiceOnce . "powerManager" "Power policy (native for stock Ubuntu)" (list "native" "tlp" "none") -}}
+{{- $arch := eq .chezmoi.osRelease.id "arch" -}}
+{{- $shell := "none" -}}
+{{- $battery := false -}}
+{{- $cpu := "none" -}}
+{{- $gpu := "none" -}}
+{{- $power := "none" -}}
+{{- if $arch -}}
+{{- $shell = promptChoiceOnce . "desktopShell" "niri shell" (list "canopa" "waybar") -}}
+{{- $battery = promptBoolOnce . "hasBattery" "Has a battery" -}}
+{{- $cpu = promptChoiceOnce . "cpuVendor" "CPU vendor" (list "intel" "amd" "none") -}}
+{{- $gpu = promptChoiceOnce . "gpuVendor" "GPU vendor (none keeps distribution defaults)" (list "intel" "amd" "nvidia" "none") -}}
+{{- $power = promptChoiceOnce . "powerManager" "Power policy" (list "tlp" "native" "none") -}}
+{{- end -}}
 {{- $projects := get . "projectPaths" -}}
 {{- if not $projects -}}
 {{- if get . "projectsPaths" }}{{ $projects = regexSplit "\\s+" .projectsPaths -1 }}{{ else }}{{ $projects = list (joinPath .chezmoi.homeDir "projects") }}{{ end -}}
@@ -23,11 +29,12 @@ fullname = {{ $fullname | quote }}
 gpgsign = {{ $gpgsign | quote }}
 themeFlavour = {{ $flavour | quote }}
 themeColor = {{ $accent | quote }}
-desktop = {{ $desktop | quote }}
+{{ if $arch -}}
 desktopShell = {{ $shell | quote }}
 hasBattery = {{ $battery }}
 cpuVendor = {{ $cpu | quote }}
 gpuVendor = {{ $gpu | quote }}
 powerManager = {{ $power | quote }}
+{{ end -}}
 projectPaths = {{ $projects | toJson }}
 # Edit projectPaths here to add other project roots (paths may contain spaces).

@@ -1,10 +1,10 @@
 {{- $m := includeTemplate "machine" . | fromJson -}}
 {{- $p := index .packages .chezmoi.osRelease.id -}}
-{{- $items := concat $p.common (index $p $m.desktop) -}}
-{{- if eq $m.desktop "niri" }}{{ $items = concat $items (index $p $m.shell) }}{{ end -}}
+{{- $items := $p.common -}}
+{{- if eq .chezmoi.osRelease.id "arch" -}}
+{{- $items = concat $items $p.niri (index $p $m.shell) -}}
 {{- if eq $m.power "tlp" }}{{ $items = concat $items $p.tlp }}{{ end -}}
 {{- if eq $m.power "native" }}{{ $items = concat $items $p.native }}{{ end -}}
-{{- if eq .chezmoi.osRelease.id "arch" -}}
 {{- if ne $m.cpu "none" }}{{ $items = concat $items (index $p (printf "%s_cpu" $m.cpu)) }}{{ end -}}
 {{- if ne $m.gpu "none" }}{{ $items = concat $items (index $p (printf "%s_graphics" $m.gpu)) }}{{ end -}}
 {{- if eq .env "home" }}{{ $items = concat $items $p.personal }}{{ end -}}

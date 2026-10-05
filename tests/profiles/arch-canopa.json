@@ -8,7 +8,6 @@
   "projectPaths": [
     "/tmp/test projects"
   ],
-  "desktop": "niri",
   "desktopShell": "canopa",
   "hasBattery": true,
   "cpuVendor": "intel",

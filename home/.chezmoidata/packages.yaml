@@ -1,98 +1,34 @@
 # Installation requirements, composed by desktop and hardware; not a removal policy.
 packages:
   ubuntu:
-    snap:
-    - name: nvim
-      classic: true
-    - name: chromium
-      classic: false
-    - name: code
-      classic: true
+    # Terminal/development tools only; desktop packages stay owned by the laptop.
     common:
     - git
-    - fonts-linuxlibertine
-    - fonts-noto
-    - fonts-noto-cjk
-    - fonts-noto-color-emoji
-    - fonts-dejavu
-    - fonts-inter
-    - fonts-jetbrains-mono
-    - fonts-croscore
-    - fonts-crosextra-caladea
-    - fonts-crosextra-carlito
-    - gsfonts
-    - ripgrep
-    - kitty
-    - playerctl
-    - zathura
     - zsh
-    - imagemagick
+    - kitty
+    - neovim
+    - tmux
+    - ripgrep
     - fd-find
     - fzf
-    - thunderbird
-    - scdaemon
-    - firefox
-    - pcscd
-    - gh
-    - papirus-icon-theme
-    - qpwgraph
-    - pavucontrol
     - bat
     - git-delta
-    - ddcutil
-    - smartmontools
+    - gh
+    - mise
+    - jq
+    - less
     - curl
     - ca-certificates
     - gnupg
+    - scdaemon
+    - pcscd
+    - pinentry-gnome3
+    - openssh-client
     - python3
-    - libnotify-bin
-    - tmux
-    - less
-    - jq
-    - xdg-user-dirs
-    - xdg-utils
-    - keepassxc
-    - mise
-    gnome:
-    - gnome-tweaks
-    niri:
-    - niri
-    - xwayland-satellite
-    - kanshi
-    - wdisplays
-    - rofi
-    - swayidle
-    - swaylock
-    - brightnessctl
-    - wl-clipboard
-    - cliphist
-    - wtype
-    - xdg-desktop-portal-gnome
-    - xdg-desktop-portal-gtk
-    - policykit-1-gnome
-    - thunar
-    - thunar-archive-plugin
-    - catfish
-    - gvfs
-    - tumbler
-    waybar:
-    - waybar
-    - dunst
-    - python3-gi
-    canopa:
     - build-essential
-    - pkg-config
-    - libpulse-dev
-    - libasound2-dev
-    - libudev-dev
-    - libwayland-dev
-    - libxkbcommon-dev
-    - dbus
-    - at-spi2-core
-    tlp:
-    - tlp
-    native:
-    - power-profiles-daemon
+    - unzip
+    - wl-clipboard
+    - fonts-jetbrains-mono
   arch:
     nvidia_graphics:
     - nvidia
@@ -266,11 +202,6 @@ packages:
     - wdisplays
     - swayidle
     - swaylock
-    gnome:
-    - gnome-shell
-    - gnome-control-center
-    - gdm
-    - nautilus
     waybar:
     - waybar
     - dunst
