@@ -3,7 +3,7 @@
 For a fresh machine, follow [installation and device setup](setup.md) and run
 `./setup` after the base OS is installed. This page covers migration of existing
 configurations. Arch now uses the managed SSH
-agent for both `home` and `work` identities; Ubuntu's agent remains locally owned.
+agent for both `home` and `work` identities.
 
 Review the branch diff before deploying. On Arch, log out and back in after an
 apply: changing unit files does not update running processes. In particular, an
@@ -24,28 +24,13 @@ projectPaths = ["/home/kevinard/projects"]
 Arch uses niri; `desktopShell` selects Canopa or the Waybar fallback. Legacy CPU
 selection defaults to `none`, rather than guessing microcode or thermal daemons.
 `chezmoi init` offers validated choices for new hardware fields on Arch only.
-The former `desktop` field is no longer used on either distribution.
-
-For the Ubuntu work laptop, retain identity (`env="work"`), signing, theme and
-project-root settings. No desktop/hardware fields are required, and old ones are
-ignored. Only terminal/development files and packages are managed. See
-[work-laptop scope and migration](work-laptop.md) for previously managed desktop
-files; stopping management does not erase files, application data or running units.
+The former `desktop` field is no longer used on Arch.
 
 Packages are installation requirements, not an instruction to remove every other
 installed package. Arch's installer uses `pacman -Syu --needed`, including selected
 CPU/GPU groups. Optional Brother AUR drivers remain documented in the package data;
 build them explicitly as an ordinary user after reviewing their PKGBUILDs. No AUR
 helper is installed merely to install official packages.
-
-Ubuntu uses its signed archive for terminal tools including gh and Neovim, and
-[mise's supported Ubuntu 26.04 PPA](https://mise.jdx.dev/installing-mise.html).
-[Ubuntu's Neovim package](https://packages.ubuntu.com/resolute/neovim) supplies 0.11.6
-when checked during this update. No Snap or Mozilla repository setup is performed.
-Existing apps and repositories from earlier installs are not uninstalled.
-An old manual `/usr/local/bin/lazygit` is not overwritten: Ubuntu receives a fixed,
-checksummed official release under `~/.local/bin`, ahead of it in the managed PATH.
-The supplied lazygit archive targets amd64.
 
 For a fresh Canopa installation on Arch, apply the package/configuration phase,
 then run `scripts/install-canopa` from this checkout before logging into niri. It
@@ -68,7 +53,7 @@ Arch's reconciliation script runs after every apply, reloads unit definitions, a
 removes only known old enablement links. If a different target owns an extra link,
 inspect `systemctl --user list-unit-files` and remove it explicitly. The
 `.chezmoiremove` list removes named obsolete files on Arch and the old mise binary
-on both distributions so the package installation is used. It does not remove
+on Arch so the package installation is used. It does not remove
 password databases, SSH keys or Firefox profiles. Old external Git metadata may
 remain beside shell files; oh-my-zsh self updates are disabled and chezmoi supplies
 pinned archive contents.

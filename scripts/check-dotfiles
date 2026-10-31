@@ -88,29 +88,6 @@ def check_profile(fixture, source, work):
         if units + name in rendered:
             assert "--bind 127.0.0.1" in rendered[units + name]["contents"]
     script = rendered.get(".chezmoiscripts/90-session.sh", {}).get("contents", "")
-    if not arch:
-        assert not script.strip()
-        removals = run(command + ["execute-template", "--file", str(source / ".chezmoiremove")])
-        assert removals.split() == [".local/bin/mise"], "Work migration removes desktop files"
-        # Check the complete work target set so new desktop files cannot leak in.
-        shared_configs = ("bat", "delta", "git", "kitty", "lazygit", "tmux", "zsh")
-        prefixes = tuple(".config/" + name + "/" for name in shared_configs) + (
-            ".gnupg/", ".local/share/fonts/NerdFontsSymbolsOnly/",
-            ".local/share/fonts/atkinson-hyperlegible-next-mono/")
-        files = {".profile", ".zshenv", ".hushlogin", ".local/bin/fd", ".local/bin/dnuke"}
-        scripts = {".chezmoiscripts/10-ubuntu-packages.sh", ".chezmoiscripts/80-bat-cache.sh"}
-        for name, entry in rendered.items():
-            if entry["type"] == "script" and not entry.get("contents", "").strip():
-                continue
-            if entry["type"] in ("file", "symlink", "script"):
-                assert name in files | scripts or name.startswith(prefixes), f"Work profile manages {name}"
-                assert "systemctl" not in entry.get("contents", "")
-                assert "gsettings" not in entry.get("contents", "")
-        assert set(manifests) == {".config/nvim", ".local/bin/lazygit",
-                                 ".config/zsh/oh-my-zsh", ".config/zsh/custom/themes/spaceship-prompt",
-                                 ".config/zsh/custom/plugins/zsh-autosuggestions",
-                                 ".config/zsh/custom/plugins/zsh-syntax-highlighting",
-                                 ".config/zsh/custom/plugins/zsh-history-substring-search"}
     package_name = "10-" + data["chezmoi"]["osRelease"]["id"] + "-packages.sh"
     package_script = rendered[".chezmoiscripts/" + package_name]["contents"]
     if arch:
@@ -122,14 +99,6 @@ def check_profile(fixture, source, work):
         assert {"pam-u2f", "libfido2"} <= installed
         if data["env"] == "work":
             assert "telegram-desktop" not in installed
-    if not arch:
-        installed = set()
-        for line in package_script.splitlines():
-            if line.startswith("sudo apt-get install "):
-                installed.update(shlex.split(line)[3:])
-        assert not {"sway", "swaylock", "sddm", "tlp", "gnome-tweaks", "firefox",
-                    "thunderbird", "keepassxc", "chromium", "code", "niri"} & installed
-        assert "snap install" not in package_script and "packages.mozilla.org" not in package_script
     if desktop == "niri" and shutil.which("niri"):
         run(["niri", "validate", "--config", str(destination / ".config/niri/config.kdl")])
     if shell == "canopa" and shutil.which("canopa"):

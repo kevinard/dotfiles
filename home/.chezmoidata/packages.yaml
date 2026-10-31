@@ -1,34 +1,5 @@
 # Installation requirements, composed by desktop and hardware; not a removal policy.
 packages:
-  ubuntu:
-    # Terminal/development tools only; desktop packages stay owned by the laptop.
-    common:
-    - git
-    - zsh
-    - kitty
-    - neovim
-    - tmux
-    - ripgrep
-    - fd-find
-    - fzf
-    - bat
-    - git-delta
-    - gh
-    - mise
-    - jq
-    - less
-    - curl
-    - ca-certificates
-    - gnupg
-    - scdaemon
-    - pcscd
-    - pinentry-gnome3
-    - openssh-client
-    - python3
-    - build-essential
-    - unzip
-    - wl-clipboard
-    - fonts-jetbrains-mono
   arch:
     nvidia_graphics:
     - nvidia

@@ -50,8 +50,6 @@ def default_init_options(distro):
         else:
             print("Multiple GPU vendors detected; choose the driver group when prompted.")
         print(f"Defaults: Canopa, mocha/lavender; CPU={cpu}, battery={battery}, GPU={gpu or 'ask'}.")
-    else:
-        print("Defaults: mocha/lavender; Ubuntu's desktop and authentication stay locally owned.")
     for question, answer in choices.items():
         options += ["--promptChoice", question + "=" + answer]
     return options
@@ -164,10 +162,8 @@ def main(argv=None):
         parser.error("run as your regular user; follow the installation guide for root stages")
     try:
         distro = platform.freedesktop_os_release()["ID"]
-        if distro not in ("arch", "ubuntu"):
-            raise RuntimeError("supported distributions are Arch and Ubuntu")
-        if args.stage in ("ssh", "auth") and distro != "arch":
-            raise RuntimeError("Ubuntu work authentication is locally owned; see docs/work-laptop.md")
+        if distro != "arch":
+            raise RuntimeError("only Arch is supported")
         if args.stage == "configure":
             configure(args, distro)
         elif args.stage == "ssh":

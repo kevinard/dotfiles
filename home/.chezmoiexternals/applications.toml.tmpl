@@ -3,13 +3,3 @@
 type = "git-repo"
 url = "https://github.com/kevinard/nvim.git"
 refreshPeriod = "744h"
-
-{{ if eq .chezmoi.osRelease.id "ubuntu" }}
-{{ if ne .chezmoi.arch "amd64" }}{{ fail "Pinned lazygit archive requires amd64; use an architecture-specific package otherwise" }}{{ end }}
-[".local/bin/lazygit"]
-type = "archive-file"
-url = {{ .externals.lazygit.url | quote }}
-path = "lazygit"
-executable = true
-checksum.sha256 = {{ .externals.lazygit.sha256 | quote }}
-{{ end }}

@@ -1,7 +1,6 @@
 # Dotfiles
 
-Arch: niri desktop and development tools. Ubuntu work: terminal/development tools;
-the existing desktop stays locally managed.
+Arch: niri desktop and development tools for home and work identities.
 
 ## Install
 

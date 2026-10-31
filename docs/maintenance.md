@@ -5,17 +5,15 @@ checklist and `./setup check` for a read-only machine inventory.
 
 `scripts/check-dotfiles` renders synthetic profiles without downloading externals,
 installing packages, applying files, enabling units, or contacting secret providers.
-It validates generated formats, exercises portable shell startup and helper behavior,
-and enforces the complete terminal-only Ubuntu target set. If available, niri and
+It validates generated formats, exercises portable shell startup and helper behavior
+across the supported Arch profiles. If available, niri and
 Canopa also validate their configurations. CI reports missing optional validators;
-a passing render does not prove packages exist on Ubuntu or that suspend works on
+a passing render does not prove packages resolve correctly or that suspend works on
 the hardware.
 
 At a dependency update, change one recorded revision/version and checksum together.
 The shell archives are pinned to the checkouts installed when this branch was made;
-oh-my-zsh self updates are disabled. Lazygit on Ubuntu uses its official 0.65.1
-archive, checked against the release checksum manifest. Yubico and other work desktop
-applications are installed and updated outside this repository.
+oh-my-zsh self updates are disabled.
 Mise follows its supported signed package source, rather than a frozen
 2024 binary. The personal nvim repository is the deliberate rolling exception:
 retain its Git checkout, review its changes, and commit your own editor changes there.

@@ -108,7 +108,7 @@ class MachineSetup(unittest.TestCase):
         self.config.write_text("[data]\n")
         self.args.apply = True
         data = subprocess.CompletedProcess([], 0, stdout=json.dumps({"desktopShell": "canopa"}))
-        for distro, builds in (("arch", True), ("ubuntu", False)):
+        for distro, builds in (("arch", True),):
             with self.subTest(distro=distro), \
                     patch.object(self.setup.shutil, "which", return_value="/usr/bin/chezmoi"), \
                     patch.object(self.setup, "run", return_value=data) as commands, \
@@ -131,11 +131,11 @@ class MachineSetup(unittest.TestCase):
             self.assertEqual(call.kwargs["env"]["SSH_AUTH_SOCK"],
                              str(Path(self.temporary.name) / "ssh-agent.socket"))
 
-    def test_ubuntu_rejects_arch_authentication_stages(self):
-        for stage in ("ssh", "auth"):
+    def test_unsupported_distribution_rejected(self):
+        for stage in ("configure", "ssh", "auth", "check"):
             with self.subTest(stage=stage), \
                     patch.object(self.setup.os, "geteuid", return_value=1000), \
-                    patch.object(self.setup.platform, "freedesktop_os_release", return_value={"ID": "ubuntu"}), \
+                    patch.object(self.setup.platform, "freedesktop_os_release", return_value={"ID": "unsupported"}), \
                     patch.object(self.setup, "run") as commands, \
                     redirect_stdout(io.StringIO()), redirect_stderr(io.StringIO()):
                 self.assertEqual(self.setup.main([stage]), 1)

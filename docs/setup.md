@@ -1,6 +1,6 @@
 # Quick setup
 
-Already have Arch or Ubuntu installed? Start at step 1. For a new disk, use the
+Already have Arch installed? Start at step 1. For a new disk, use the
 [Arch OS installer runbook](arch-install.md) first; it installs the prerequisites.
 
 ## 1. Install your configuration
@@ -14,7 +14,6 @@ From this checkout, as your normal user:
 It asks for home/work, email and name, then installs packages, applies dotfiles
 and builds Canopa on Arch. CPU, GPU and battery are detected; hybrid GPUs get an
 extra choice. Defaults: Canopa, mocha/lavender, TLP on laptops, no GPG signing.
-Ubuntu's desktop and authentication remain locally managed.
 
 Use `./setup --preview` to inspect changes first, or `./setup --customize` to choose
 everything on first install (it opens the config editor on an existing machine).

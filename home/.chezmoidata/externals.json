@@ -24,11 +24,6 @@
       "url": "https://codeload.github.com/zsh-users/zsh-history-substring-search/tar.gz/a0bdb0d47dbaba31dba2db7af8c48a5d9c74049a",
       "revision": "a0bdb0d47dbaba31dba2db7af8c48a5d9c74049a",
       "sha256": "b9edc11a4a04d2a5cc23bb7bafd8f02935240a45efe8a2fa61605b7636ecb22f"
-    },
-    "lazygit": {
-      "version": "v0.65.1",
-      "url": "https://github.com/jesseduffield/lazygit/releases/download/v0.65.1/lazygit_0.65.1_linux_x86_64.tar.gz",
-      "sha256": "02beacbcda0fa342e50ae3480ba8147307353af3fb28e1d5f790e02329c201a6"
     }
   }
 }

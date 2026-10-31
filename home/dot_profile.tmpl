@@ -35,7 +35,7 @@ if [ -z "${LESSOPEN:-}" ]; then
     done
 fi
 export CATPPUCCIN_FLAVOUR={{ .themeFlavour | shellQuote }}
-# Ubuntu keeps its existing agent; both Arch identities use the managed socket.
+# Both identities use the managed SSH agent socket.
 {{ if eq .chezmoi.osRelease.id "arch" }}
 if [ -n "${XDG_RUNTIME_DIR:-}" ]; then export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/ssh-agent.socket"; fi
 {{ end }}

@@ -48,10 +48,6 @@ alias fournill="ledger --file ~/fournill/ledger/main.journal"
 
 alias ans="source $HOME/.local/venv/ansible/bin/activate"
 {{- end }}
-{{- if eq .chezmoi.osRelease.id "ubuntu" }}
-alias cat='batcat --paging=never'
-alias bat='batcat'
-{{- end }}
 
 export HISTFILE="$ZDOTDIR/.zsh_history"
 alias wget="wget --hsts-file=${XDG_DATA_HOME:-$HOME/.local/share}/wget-hsts"

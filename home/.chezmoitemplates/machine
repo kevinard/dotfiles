@@ -1,6 +1,4 @@
-{{- /* Arch owns the niri desktop; Ubuntu owns terminal configuration only.
-      Ignore stale desktop/hardware fields on Ubuntu instead of deploying them. */ -}}
-{{- if not (has .chezmoi.osRelease.id (list "arch" "ubuntu")) }}{{ fail "supported distributions are arch and ubuntu" }}{{ end -}}
+{{- if ne .chezmoi.osRelease.id "arch" }}{{ fail "only Arch is supported" }}{{ end -}}
 {{- $desktop := "none" -}}
 {{- $shell := "none" -}}
 {{- $battery := false -}}

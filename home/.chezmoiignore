@@ -1,52 +1,6 @@
 {{- $m := includeTemplate "machine" . | fromJson }}
 **/__pycache__
 **/*.pyc
-{{ if eq .chezmoi.osRelease.id "ubuntu" }}
-# Work laptop: terminal/development configuration only.
-.config/autostart
-.config/canopa
-.config/cliphist
-.config/electron-flags.conf
-.config/fontconfig
-.config/kanshi
-.config/keepassxc
-.config/niri
-.config/rofi
-.config/rofimoji.rc
-.config/swappy
-.config/systemd
-.config/xdg-desktop-portal
-.config/xfce4
-.config/Thunar
-.config/gtk-2.0
-.config/gtk-3.0
-.config/gtk-4.0
-.config/mimeapps.list
-.config/mozilla
-.config/user-dirs.dirs
-.config/wall.jpg
-.config/wall.png
-.config/waybar
-.config/xresources
-.config/zathura
-.icons
-.ledgerrc
-.local/bin/brightness-control
-.local/bin/check-low-battery
-.local/bin/clipboard-store
-.local/bin/desktop-health
-.local/bin/import-gsettings
-.local/bin/make-symlink
-.local/bin/notify-progress
-.local/bin/open-in-editor
-.local/share/applications
-.local/share/dbus-1
-.local/share/fonts/Mont
-.local/share/tilde
-create-xdg-folders.sh
-{{ else }}
-.local/bin/fd
-{{ end }}
 {{ if ne $m.shell "canopa" }}
 .config/canopa
 .config/systemd/user/canopa-shell.service

@@ -10,8 +10,7 @@ independent PIN + touch credentials; PAM enrollment does not replace them.
 
 Arch's package phase installs `pam-u2f` and `libfido2`. Enrollment and activation
 are explicit: `chezmoi apply` never enrolls a token, installs root policy, sets a
-root password, or edits live PAM files. Ubuntu work authentication remains locally
-owned. Run these commands from this repository on the installed Arch system.
+root password, or edits live PAM files. Run these commands from this repository on the installed Arch system.
 
 References: [pam-u2f configuration and multiple authenticators](https://developers.yubico.com/pam-u2f/),
 [pamu2fcfg options](https://developers.yubico.com/pam-u2f/Manuals/pamu2fcfg.1.html).

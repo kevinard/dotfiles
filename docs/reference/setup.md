@@ -81,13 +81,13 @@ uses the defaults described in the quick guide. Hybrid GPUs need an extra choice
 editor on an existing installation. GPG signing defaults to `no` until a
 signing key is available; SSH authentication does not configure Git signing.
 
-| Choice | Personal Arch | Work Arch | Existing Ubuntu work |
-| --- | --- | --- | --- |
-| `env` | `home` | `work` | `work` |
-| Desktop | niri + selected shell | niri + selected shell | Locally owned GNOME/PaperWM |
-| SSH agent | Managed OpenSSH agent | Managed OpenSSH agent | Locally owned |
-| Personal-only packages | Included | Excluded | Excluded |
-| Hardware | Detected; hybrid GPU asks | Detected; hybrid GPU asks | Locally owned |
+| Choice | Personal Arch | Work Arch |
+| --- | --- | --- |
+| `env` | `home` | `work` |
+| Desktop | niri + selected shell | niri + selected shell |
+| SSH agent | Managed OpenSSH agent | Managed OpenSSH agent |
+| Personal-only packages | Included | Excluded |
+| Hardware | Detected; hybrid GPU asks | Detected; hybrid GPU asks |
 
 For both identities on one machine, use separate Linux accounts and run setup as
 each account. `env` selects an identity; it does not isolate two identities within
@@ -256,7 +256,3 @@ If a Solo is lost, revoke its SSH public keys, website registrations and PAM
 registrations on every affected machine; keep the other Solo active. Enroll a new
 spare and repeat tests. If both are lost, use the separate root and disk recovery
 routes. Keep an off-device inventory of which credentials/devices were enrolled.
-
-For Ubuntu work machines, use [the existing work scope](../work-laptop.md). The
-configuration command is supported, but Arch boot/PAM/agent stages are not applied
-to Ubuntu.

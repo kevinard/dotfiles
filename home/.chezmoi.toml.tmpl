@@ -1,3 +1,4 @@
+{{- if ne .chezmoi.osRelease.id "arch" }}{{ fail "only Arch is supported" }}{{ end -}}
 {{- $env := promptChoiceOnce . "env" "Identity" (list "home" "work") -}}
 {{- $email := promptStringOnce . "email" "Email address" -}}
 {{- $fullname := promptStringOnce . "fullname" "Full name" -}}
