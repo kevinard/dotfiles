@@ -1,0 +1,28 @@
+#!/bin/sh
+# User-facing entry point; root-owned installation stages remain in the runbooks.
+set -eu
+repo_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+case "${1:-}" in
+    -h|--help)
+        cat <<'HELP'
+Usage: ./setup [--preview | --customize | ssh | auth | check]
+
+  ./setup              Install/update packages, dotfiles and the selected desktop.
+  ./setup --preview    Show changes without applying them.
+  ./setup --customize  Choose initial settings, or edit your saved configuration.
+  ./setup ssh          Load the connected Solo's SSH keys.
+  ./setup auth         Enroll both Solos for optional login/sudo setup.
+  ./setup check        Show a read-only machine status report.
+
+Run as your normal user after installing the base OS. Details: docs/setup.md.
+HELP
+        exit 0
+        ;;
+    --preview)
+        shift
+        set -- configure "$@"
+        ;;
+    ssh|auth|check|plan|configure) ;;
+    *) set -- configure --apply "$@" ;;
+esac
+exec "$repo_dir/scripts/setup-machine" "$@"

@@ -1,0 +1,17 @@
+{
+  "env": "work",
+  "email": "work@example.test",
+  "fullname": "Dotfiles Work Test",
+  "gpgsign": "no",
+  "themeFlavour": "mocha",
+  "themeColor": "lavender",
+  "projectPaths": ["/tmp/work projects"],
+  "desktopShell": "waybar",
+  "hasBattery": true,
+  "cpuVendor": "intel",
+  "gpuVendor": "intel",
+  "powerManager": "native",
+  "chezmoi": {
+    "osRelease": {"id": "arch"}
+  }
+}

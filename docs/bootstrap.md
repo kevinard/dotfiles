@@ -1,5 +1,10 @@
 # Bootstrap and migration
 
+For a fresh machine, follow [installation and device setup](setup.md) and run
+`./setup` after the base OS is installed. This page covers migration of existing
+configurations. Arch now uses the managed SSH
+agent for both `home` and `work` identities; Ubuntu's agent remains locally owned.
+
 Review the branch diff before deploying. On Arch, log out and back in after an
 apply: changing unit files does not update running processes. In particular, an
 old start page keeps its old bind address until restarted or the next login.
@@ -47,7 +52,9 @@ then run `scripts/install-canopa` from this checkout before logging into niri. I
 builds the recorded Canopa commit with Cargo.lock in a disposable checkout. A local
 checkout can be supplied as its argument; your development checkout is never changed.
 It installs all six companion binaries and records the revision, without restarting
-the desktop. Rustup must have the pinned toolchain specified by that project.
+the desktop. An already installed revision is checked rather than rebuilt unless
+you supply a local checkout. Rustup must have the pinned toolchain specified by
+that project.
 Canopa's own `scripts/update.sh` remains an intentional development workflow; update
 the recorded revision in this repository after testing it.
 
@@ -73,6 +80,11 @@ daemon; avoid starting Canopa and Dunst in the same session.
 Root policy and hardware overrides are a separate Arch migration; see
 [`provision/arch/README.md`](../provision/arch/README.md). The home apply cannot remove
 an already installed unsafe udev or polkit rule. Choose exactly one power manager.
+
+Optional Solo authentication is a separate enrollment and root-policy step; see
+[hardware authentication](hardware-auth.md). Keep mapping files and recovery
+credentials outside the repository. Test both tokens and root-password recovery
+before enabling the policy on a new machine.
 
 After Arch deployment, run `desktop-health`. Manually test lock after ten minutes,
 suspend/resume, an inhibited presentation, dock unplug/replug and a portal screencast.

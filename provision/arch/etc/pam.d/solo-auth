@@ -1,0 +1,4 @@
+# Explicit opt-in: see docs/hardware-auth.md before including this service.
+# Root retains password authentication in the calling service for recovery.
+auth [success=1 default=ignore] pam_succeed_if.so user = root
+auth required pam_u2f.so authfile=/etc/u2f_mappings origin=pam://kevinard-linux appid=pam://kevinard-linux cue

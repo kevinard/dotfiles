@@ -80,6 +80,9 @@ def check_profile(fixture, source, work):
     assert (units + "canopa-shell.service" in rendered) == (shell == "canopa")
     assert (units + "waybar.service" in rendered) == (shell == "waybar")
     assert (".config/niri/config.kdl" in rendered) == (desktop == "niri")
+    assert (units + "ssh-agent.service" in rendered) == arch
+    if arch:
+        assert 'SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/ssh-agent.socket"' in rendered[".profile"]["contents"]
     assert not any("hyprland" in name or "sway-session" in name for name in rendered)
     for name in ("startpage.service", "startpage-work.service"):
         if units + name in rendered:
@@ -110,6 +113,15 @@ def check_profile(fixture, source, work):
                                  ".config/zsh/custom/plugins/zsh-history-substring-search"}
     package_name = "10-" + data["chezmoi"]["osRelease"]["id"] + "-packages.sh"
     package_script = rendered[".chezmoiscripts/" + package_name]["contents"]
+    if arch:
+        assert "systemctl --user enable ssh-agent.service" in script
+        installed = set()
+        for line in package_script.splitlines():
+            if line.startswith("sudo pacman -Syu --needed "):
+                installed.update(shlex.split(line)[4:])
+        assert {"pam-u2f", "libfido2"} <= installed
+        if data["env"] == "work":
+            assert "telegram-desktop" not in installed
     if not arch:
         installed = set()
         for line in package_script.splitlines():
@@ -184,6 +196,7 @@ def main():
     for path in (REPO / "scripts").iterdir():
         if path.is_file():
             validate_file(path, path.read_text())
+    validate_file(REPO / "setup", (REPO / "setup").read_text())
     print("PASS helper regressions and repository scripts")
     for executable in ("niri", "canopa", "desktop-file-validate"):
         if not shutil.which(executable):

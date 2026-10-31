@@ -1,5 +1,8 @@
 # Maintenance and recovery
 
+See [the device lifecycle reference](reference/setup.md) for the onboarding/offboarding
+checklist and `./setup check` for a read-only machine inventory.
+
 `scripts/check-dotfiles` renders synthetic profiles without downloading externals,
 installing packages, applying files, enabling units, or contacting secret providers.
 It validates generated formats, exercises portable shell startup and helper behavior,
@@ -57,3 +60,8 @@ least one copy outside the laptop. Btrfs snapshots and a bootable LTS kernel hel
 rollback but do not survive disk failure. Choose a backup tool/destination explicitly,
 test a small restore regularly, and check SMART health and periodic Btrfs scrub.
 Firmware and Secure Boot changes require a tested recovery boot path.
+
+For Solo login/sudo authentication, retain the root-password and LUKS recovery
+routes described in [hardware authentication](hardware-auth.md). Token mappings
+are separate from dotfiles and SSH registrations; losing a token requires revoking
+each relevant registration, not just removing its GitHub SSH public key.

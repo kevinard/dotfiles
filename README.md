@@ -1,54 +1,42 @@
 # Dotfiles
 
-Personal configuration managed with chezmoi. Arch manages the niri/Canopa desktop
-and terminal setup. Ubuntu 26.04 work manages terminal and development configuration;
-GNOME/PaperWM and other desktop applications remain locally owned.
+Arch: niri desktop and development tools. Ubuntu work: terminal/development tools;
+the existing desktop stays locally managed.
 
-`.chezmoiroot` points to `home/`. Only that tree is home configuration. Documentation,
-validation, and root-owned Arch reference files live alongside it and are never
-copied into `$HOME` by an apply.
+## Install
 
-```sh
-chezmoi init https://github.com/kevinard/dotfiles.git
-chezmoi diff
-chezmoi apply
-```
-
-Use the actual remote if this checkout has a different repository name. Read
-[bootstrap and migration](docs/bootstrap.md) before the first apply of this branch.
-Package installation runs before files; Bat's theme cache rebuilds after them.
-Arch also reconciles desktop startup links for the next login. Package installation
-may prompt for sudo and upgrades Arch as a complete transaction.
-
-Machine choices are stored in `~/.config/chezmoi/chezmoi.toml` under `[data]`:
-
-| Setting | Arch personal | Ubuntu work |
-| --- | --- | --- |
-| `env` (identity) | `home` | `work` |
-| `themeFlavour`, `themeColor` | Terminal and desktop theme | Terminal theme |
-| `desktopShell` | `canopa` or `waybar` | Not used |
-| `hasBattery`, `cpuVendor`, `gpuVendor` | Actual hardware | Not used |
-| `powerManager` | `tlp`, `native` or `none` | Not managed |
-
-The distribution determines scope: Arch uses niri; Ubuntu has no managed desktop.
-There is no compositor choice or GNOME-on-Arch option. Old Ubuntu desktop/hardware
-fields are ignored. `env` selects identity and optional work shell integration.
-`projectPaths` is a TOML array, e.g. `["/home/me/projects", "/home/me/work projects"]`.
-Older `onBattery`, `graphicsStack`, and whitespace-separated `projectsPaths` configs
-still render; see the migration guide for explicit new settings.
-
-Shared package requirements, palettes, and pinned dependencies are in
-`home/.chezmoidata/`. Template helpers cover only repeated logic: machine defaults,
-package composition and graphical unit relationships.
-Application files remain beside their target paths. `private_` restricts target
-permissions; it does not encrypt Git history. Keep credentials and private keys out
-of the source tree.
+On an installed OS with Git, Python 3 and chezmoi available, run as your normal user:
 
 ```sh
-scripts/check-dotfiles       # offline rendering and regression checks
-chezmoi diff                # preview every deployment
-desktop-health              # Arch-only checks inside the installed niri desktop
+git clone https://github.com/kevinard/dotfiles.git "${XDG_DATA_HOME:-$HOME/.local/share}/chezmoi"
+cd "${XDG_DATA_HOME:-$HOME/.local/share}/chezmoi"
+./setup
 ```
 
-See [Arch installation](docs/arch-install.md), [root configuration](provision/arch/README.md),
-[Ubuntu work scope](docs/work-laptop.md), and [maintenance/recovery](docs/maintenance.md).
+Answer home/work, email and name. Hardware is detected; the defaults are Canopa,
+mocha/lavender, and no GPG signing. A hybrid GPU may need one extra choice.
+Existing settings are kept. Log out and back in afterward.
+
+## Everyday use
+
+```sh
+./setup --preview     # See changes first
+./setup              # Apply configuration; install/update packages and desktop
+./setup ssh          # Load the connected Solo's SSH keys (Arch)
+chezmoi edit-config  # Change saved preferences
+```
+
+To update this checkout first, run `git pull --ff-only`. `./setup --customize`
+asks every question on first install, or opens your saved configuration afterward.
+
+## Only when needed
+
+- [New disk / OS installation](docs/arch-install.md)
+- [Solo keys for login and sudo](docs/hardware-auth.md)
+- [Existing-install migration](docs/bootstrap.md)
+- [Recovery and maintenance](docs/maintenance.md)
+
+`./setup --help` lists the commands. [Quick setup notes](docs/setup.md) cover the
+first desktop login; [detailed reference](docs/reference/setup.md) is optional.
+Disk formatting, Secure Boot and PAM activation are explicit steps. Credentials
+and token mappings stay outside Git.

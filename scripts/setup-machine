@@ -1,0 +1,190 @@
+#!/usr/bin/env python3
+"""Staged machine setup. Disk, boot trust and live PAM activation stay explicit."""
+import argparse
+import json
+import os
+from pathlib import Path
+import platform
+import shlex
+import shutil
+import subprocess
+import sys
+
+
+REPO = Path(__file__).resolve().parents[1]
+
+
+def hardware_defaults(sys_root=Path("/sys"), cpuinfo=Path("/proc/cpuinfo")):
+    def read(path):
+        try:
+            return path.read_text().strip()
+        except OSError:
+            return ""
+
+    battery = any(read(path) == "Battery"
+                  for path in (sys_root / "class/power_supply").glob("*/type"))
+    cpu_text = read(cpuinfo)
+    cpu = "intel" if "GenuineIntel" in cpu_text else (
+        "amd" if "AuthenticAMD" in cpu_text else "none")
+    gpu_names = {"0x8086": "intel", "0x1002": "amd", "0x10de": "nvidia"}
+    vendors = set()
+    for path in (sys_root / "class/drm").glob("card*/device/vendor"):
+        card = path.parent.parent.name
+        if card.startswith("card") and card[4:].isdigit():
+            vendors.add(gpu_names.get(read(path).lower(), "none"))
+    # Hybrid systems need a real choice; never silently select one vendor's driver.
+    gpu = next(iter(vendors)) if len(vendors) == 1 else (None if vendors else "none")
+    return battery, cpu, gpu
+
+
+def default_init_options(distro):
+    choices = {"Catppuccin flavour": "mocha", "Catppuccin accent": "lavender"}
+    options = ["--promptString", "GPG Key (no to disable)=no"]
+    if distro == "arch":
+        battery, cpu, gpu = hardware_defaults()
+        choices.update({"niri shell": "canopa", "CPU vendor": cpu,
+                        "Power policy": "tlp" if battery else "none"})
+        options += ["--promptBool", "Has a battery=" + str(battery).lower()]
+        if gpu is not None:
+            choices["GPU vendor (none keeps distribution defaults)"] = gpu
+        else:
+            print("Multiple GPU vendors detected; choose the driver group when prompted.")
+        print(f"Defaults: Canopa, mocha/lavender; CPU={cpu}, battery={battery}, GPU={gpu or 'ask'}.")
+    else:
+        print("Defaults: mocha/lavender; Ubuntu's desktop and authentication stay locally owned.")
+    for question, answer in choices.items():
+        options += ["--promptChoice", question + "=" + answer]
+    return options
+
+
+def run(argv, **kwargs):
+    print("+ " + shlex.join(map(str, argv)), flush=True)
+    return subprocess.run(list(map(str, argv)), check=True, **kwargs)
+
+
+def chezmoi_command(config):
+    return ["chezmoi", "--source", str(REPO), "--working-tree", str(REPO),
+            "--config", str(config)]
+
+
+def configure(args, distro):
+    if not shutil.which("chezmoi"):
+        raise RuntimeError("install chezmoi first; see docs/setup.md")
+    command = chezmoi_command(args.config)
+    if args.customize and args.config.exists():
+        # Preserve custom sections and comments instead of regenerating the file.
+        run(command + ["edit-config"])
+    elif args.customize:
+        run(command + ["init", "--prompt"])
+    elif args.reconfigure:
+        run(command + ["init"])
+    elif not args.config.exists():
+        run(command + ["init"] + default_init_options(distro))
+    run(command + ["--no-pager", "diff"])
+    if not args.apply:
+        print("Preview only. Run ./setup to install packages and apply files.")
+        return
+    run(command + ["apply"])
+    data = json.loads(run(command + ["data", "--format=json"],
+                          stdout=subprocess.PIPE, text=True).stdout)
+    if distro == "arch" and data.get("desktopShell", "canopa") == "canopa":
+        if args.skip_desktop_build:
+            print("Canopa build skipped; run scripts/install-canopa before starting niri.")
+        else:
+            run([REPO / "scripts/install-canopa"])
+    print("Configuration applied. Log out and back in for the managed session environment.")
+    print("Optional: ./setup ssh to load your Solo. ./setup --help lists other actions.")
+
+
+def load_ssh_token():
+    runtime = os.environ.get("XDG_RUNTIME_DIR")
+    if not runtime or not Path(runtime).is_dir():
+        raise RuntimeError("run from a logged-in user session with XDG_RUNTIME_DIR set")
+    for command in ("systemctl", "ssh-add"):
+        if not shutil.which(command):
+            raise RuntimeError(f"missing {command}; run ./setup first")
+    # Use the managed agent, not an inherited KeePassXC/GPG/forwarded agent.
+    run(["systemctl", "--user", "start", "ssh-agent.service"])
+    environment = os.environ | {"SSH_AUTH_SOCK": str(Path(runtime) / "ssh-agent.socket")}
+    print("Connect only the intended Solo. Loading its resident keys requires its PIN.")
+    run(["ssh-add", "-K"], env=environment)
+    run(["ssh-add", "-l"], env=environment)
+    print('In this terminal, use: export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/ssh-agent.socket"')
+    print("Then test: ssh -T git@github.com (verify GitHub's host fingerprint on first use).")
+    print("No keys were generated or reset. Re-run after a new agent session or token swap.")
+
+
+def report(distro):
+    checks = [
+        ("root filesystem", ["findmnt", "-no", "SOURCE,FSTYPE,OPTIONS", "/"]),
+        ("disk/encryption layout", ["lsblk", "-o", "NAME,TYPE,FSTYPE,MOUNTPOINTS"]),
+        ("clock", ["timedatectl", "status"]),
+        ("DNS", ["resolvectl", "query", "github.com"]),
+    ]
+    if distro == "arch":
+        checks += [
+            ("Secure Boot", ["sbctl", "status"]),
+            ("SSH agent", ["systemctl", "--user", "is-active", "ssh-agent.service"]),
+        ]
+    for label, command in checks:
+        print(f"\n--- {label} ---", flush=True)
+        if not shutil.which(command[0]):
+            print(f"UNAVAILABLE: {command[0]}")
+            continue
+        result = subprocess.run(command, check=False)
+        if result.returncode:
+            print(f"CHECK NEEDED: command exited {result.returncode}")
+    print("\nMANUAL: verify both boot entries, both tokens, no-token denial, root recovery,")
+    print("screen lock/suspend, password-manager offline access, and an off-device restore.")
+    print("This is an inventory report, not a security certification. See docs/setup.md.")
+
+
+def main(argv=None):
+    config_dir = Path(os.environ.get("XDG_CONFIG_HOME") or Path.home() / ".config")
+    parser = argparse.ArgumentParser(description=__doc__)
+    commands = parser.add_subparsers(dest="stage", required=True)
+    commands.add_parser("plan", help="show the complete installation/setup sequence")
+    config = commands.add_parser("configure", help="initialize choices and preview/apply dotfiles")
+    config.add_argument("--apply", action="store_true", help="install packages, apply and build Canopa if selected")
+    config.add_argument("--customize", action="store_true", help="ask all initial questions, or edit existing configuration")
+    config.add_argument("--reconfigure", action="store_true", help="regenerate config from saved choices/template")
+    config.add_argument("--skip-desktop-build", action="store_true")
+    config.add_argument("--config", type=Path, default=config_dir / "chezmoi/chezmoi.toml")
+    commands.add_parser("ssh", help="load resident keys from a connected token into the managed Arch agent")
+    commands.add_parser("auth", help="stage two PAM registrations; activation follows the runbook")
+    commands.add_parser("check", help="read-only network, disk and boot inventory plus manual checks")
+    args = parser.parse_args(argv)
+    if args.stage == "plan":
+        print("1. Install the base OS: docs/arch-install.md (skip on an existing installation).")
+        print("2. Run ./setup as your normal user, answer the identity questions, then log in again.")
+        print("3. Optional: ./setup ssh for SSH; docs/hardware-auth.md for login/sudo tokens.")
+        print("Quick start: " + str(REPO / "docs/setup.md"))
+        return 0
+    if os.geteuid() == 0:
+        parser.error("run as your regular user; follow the installation guide for root stages")
+    try:
+        distro = platform.freedesktop_os_release()["ID"]
+        if distro not in ("arch", "ubuntu"):
+            raise RuntimeError("supported distributions are Arch and Ubuntu")
+        if args.stage in ("ssh", "auth") and distro != "arch":
+            raise RuntimeError("Ubuntu work authentication is locally owned; see docs/work-laptop.md")
+        if args.stage == "configure":
+            configure(args, distro)
+        elif args.stage == "ssh":
+            load_ssh_token()
+        elif args.stage == "auth":
+            run([REPO / "scripts/enroll-login-keys"])
+        else:
+            report(distro)
+    except (OSError, RuntimeError, ValueError, subprocess.CalledProcessError) as error:
+        print(f"Setup stopped: {error}", file=sys.stderr)
+        print("Fix the failed stage, then re-run it; no later stage was executed.", file=sys.stderr)
+        return 1
+    except KeyboardInterrupt:
+        print("\nSetup interrupted; re-run the stage when ready.", file=sys.stderr)
+        return 1
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

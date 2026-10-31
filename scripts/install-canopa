@@ -3,31 +3,46 @@ set -euo pipefail
 # Independent application builds are explicit, never hidden inside chezmoi apply.
 # A temporary checkout leaves the development repository and running shell alone.
 revision=c2d1d369e25a20975672350dc8d1012d74ef9fd4
-work_dir=$(mktemp -d)
-trap 'rm -rf -- "$work_dir"' EXIT
 if [[ ${1:-} == --help ]]; then
     echo 'Build and install the recorded Canopa revision. Optional argument: local checkout to clone.'
     exit 0
 fi
-git clone --no-checkout "${1:-https://github.com/kevinard/canopa.git}" "$work_dir/source"
-git -C "$work_dir/source" checkout --detach "$revision"
-cd "$work_dir/source"
-CARGO_TARGET_DIR="$work_dir/target" cargo build --release --workspace --bins --locked
 config_file="${XDG_CONFIG_HOME:-$HOME/.config}/canopa/config.kdl"
+state_dir="${XDG_STATE_HOME:-$HOME/.local/state}/canopa"
+binaries=(canopa canopa-shell canopa-notify canopa-wifi-provider canopa-audio-provider canopa-media-provider)
 if [[ ! -f "$config_file" ]]; then
     echo 'Apply the Canopa configuration before running this installer.' >&2
     exit 1
 fi
+# Repeated setup should not clone/build an already installed revision. Supplying
+# a local checkout still deliberately rebuilds it, as before.
+if [[ $# -eq 0 && -f "$state_dir/dotfiles-installed-revision" &&
+      $(< "$state_dir/dotfiles-installed-revision") == "$revision" ]]; then
+    ready=1
+    for binary in "${binaries[@]}"; do
+        [[ -x "$HOME/.local/bin/$binary" ]] || ready=0
+    done
+    if [[ $ready -eq 1 ]]; then
+        "$HOME/.local/bin/canopa" config check --file "$config_file"
+        echo 'Canopa is already at the recorded revision; no rebuild needed.'
+        exit 0
+    fi
+fi
+work_dir=$(mktemp -d)
+trap 'rm -rf -- "$work_dir"' EXIT
+git clone --no-checkout "${1:-https://github.com/kevinard/canopa.git}" "$work_dir/source"
+git -C "$work_dir/source" checkout --detach "$revision"
+cd "$work_dir/source"
+CARGO_TARGET_DIR="$work_dir/target" cargo build --release --workspace --bins --locked
 "$work_dir/target/release/canopa" config check --file "$config_file"
 install -d -m 0755 "$HOME/.local/bin"
-for binary in canopa canopa-shell canopa-notify canopa-wifi-provider canopa-audio-provider canopa-media-provider; do
+for binary in "${binaries[@]}"; do
     test -x "$work_dir/target/release/$binary"
 done
-for binary in canopa canopa-shell canopa-notify canopa-wifi-provider canopa-audio-provider canopa-media-provider; do
+for binary in "${binaries[@]}"; do
     install -m 0755 "$work_dir/target/release/$binary" "$HOME/.local/bin/$binary.new"
     mv -f "$HOME/.local/bin/$binary.new" "$HOME/.local/bin/$binary"
 done
-state_dir="${XDG_STATE_HOME:-$HOME/.local/state}/canopa"
 mkdir -p "$state_dir"
 printf '%s\n' "$revision" > "$state_dir/dotfiles-installed-revision"
 echo 'Canopa installed. Log out and back in to use the new binaries.'

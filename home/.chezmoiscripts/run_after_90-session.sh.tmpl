@@ -27,7 +27,7 @@ systemctl --user add-wants niri.service battery-alert.timer
 {{ end -}}
 # Apply takes effect at next login; no mid-session daemon replacement or restart.
 sudo systemctl enable docker.socket cups.socket bluetooth.service
-{{ if eq .env "home" }}systemctl --user enable ssh-agent.service{{ end }}
+systemctl --user enable ssh-agent.service
 {{ if eq $m.power "tlp" -}}
 sudo systemctl enable tlp.service
 {{ end -}}

@@ -1,5 +1,8 @@
 # Root-owned Arch reference configuration
 
+The [device lifecycle reference](../../docs/reference/setup.md) coordinates the OS runbook,
+post-install helper, hardware credentials, recovery tests and device retirement.
+
 These files are outside chezmoi's home source root. They are examples for explicit
 provisioning, not a tree to copy wholesale into `/etc`. Review each file against the
 machine. The installation runbook describes the boot-related subset; networking,
@@ -13,6 +16,10 @@ procedure before deployment. The old generic GPU blacklist has been removed.
 
 The sudoers example now requires authentication for all wheel commands. Validate
 an installed candidate with `visudo -cf PATH` before replacing the live policy.
+The `pam.d/solo-auth` reference adds either enrolled Solo as a second factor, with
+root-password recovery. Follow [hardware authentication](../../docs/hardware-auth.md)
+to enroll both tokens outside Git and test recovery before explicitly activating
+it in individual services. No home apply edits PAM or deploys enrollment mappings.
 The custom udisks/storage-group rule was removed: use the distribution's active-seat
 policy. The Blueman exception checks active/local status as well as wheel membership.
 DDC access uses `uaccess`; no root process invokes a program under a user's home.

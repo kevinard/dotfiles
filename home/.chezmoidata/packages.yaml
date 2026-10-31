@@ -55,6 +55,8 @@ packages:
     - zsh-completions
     - man-db
     - openssh
+    - libfido2
+    - pam-u2f
     - wget
     - cups
     - cups-pdf

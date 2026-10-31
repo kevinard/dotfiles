@@ -61,5 +61,4 @@ create-xdg-folders.sh
 {{ end }}
 {{ if ne .env "home" }}
 .local/share/dbus-1/services/org.freedesktop.secrets.service
-.config/systemd/user/ssh-agent.service
 {{ end }}
