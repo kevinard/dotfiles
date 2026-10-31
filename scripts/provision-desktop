@@ -1,0 +1,157 @@
+#!/usr/bin/env python3
+"""Explicit root provisioning for desktop memory, bounded network waits and paired Btrfs/UKI snapshots."""
+import argparse
+from datetime import datetime, timezone
+import os
+from pathlib import Path
+import re
+import shlex
+import shutil
+import subprocess
+import tempfile
+
+
+REPO = Path(__file__).resolve().parents[1]
+SOURCE = REPO / "provision/arch"
+SYSTEM_FILES = [
+    "etc/systemd/zram-generator.conf.d/90-desktop.conf",
+    "etc/tmpfiles.d/desktop-zswap.conf",
+    "etc/sysctl.d/90-desktop-zram.conf",
+    "etc/sysctl.d/dirty.conf",
+    "etc/systemd/oomd.conf.d/90-desktop.conf",
+    "etc/systemd/user/app.slice.d/90-desktop-oomd.conf",
+    "etc/systemd/system/systemd-networkd-wait-online.service.d/wait-for-only-one-interface.conf",
+]
+
+
+def register_root(contents):
+    """Preserve other Snapper configs and unrelated settings without evaluating shell."""
+    pattern = r"(?m)^[ \t]*SNAPPER_CONFIGS=(.*)$"
+    matches = list(re.finditer(pattern, contents))
+    if len(matches) > 1:
+        raise RuntimeError("Duplicate SNAPPER_CONFIGS assignments need reconciliation")
+    names = []
+    if matches:
+        values = shlex.split(matches[0][1], comments=True)
+        if len(values) > 1:
+            raise RuntimeError("Invalid SNAPPER_CONFIGS assignment")
+        names = values[0].split() if values else []
+        if any(not re.fullmatch(r"[A-Za-z0-9_-]+", name) for name in names):
+            raise RuntimeError("Dynamic SNAPPER_CONFIGS needs manual reconciliation")
+    names = list(dict.fromkeys([*names, "root"]))
+    assignment = 'SNAPPER_CONFIGS="' + " ".join(names) + '"'
+    if matches:
+        return contents[:matches[0].start()] + assignment + contents[matches[0].end():]
+    return (contents.rstrip() + "\n" if contents.strip() else "") + assignment + "\n"
+
+
+def command(argv):
+    return subprocess.run(argv, check=True, capture_output=True, text=True).stdout.strip()
+
+
+def check_snapshot_layout():
+    for mount, filesystem in [("/", "btrfs"), ("/.snapshots", "btrfs"), ("/efi", "vfat")]:
+        if command(["findmnt", "-n", "-o", "FSTYPE", "--mountpoint", mount]) != filesystem:
+            raise RuntimeError(f"Expected {filesystem} mounted at {mount}; see docs/desktop.md")
+    if command(["findmnt", "-n", "-o", "UUID", "/"]) != command(["findmnt", "-n", "-o", "UUID", "--mountpoint", "/.snapshots"]):
+        raise RuntimeError("Root and /.snapshots must be on the same Btrfs filesystem")
+    if command(["btrfs", "inspect-internal", "rootid", "/"]) == command(["btrfs", "inspect-internal", "rootid", "/.snapshots"]):
+        raise RuntimeError("/.snapshots must be an independent subvolume, not a bind mount of root")
+    if not list(Path("/efi/EFI/Linux").glob("*.efi")):
+        raise RuntimeError("No UKIs found in /efi/EFI/Linux")
+    config = Path("/etc/snapper/configs/root")
+    if config.exists() and config.read_bytes() != (SOURCE / "etc/snapper/configs/root").read_bytes():
+        raise RuntimeError("An existing Snapper root policy needs manual reconciliation; no changes made")
+    hooks = [*Path("/usr/share/libalpm/hooks").glob("*.hook"), *Path("/etc/pacman.d/hooks").glob("*.hook")]
+    if any("snap-pac" in hook.read_text() for hook in hooks):
+        raise RuntimeError("Existing snap-pac hooks need reconciliation to avoid duplicate snapshots")
+    registry = Path("/etc/conf.d/snapper")
+    register_root(registry.read_text() if registry.exists() else "")
+
+
+def install(source, destination, mode, backup_root):
+    install_contents(source.read_bytes(), destination, mode, backup_root)
+
+
+def install_contents(contents, destination, mode, backup_root):
+    if destination.is_symlink():
+        raise RuntimeError(f"Refusing to replace a symlink: {destination}")
+    if destination.exists():
+        if destination.read_bytes() == contents:
+            destination.chmod(mode)
+            os.chown(destination, 0, 0)
+            return
+        backup = backup_root / destination.relative_to("/")
+        backup.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(destination, backup)
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    with tempfile.NamedTemporaryFile(dir=destination.parent, prefix=".dotfiles-", delete=False) as temporary:
+        staging = Path(temporary.name)
+    try:
+        staging.write_bytes(contents)
+        staging.chmod(mode)
+        os.chown(staging, 0, 0)
+        staging.replace(destination)
+    finally:
+        staging.unlink(missing_ok=True)
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--apply", action="store_true", help="install files/packages and enable units for the next boot")
+    parser.add_argument("--snapshots", action="store_true", help="also configure pre-transaction root snapshots with paired UKIs")
+    args = parser.parse_args(argv)
+    packages = ["zram-generator"] + (["snapper", "btrfs-progs"] if args.snapshots else [])
+    files = [(SOURCE / item, Path("/") / item, 0o644) for item in SYSTEM_FILES]
+    snapshot_hook = None
+    if args.snapshots:
+        files += [(SOURCE / "libexec/dotfiles-snapshot", Path("/usr/local/libexec/dotfiles-snapshot"), 0o755),
+                  (SOURCE / "etc/snapper/configs/root", Path("/etc/snapper/configs/root"), 0o600)]
+        snapshot_hook = (SOURCE / "etc/pacman.d/hooks/00-desktop-snapshot.hook",
+                         Path("/etc/pacman.d/hooks/00-desktop-snapshot.hook"), 0o644)
+    planned_files = files + ([snapshot_hook] if snapshot_hook else [])
+    print("Packages: " + ", ".join(packages))
+    for source, destination, _ in planned_files:
+        print(f"{source.relative_to(REPO)} -> {destination}")
+    if args.snapshots:
+        print("Merge root into /etc/conf.d/snapper, retaining other configurations")
+        print("Activate the package hook only after the first checkpoint is created and verified")
+    print("Enable systemd-oomd" + (", snapper-cleanup.timer" if args.snapshots else "") + "; reboot to activate system policy.")
+    if not args.apply:
+        print("Preview only. Apply home dotfiles, log in again, then run sudo scripts/provision-desktop --apply" + (" --snapshots" if args.snapshots else ""))
+        return
+    if os.geteuid() != 0:
+        parser.error("--apply requires sudo")
+    if not Path("/etc/arch-release").exists():
+        raise RuntimeError("Only Arch is supported")
+    if args.snapshots:
+        check_snapshot_layout()
+    for _, destination, _ in planned_files:
+        if destination.is_symlink():
+            raise RuntimeError(f"Refusing to replace a symlink: {destination}")
+    # Full upgrade, before installing our hook; no partial Arch upgrade.
+    subprocess.run(["pacman", "-Syu", "--needed", *packages], check=True)
+    backup = Path("/var/backups/dotfiles-desktop") / datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%f")
+    for source, destination, mode in files:
+        install(source, destination, mode, backup)
+    if args.snapshots:
+        registry = Path("/etc/conf.d/snapper")
+        contents = register_root(registry.read_text() if registry.exists() else "")
+        install_contents(contents.encode(), registry, 0o644, backup)
+        subprocess.run(["systemctl", "try-restart", "snapperd.service"], check=True)
+        subprocess.run(["/usr/local/libexec/dotfiles-snapshot", "create"], check=True)
+        subprocess.run(["systemctl", "enable", "snapper-cleanup.timer"], check=True)
+    subprocess.run(["systemctl", "enable", "systemd-oomd.service"], check=True)
+    if snapshot_hook:
+        # A failed bootstrap must not install an AbortOnFail hook that prevents
+        # future package operations (including the installer's own retry).
+        install(*snapshot_hook, backup)
+    print(f"Provisioned; replaced files, if any, are backed up under {backup}.")
+    print("Reboot, then run desktop-health and sudo /usr/local/libexec/dotfiles-snapshot list if configured.")
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except (OSError, ValueError, RuntimeError, subprocess.SubprocessError) as error:
+        raise SystemExit(f"Desktop provisioning stopped: {error}")

@@ -1,0 +1,10 @@
+# Root only: @home and the mounted @snapshots subvolume remain independent.
+SUBVOLUME="/"
+FSTYPE="btrfs"
+NUMBER_CLEANUP="yes"
+NUMBER_MIN_AGE="0"
+NUMBER_LIMIT="5"
+NUMBER_LIMIT_IMPORTANT="5"
+TIMELINE_CREATE="no"
+TIMELINE_CLEANUP="no"
+EMPTY_PRE_POST_CLEANUP="yes"

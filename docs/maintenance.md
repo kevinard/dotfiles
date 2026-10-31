@@ -59,6 +59,10 @@ rollback but do not survive disk failure. Choose a backup tool/destination expli
 test a small restore regularly, and check SMART health and periodic Btrfs scrub.
 Firmware and Secure Boot changes require a tested recovery boot path.
 
+The optional [desktop system stage](desktop.md) adds zram/OOM handling, a bounded
+networkd online wait and pre-transaction root snapshots with matching UKI copies. It is separate from home
+apply. The recovery guide covers restoring both root and the independent ESP.
+
 For Solo login/sudo authentication, retain the root-password and LUKS recovery
 routes described in [hardware authentication](hardware-auth.md). Token mappings
 are separate from dotfiles and SSH registrations; losing a token requires revoking

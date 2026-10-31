@@ -8,6 +8,14 @@ provisioning, not a tree to copy wholesale into `/etc`. Review each file against
 machine. The installation runbook describes the boot-related subset; networking,
 DNS, display manager, printer and font policies are independent choices.
 
+The desktop memory/boot/snapshot subset has an explicit installer:
+`./setup system --snapshots` previews it and `./setup system --apply --snapshots`
+installs it. Apply home dotfiles and log in again first; reboot after provisioning.
+It backs up replaced files, bounds the networkd online wait, checks the Btrfs/ESP
+layout, and pairs root snapshots
+with their UKIs. See [desktop controls and recovery](../../docs/desktop.md) for
+the policies and restore steps.
+
 Generated `fstab`, hostnames, MAC addresses, LUKS UUIDs and boot entries belong to
 the machine. No generic fstab is checked in. `mkinitcpio.conf` defaults to automatic
 GPU discovery. `hardware/` retains optional Intel/NVIDIA examples; choose the actual

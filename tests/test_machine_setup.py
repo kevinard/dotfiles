@@ -232,6 +232,18 @@ class MachineSetup(unittest.TestCase):
         self.assertNotEqual(incomplete.returncode, 0)
         self.assertNotIn("no rebuild needed", incomplete.stdout)
 
+    def test_system_stage_preview_and_apply_have_distinct_privilege_boundaries(self):
+        for apply in (False, True):
+            with self.subTest(apply=apply), patch.object(self.setup.os, "geteuid", return_value=1000), \
+                    patch.object(self.setup.platform, "freedesktop_os_release", return_value={"ID": "arch"}), \
+                    patch.object(self.setup, "run") as commands:
+                args = ["system", "--snapshots"] + (["--apply"] if apply else [])
+                self.assertEqual(self.setup.main(args), 0)
+            expected = [REPO / "scripts/provision-desktop", "--snapshots"]
+            if apply:
+                expected = ["sudo", REPO / "scripts/provision-desktop", "--apply", "--snapshots"]
+            commands.assert_called_once_with(expected)
+
 
 if __name__ == "__main__":
     unittest.main()

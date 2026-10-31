@@ -42,7 +42,7 @@ def validate_file(path, contents):
         ET.fromstring(contents)
     if path.suffix == ".desktop" and shutil.which("desktop-file-validate"):
         run(["desktop-file-validate", str(path)])
-    if path.name in ("config.jsonc", "default-modules.json"):
+    if path.suffix == ".json" or path.name == "config.jsonc":
         json.loads(contents) # Deliberately keep the managed Waybar files strict JSON.
 
 
@@ -166,6 +166,8 @@ def main():
         if path.is_file():
             validate_file(path, path.read_text())
     validate_file(REPO / "setup", (REPO / "setup").read_text())
+    snapshot_helper = REPO / "provision/arch/libexec/dotfiles-snapshot"
+    validate_file(snapshot_helper, snapshot_helper.read_text())
     print("PASS helper regressions and repository scripts")
     for executable in ("niri", "canopa", "desktop-file-validate"):
         if not shutil.which(executable):

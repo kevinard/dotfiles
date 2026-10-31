@@ -6,6 +6,7 @@ Requisite=graphical-session.target
 ConditionEnvironment=XDG_CURRENT_DESKTOP=niri
 
 [Service]
+Slice=session.slice
 ExecStart=/usr/bin/kanshi
 Restart=on-failure
 RestartSec=3

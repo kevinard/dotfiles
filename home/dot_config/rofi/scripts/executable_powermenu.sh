@@ -2,9 +2,9 @@
 set -eu
 if [ "${ROFI_RETV:-0}" = 1 ]; then
     case "$*" in
-        *Lock) swaylock -f ;;
-        *Suspend) swaylock -f && systemctl suspend ;;
-        *Hibernate) swaylock -f && systemctl hibernate ;;
+        *Lock) desktop-lock ;;
+        *Suspend) desktop-lock && systemctl suspend ;;
+        *Hibernate) desktop-lock && systemctl hibernate ;;
         *Logout) niri msg action quit ;;
         *Reboot) systemctl reboot ;;
         *Shutdown) systemctl poweroff ;;

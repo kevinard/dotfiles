@@ -1,0 +1,70 @@
+#!/usr/bin/env python3
+"""Volume keys and output switching without restarting PipeWire."""
+import argparse
+import json
+import subprocess
+import sys
+
+
+def command(argv):
+    return subprocess.run(argv, check=True, capture_output=True, text=True, timeout=5).stdout.strip()
+
+
+def available(sink):
+    properties = sink.get("properties", {})
+    if properties.get("device.class") == "filter" or str(properties.get("node.virtual", "false")).lower() == "true":
+        return False
+    ports = sink.get("ports", [])
+    if isinstance(ports, dict):
+        ports = list(ports.values())
+    return not ports or any(port.get("availability") not in ("not available", "no") for port in ports)
+
+
+def cycle_output():
+    sinks = [sink for sink in json.loads(command(["pactl", "-f", "json", "list", "sinks"])) if available(sink)]
+    if not sinks:
+        raise RuntimeError("No available audio outputs")
+    current = command(["pactl", "get-default-sink"])
+    index = next((i for i, sink in enumerate(sinks) if sink["name"] == current), -1)
+    selected = sinks[(index + 1) % len(sinks)]
+    command(["pactl", "set-default-sink", selected["name"]])
+    for stream in json.loads(command(["pactl", "-f", "json", "list", "sink-inputs"])):
+        app = stream.get("properties", {}).get("application.name")
+        if app and app not in ("EasyEffects", "PulseEffects"):
+            # A stream may disappear between enumeration and the move.
+            subprocess.run(["pactl", "move-sink-input", str(stream["index"]), selected["name"]],
+                           check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=5)
+    subprocess.run(["notify-send", "-a", "Desktop", "-t", "2000", "-i", "audio-card",
+                    "Audio output", selected.get("description", selected["name"])], check=False)
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("action", choices=["up", "down", "mute", "mic-mute", "next-output"])
+    parser.add_argument("--step", type=int, choices=range(1, 11), default=5, metavar="1..10")
+    args = parser.parse_args(argv)
+    if args.action == "next-output":
+        cycle_output()
+        return
+    if args.action == "mic-mute":
+        command(["wpctl", "set-mute", "@DEFAULT_AUDIO_SOURCE@", "toggle"])
+        return
+    if args.action == "mute":
+        command(["wpctl", "set-mute", "@DEFAULT_AUDIO_SINK@", "toggle"])
+    else:
+        change = f"{args.step}%" + ("+" if args.action == "up" else "-")
+        command(["wpctl", "set-volume", "-l", "1.0", "@DEFAULT_AUDIO_SINK@", change])
+    volume = command(["wpctl", "get-volume", "@DEFAULT_AUDIO_SINK@"])
+    percent = round(float(volume.split()[1]) * 100)
+    muted = "[MUTED]" in volume
+    subprocess.run(["notify-send", "-a", "Desktop", "-h", "string:x-canonical-private-synchronous:audio",
+                    "-h", f"int:value:{percent}", "-t", "1500", "-i",
+                    "audio-volume-muted" if muted else "audio-volume-medium", "Muted" if muted else f"Volume: {percent}%"], check=False)
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except (OSError, ValueError, RuntimeError, subprocess.SubprocessError) as error:
+        print(f"Audio: {error}", file=sys.stderr)
+        sys.exit(1)

@@ -1,0 +1,12 @@
+[Trigger]
+Operation=Upgrade
+Operation=Install
+Operation=Remove
+Type=Package
+Target=*
+
+[Action]
+Description=Snapshot root and its EFI boot images before changing packages
+When=PreTransaction
+Exec=/usr/local/libexec/dotfiles-snapshot create
+AbortOnFail

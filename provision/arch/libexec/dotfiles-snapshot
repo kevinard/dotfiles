@@ -1,0 +1,154 @@
+#!/usr/bin/env python3
+"""Pair Snapper root snapshots with verified copies of ESP-based UKIs."""
+import argparse
+from datetime import datetime, timezone
+import hashlib
+import json
+import os
+from pathlib import Path
+import shutil
+import subprocess
+import tempfile
+
+
+def command(argv):
+    return subprocess.run(argv, check=True, capture_output=True, text=True).stdout.strip()
+
+
+def mounted(path, filesystem):
+    actual = command(["findmnt", "--noheadings", "--output", "FSTYPE", "--mountpoint", str(path)])
+    if actual != filesystem:
+        raise RuntimeError(f"{path} must be a mounted {filesystem} filesystem")
+
+
+def digest(path):
+    with path.open("rb") as source:
+        return hashlib.file_digest(source, "sha256").hexdigest()
+
+
+def backup_ukis(esp, destination):
+    source = esp / "EFI/Linux"
+    files = sorted(source.glob("*.efi"))
+    if not files:
+        raise RuntimeError(f"No UKIs found in {source}")
+    hashes = {}
+    for uki in files:
+        if uki.is_symlink() or not uki.is_file():
+            raise RuntimeError(f"Not a regular UKI: {uki}")
+        shutil.copy2(uki, destination / uki.name)
+        hashes[uki.name] = digest(destination / uki.name)
+    return hashes
+
+
+def create(snapshots, esp):
+    mounted(Path("/"), "btrfs")
+    mounted(snapshots, "btrfs")
+    mounted(esp, "vfat")
+    store = snapshots / ".boot"
+    store.mkdir(mode=0o700, exist_ok=True)
+    number = command(["snapper", "-c", "root", "create", "--type", "single", "--cleanup-algorithm", "number",
+                      "--description", "Before pacman " + datetime.now(timezone.utc).isoformat(), "--print-number"])
+    if not number.isdecimal() or int(number) < 1:
+        raise RuntimeError("Snapper did not return a valid snapshot number")
+    try:
+        with tempfile.TemporaryDirectory(prefix=".pending-", dir=store) as temporary:
+            staging = Path(temporary)
+            hashes = backup_ukis(esp, staging)
+            (staging / "manifest.json").write_text(json.dumps({"version": 1, "snapshot": number, "sha256": hashes}, indent=2))
+            # Keep the context directory in place for TemporaryDirectory cleanup.
+            final = store / number
+            final.mkdir(mode=0o700)
+            for file in staging.iterdir():
+                file.rename(final / file.name)
+        os.sync()
+        verify(snapshots, number)
+    except Exception:
+        # An unpaired root snapshot must never look like a successful checkpoint.
+        subprocess.run(["snapper", "-c", "root", "delete", number], check=False)
+        shutil.rmtree(store / number, ignore_errors=True)
+        raise
+    command(["snapper", "-c", "root", "cleanup", "number"])
+    for directory in store.iterdir():
+        if directory.name.isdecimal() and not (snapshots / directory.name / "snapshot").is_dir():
+            shutil.rmtree(directory)
+    print(f"Recovery snapshot {number}: root and {len(hashes)} UKI(s)")
+
+
+def verify(snapshots, number):
+    if not number.isdecimal() or int(number) < 1:
+        raise ValueError("Use a positive snapshot number")
+    if not (snapshots / number / "snapshot").is_dir():
+        raise RuntimeError("Root snapshot is missing")
+    backup = snapshots / ".boot" / number
+    manifest = json.loads((backup / "manifest.json").read_text())
+    if manifest.get("version") != 1 or manifest.get("snapshot") != number or not manifest.get("sha256"):
+        raise RuntimeError("Invalid boot manifest")
+    for name, expected in manifest["sha256"].items():
+        if Path(name).name != name or not name.endswith(".efi") or (backup / name).is_symlink():
+            raise RuntimeError("Invalid UKI filename in manifest")
+        if digest(backup / name) != expected:
+            raise RuntimeError(f"UKI backup checksum mismatch: {name}")
+    return backup, manifest["sha256"]
+
+
+def restore_ukis(snapshots, number, esp):
+    backup, files = verify(snapshots, number)
+    mounted(esp, "vfat")
+    target = esp / "EFI/Linux"
+    target.mkdir(parents=True, exist_ok=True)
+    # Preserve the current images before replacing any file. Recovery never deletes them.
+    previous = snapshots / ".boot" / ("before-restore-" + datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%f"))
+    previous.mkdir(mode=0o700)
+    for name in files:
+        if (target / name).exists():
+            shutil.copy2(target / name, previous / name)
+    for name in files:
+        with tempfile.NamedTemporaryFile(dir=target, prefix=".restore-", delete=False) as temporary:
+            staging = Path(temporary.name)
+        try:
+            shutil.copyfile(backup / name, staging)
+            if digest(staging) != files[name]:
+                raise RuntimeError(f"Restored image verification failed: {name}")
+            staging.replace(target / name)
+        finally:
+            staging.unlink(missing_ok=True)
+    os.sync()
+    print(f"Restored UKIs for snapshot {number}. Previous images: {previous}")
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("action", choices=["create", "verify", "list", "restore-uki"])
+    parser.add_argument("number", nargs="?")
+    parser.add_argument("--snapshots", type=Path, default=Path("/.snapshots"))
+    parser.add_argument("--esp", type=Path, help="mounted ESP; mandatory for offline restore")
+    args = parser.parse_args(argv)
+    if os.geteuid() != 0:
+        parser.error("run as root")
+    if args.action == "create":
+        create(args.snapshots, args.esp or Path("/efi"))
+    elif args.action == "list":
+        store = args.snapshots / ".boot"
+        for entry in sorted(store.iterdir(), key=lambda p: int(p.name) if p.name.isdecimal() else -1):
+            if entry.name.isdecimal():
+                # Snapper's cleanup timer may have removed root since the last package transaction.
+                if (args.snapshots / entry.name / "snapshot").is_dir():
+                    verify(args.snapshots, entry.name)
+                    print(entry.name)
+    else:
+        if args.number is None:
+            parser.error("provide a snapshot number")
+        if args.action == "verify":
+            verify(args.snapshots, args.number)
+            print("Root snapshot and UKI checksums verified")
+        elif args.esp is None:
+            parser.error("provide --esp pointing to the mounted recovery ESP")
+        else:
+            restore_ukis(args.snapshots, args.number, args.esp)
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except (OSError, ValueError, RuntimeError, subprocess.SubprocessError) as error:
+        raise SystemExit(f"Snapshot stopped: {error}")

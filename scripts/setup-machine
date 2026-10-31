@@ -148,6 +148,9 @@ def main(argv=None):
     config.add_argument("--reconfigure", action="store_true", help="regenerate config from saved choices/template")
     config.add_argument("--skip-desktop-build", action="store_true")
     config.add_argument("--config", type=Path, default=config_dir / "chezmoi/chezmoi.toml")
+    system = commands.add_parser("system", help="preview/apply desktop memory, bounded network waits and optional Btrfs/UKI recovery")
+    system.add_argument("--apply", action="store_true")
+    system.add_argument("--snapshots", action="store_true")
     commands.add_parser("ssh", help="load resident keys from a connected token into the managed Arch agent")
     commands.add_parser("auth", help="stage two PAM registrations; activation follows the runbook")
     commands.add_parser("check", help="read-only network, disk and boot inventory plus manual checks")
@@ -166,6 +169,13 @@ def main(argv=None):
             raise RuntimeError("only Arch is supported")
         if args.stage == "configure":
             configure(args, distro)
+        elif args.stage == "system":
+            command = [REPO / "scripts/provision-desktop"]
+            if args.apply:
+                command = ["sudo", *command, "--apply"]
+            if args.snapshots:
+                command.append("--snapshots")
+            run(command)
         elif args.stage == "ssh":
             load_ssh_token()
         elif args.stage == "auth":

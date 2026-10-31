@@ -34,6 +34,7 @@ asks every question on first install, or opens your saved configuration afterwar
 - [Solo keys for login and sudo](docs/hardware-auth.md)
 - [Existing-install migration](docs/bootstrap.md)
 - [Recovery and maintenance](docs/maintenance.md)
+- [Desktop controls, memory policy and snapshots](docs/desktop.md)
 
 `./setup --help` lists the commands. [Quick setup notes](docs/setup.md) cover the
 first desktop login; [detailed reference](docs/reference/setup.md) is optional.

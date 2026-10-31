@@ -12,7 +12,7 @@ check_unit() {
 }
 printf 'Configured desktop: {{ $m.desktop }} / {{ $m.shell }}\n'
 printf 'Current desktop: %s\n' "${XDG_CURRENT_DESKTOP:-unset}"
-for executable in niri swaylock swayidle kanshi cliphist wl-paste rofi; do check_command "$executable"; done
+for executable in niri swaylock swayidle kanshi cliphist wl-paste rofi pactl brightness-control desktop-control desktop-lock; do check_command "$executable"; done
 for unit in niri.service swayidle.service kanshi.service cliphist@text.service cliphist@image.service; do check_unit "$unit"; done
 {{ if eq $m.shell "canopa" }}
 for executable in canopa canopa-shell canopa-notify canopa-wifi-provider canopa-audio-provider canopa-media-provider; do check_command "$executable"; done
@@ -25,5 +25,22 @@ check_unit waybar.service; check_unit dunst.service
 check_unit xdg-desktop-portal.service
 if systemctl is-active --quiet tlp.service && systemctl is-active --quiet power-profiles-daemon.service; then
     echo 'FAIL conflicting power managers'; failed=1
+fi
+printf '\nDevelopment limits (inspect before tuning):\n'
+sysctl fs.inotify.max_user_watches fs.inotify.max_user_instances
+printf 'Open files: soft=%s hard=%s\n' "$(ulimit -Sn)" "$(ulimit -Hn)"
+printf '\nMemory policy (optional root provisioning):\n'
+swapon --show
+if systemctl is-active --quiet systemd-oomd.service; then
+    oomctl || failed=1
+    for unit in swayidle.service {{ if eq $m.shell "canopa" }}canopa-shell.service canopa-notify.service{{ else }}waybar.service dunst.service{{ end }}; do
+        slice=$(systemctl --user show "$unit" --property=Slice --value)
+        if [ "$slice" != session.slice ]; then
+            printf 'FAIL %s is in %s; log in again before relying on the OOM policy\n' "$unit" "$slice"
+            failed=1
+        fi
+    done
+else
+    echo 'INFO systemd-oomd is not active; ./setup system previews root provisioning'
 fi
 exit "$failed"

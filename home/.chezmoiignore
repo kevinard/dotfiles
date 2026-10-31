@@ -9,6 +9,7 @@
 {{ if ne $m.shell "waybar" }}
 .config/waybar
 .config/systemd/user/waybar.service
+.config/systemd/user/dunst.service.d
 {{ end }}
 {{ if not $m.battery }}
 .config/systemd/user/battery-alert.*

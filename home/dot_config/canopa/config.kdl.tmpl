@@ -73,7 +73,7 @@ shell {
             }
             actions {
                 click { open-panel }
-                right-click { launch "pavucontrol" }
+                right-click { launch "desktop-launch" "pavucontrol" }
                 // right-click { launch "qpwgraph" }
             }
         }
@@ -107,13 +107,22 @@ shell {
     menus {
         menu "main" show-icons=#true prompt="Menu" {
             item "Terminal" {
-                launch "kitty"
+                launch "desktop-launch" "kitty"
                 icon "kitty"
             }
             item "Browser" {
-                launch "firefox"
+                launch "desktop-launch" "firefox"
                 icon "firefox"
             }
+            item "Desktop controls" { launch "desktop-control" "menu"; }
+            item "Clipboard history" { launch "desktop-control" "clipboard"; }
+            item "Emoji and symbols" { launch "desktop-launch" "rofimoji"; }
+            item "Calculator" { launch "desktop-launch" "rofi" "-show" "calc" "-modi" "calc" "-no-show-match" "-no-sort"; }
+            item "Audio settings" { launch "desktop-launch" "pavucontrol"; }
+            item "Bluetooth" { launch "desktop-launch" "blueman-manager"; }
+            item "Displays" { launch "desktop-launch" "wdisplays"; }
+            item "Lock" { launch "desktop-lock"; }
+            item "Power" { launch "desktop-launch" "rofi" "-show" "powermenu"; }
         }
 
         menu "apps" show-icons=#true prompt="Applications" {

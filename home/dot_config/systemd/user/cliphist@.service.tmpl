@@ -6,6 +6,7 @@ Requisite=graphical-session.target
 ConditionEnvironment=XDG_CURRENT_DESKTOP=niri
 
 [Service]
+Slice=session.slice
 ExecStart=wl-paste --type %i --watch %h/.local/bin/clipboard-store
 Restart=on-failure
 RestartSec=3

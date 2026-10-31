@@ -1,0 +1,140 @@
+#!/usr/bin/env python3
+"""Shared desktop menus, clipboard and notification controls."""
+import argparse
+import json
+import os
+from pathlib import Path
+import re
+import subprocess
+import sys
+
+
+def command(argv, **kwargs):
+    return subprocess.run(argv, check=True, capture_output=True, text=True, timeout=10, **kwargs).stdout.strip()
+
+
+def config():
+    root = Path(os.environ.get("XDG_CONFIG_HOME", Path.home() / ".config"))
+    return json.loads((root / "desktop/config.json").read_text())
+
+
+def runtime():
+    root = Path(os.environ["XDG_RUNTIME_DIR"]) / "dotfiles-desktop"
+    root.mkdir(mode=0o700, parents=True, exist_ok=True)
+    return root
+
+
+def notify(message):
+    subprocess.run(["notify-send", "-a", "Desktop", "-t", "2500", message], check=False, timeout=5)
+
+
+def dnd(state=None):
+    if config()["notificationBackend"] == "canopa":
+        argv = ["canopa-notify", "ctl", "--socket", str(Path(os.environ["XDG_RUNTIME_DIR"]) / "canopa-notify/control.sock"), "dnd"]
+        output = command(argv + ([] if state is None else ["on" if state else "off"]))
+        if output not in ("on", "off"):
+            raise RuntimeError("Unrecognized Canopa DND response")
+        return output == "on"
+    if state is None:
+        output = command(["dunstctl", "is-paused"])
+        if output not in ("true", "false"):
+            raise RuntimeError("Unrecognized Dunst pause response")
+        return output == "true"
+    command(["dunstctl", "set-paused", "true" if state else "false"])
+    return state
+
+
+def clipboard():
+    entries = command(["cliphist", "list"])
+    if not entries:
+        notify("Clipboard history is empty")
+        return
+    # Script mode keeps image previews and handles cancellation without touching the clipboard.
+    subprocess.run(["rofi", "-show", "clipboard"], check=False)
+
+
+def clipboard_mode(selection):
+    if os.environ.get("ROFI_RETV", "0") == "1" and selection:
+        decoded = subprocess.run(["cliphist", "decode"], input=(selection + "\n").encode(),
+                                 capture_output=True, check=True, timeout=5).stdout
+        subprocess.run(["wl-copy"], input=decoded, check=True, timeout=5)
+    else:
+        cache = runtime() / "clipboard-previews"
+        cache.mkdir(mode=0o700, exist_ok=True)
+        for file in cache.iterdir():
+            if re.fullmatch(r"\d+\.(png|jpg|jpeg|bmp|webp)", file.name):
+                file.unlink()
+        previews = 0
+        for entry in command(["cliphist", "list"]).splitlines():
+            image = re.match(r"^(\d+)\s+.*\bbinary\b.*\b(png|jpg|jpeg|bmp|webp)\b", entry, re.IGNORECASE)
+            if image and previews < 32:
+                try:
+                    decoded = subprocess.run(["cliphist", "decode"], input=(entry + "\n").encode(),
+                                             capture_output=True, check=True, timeout=5).stdout
+                    thumbnail = cache / f"{image[1]}.{image[2].lower()}"
+                    thumbnail.write_bytes(decoded)
+                    print(entry + "\0icon\x1f" + str(thumbnail))
+                    previews += 1
+                    continue
+                except (OSError, subprocess.SubprocessError):
+                    pass  # A missing image should not hide the rest of the clipboard history.
+            print(entry)
+
+
+def recover_displays():
+    outputs = json.loads(command(["niri", "msg", "--json", "outputs"]))
+    for name in outputs:
+        if name.startswith(("eDP-", "LVDS-", "DSI-")):
+            command(["niri", "msg", "output", name, "on"])
+    command(["niri", "msg", "action", "power-on-monitors"])
+    command(["systemctl", "--user", "reload", "kanshi.service"])
+    command(["brightness-control", "clear"])
+
+
+def menu():
+    entries = {
+        "Clipboard history": ["desktop-control", "clipboard"],
+        "Emoji and symbols": ["rofimoji"],
+        "Calculator": ["rofi", "-show", "calc", "-modi", "calc", "-no-show-match", "-no-sort"],
+        "Audio settings": ["pavucontrol"],
+        "Next audio output": ["audio-control", "next-output"],
+        "Bluetooth": ["blueman-manager"],
+        "Displays": ["wdisplays"],
+        "Recover laptop display": ["desktop-control", "displays", "recover"],
+        "Do Not Disturb": ["desktop-control", "dnd", "toggle"],
+        "Lock": ["desktop-lock"],
+        "Power": ["rofi", "-show", "powermenu"],
+    }
+    choice = subprocess.run(["rofi", "-dmenu", "-i", "-p", "Desktop"],
+                            input="\n".join(entries), capture_output=True, text=True, check=False)
+    if choice.returncode == 0 and choice.stdout.strip() in entries:
+        os.execvp("desktop-launch", ["desktop-launch", *entries[choice.stdout.strip()]])
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("feature", choices=["menu", "clipboard", "clipboard-mode", "dnd", "displays"])
+    parser.add_argument("action", nargs="?", default="toggle")
+    args = parser.parse_args(argv)
+    if args.feature == "menu":
+        menu()
+    elif args.feature == "clipboard":
+        clipboard()
+    elif args.feature == "clipboard-mode":
+        clipboard_mode(args.action if args.action != "toggle" else "")
+    elif args.feature == "dnd":
+        if args.action != "toggle":
+            parser.error("dnd: use toggle")
+        dnd(not dnd())
+    elif args.feature == "displays":
+        if args.action != "recover":
+            parser.error("displays: use recover")
+        recover_displays()
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except (KeyError, OSError, ValueError, RuntimeError, subprocess.SubprocessError) as error:
+        print(f"Desktop control: {error}", file=sys.stderr)
+        sys.exit(1)

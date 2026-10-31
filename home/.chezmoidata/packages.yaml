@@ -175,6 +175,7 @@ packages:
     - wdisplays
     - swayidle
     - swaylock
+    - libpulse
     waybar:
     - waybar
     - dunst

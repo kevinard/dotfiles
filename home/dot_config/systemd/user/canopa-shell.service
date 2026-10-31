@@ -6,6 +6,7 @@ Requisite=graphical-session.target
 ConditionEnvironment=XDG_CURRENT_DESKTOP=niri
 
 [Service]
+Slice=session.slice
 ExecStart=%h/.local/bin/canopa-shell
 Restart=on-failure
 RestartSec=3

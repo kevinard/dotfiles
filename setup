@@ -5,11 +5,13 @@ repo_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 case "${1:-}" in
     -h|--help)
         cat <<'HELP'
-Usage: ./setup [--preview | --customize | ssh | auth | check]
+Usage: ./setup [--preview | --customize | system | ssh | auth | check]
 
   ./setup              Install/update packages, dotfiles and the selected desktop.
   ./setup --preview    Show changes without applying them.
   ./setup --customize  Choose initial settings, or edit your saved configuration.
+  ./setup system       Preview memory/boot policy; --apply installs it through sudo.
+  ./setup system --snapshots  Also include paired Btrfs/UKI recovery.
   ./setup ssh          Load the connected Solo's SSH keys.
   ./setup auth         Enroll both Solos for optional login/sudo setup.
   ./setup check        Show a read-only machine status report.
@@ -22,7 +24,7 @@ HELP
         shift
         set -- configure "$@"
         ;;
-    ssh|auth|check|plan|configure) ;;
+    ssh|auth|check|plan|configure|system) ;;
     *) set -- configure --apply "$@" ;;
 esac
 exec "$repo_dir/scripts/setup-machine" "$@"

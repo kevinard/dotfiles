@@ -1,0 +1,4 @@
+#!/bin/sh
+# Keep applications launched from the shell out of its protected session slice.
+set -eu
+exec systemd-run --user --scope --collect --quiet --expand-environment=no --slice=app.slice -- "$@"

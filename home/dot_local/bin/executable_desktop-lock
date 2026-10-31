@@ -1,0 +1,8 @@
+#!/bin/sh
+# Prefer a protected scope for keybindings, but always try to lock if it fails.
+set -eu
+if systemd-run --user --scope --collect --quiet --expand-environment=no --slice=session.slice -- swaylock -f; then
+    exit 0
+fi
+printf '%s\n' 'Scoped locking failed; starting swaylock directly.' >&2
+exec swaylock -f

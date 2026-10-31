@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Adjust each DDC display, including identical models, from the user session."""
+"""Adjust the focused niri display, all active displays, or a named DDC display."""
+import argparse
 import fcntl
 import hashlib
 import json
@@ -27,43 +28,119 @@ def displays(output):
     return re.findall(r"^Display\s+(\d+)\b", output, re.MULTILINE)
 
 
-def main():
-    if len(sys.argv) < 2 or sys.argv[1] not in ("up", "down", "clear"):
-        raise SystemExit("Usage: brightness-control {up|down} {zero-based-index|all}, or clear")
-    action = sys.argv[1]
+def command(argv):
+    return subprocess.run(argv, check=True, capture_output=True, text=True, timeout=12).stdout
+
+
+def ddc_displays(output):
+    result = {}
+    for match in re.finditer(r"(?ms)^Display\s+\d+\s*\n(.*?)(?=^(?:Display\s+\d+|Invalid display)|\Z)", output):
+        block = match[1]
+        bus = re.search(r"I2C bus:\s*/dev/i2c-(\d+)", block)
+        connector = re.search(r"DRM connector:\s*card\d+-(\S+)", block)
+        if bus and connector:
+            result[connector[1]] = bus[1]
+    return result
+
+
+def target_level(current, maximum, action, step):
+    if maximum <= 0:
+        raise ValueError("Display reported an invalid brightness range")
+    increment = 1 if current * 100 <= maximum * 5 else step
+    # Round the step up, then add/subtract it: coarse backlights must move in
+    # both directions, even when one hardware step exceeds the requested percent.
+    raw_step = max(1, (maximum * increment + 99) // 100)
+    minimum = max(1, (maximum + 99) // 100)
+    target = current + raw_step if action == "up" else current - raw_step
+    return min(maximum, max(minimum, target))
+
+
+def internal(name):
+    return name.startswith(("eDP-", "LVDS-", "DSI-"))
+
+
+def backlight(action, step):
+    fields = command(["brightnessctl", "--class=backlight", "--machine-readable"]).strip().splitlines()[0].split(",")
+    current, maximum = int(fields[2]), int(fields[4])
+    target = target_level(current, maximum, action, step)
+    command(["brightnessctl", "--class=backlight", "set", str(target)])
+    return round(target * 100 / maximum)
+
+
+def adjust_ddc(bus, action, step):
+    output = command(["ddcutil", "--bus", bus, "getvcp", "10", "--terse"])
+    match = re.search(r"VCP\s+10\s+C\s+(\d+)\s+(\d+)", output)
+    if not match or int(match[2]) == 0:
+        raise RuntimeError("Display did not report a brightness range")
+    current, maximum = map(int, match.groups())
+    target = target_level(current, maximum, action, step)
+    command(["ddcutil", "--bus", bus, "setvcp", "10", str(target)])
+    return round(target * 100 / maximum)
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("action", choices=["up", "down", "clear"])
+    parser.add_argument("target", nargs="?", default="focused", help="focused, all, connector, or legacy zero-based DDC index")
+    parser.add_argument("--step", type=int, choices=range(1, 21), default=5, metavar="1..20")
+    args = parser.parse_args(argv)
     cache_dir = Path(os.environ.get("XDG_CACHE_HOME", Path.home() / ".cache")) / "ddc-brightness"
     cache_dir.mkdir(mode=0o700, parents=True, exist_ok=True)
     cache = cache_dir / "displays.json"
     with (cache_dir / "lock").open("w") as lock:
-        fcntl.flock(lock, fcntl.LOCK_EX)
-        if action == "clear":
+        try:
+            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            return
+        if args.action == "clear":
             cache.unlink(missing_ok=True)
             return
-        if len(sys.argv) != 3:
-            raise SystemExit("Expected a display index or all")
-        fingerprint = topology()
-        try:
-            record = json.loads(cache.read_text())
-        except (OSError, ValueError):
-            record = {}
-        if record.get("topology") != fingerprint or time.time() - record.get("time", 0) > 30:
-            result = subprocess.run(["ddcutil", "detect", "--brief"], check=True, capture_output=True, text=True)
-            record = {"topology": fingerprint, "time": time.time(), "displays": displays(result.stdout)}
-            cache.write_text(json.dumps(record))
-        selected = record["displays"]
-        if sys.argv[2] != "all":
-            if not sys.argv[2].isdigit() or int(sys.argv[2]) >= len(selected):
-                raise SystemExit("Invalid display index")
-            selected = [selected[int(sys.argv[2])]]
-        if not selected:
-            raise SystemExit("No DDC displays detected")
-        for display in selected:
-            result = subprocess.run(["ddcutil", "--display", display, "setvcp", "10",
-                                     "+" if action == "up" else "-", "10"])
-            if result.returncode:
+        outputs = json.loads(command(["niri", "msg", "--json", "outputs"]))
+        if args.target == "focused":
+            focused = json.loads(command(["niri", "msg", "--json", "focused-output"]))
+            if not focused:
+                raise RuntimeError("No focused display")
+            selected = [focused["name"]]
+        elif args.target == "all":
+            selected = [name for name, info in outputs.items() if info.get("current_mode") is not None]
+        else:
+            selected = [args.target]
+        mapping = {}
+        if any(not internal(name) for name in selected):
+            fingerprint = topology()
+            try:
+                record = json.loads(cache.read_text())
+            except (OSError, ValueError):
+                record = {}
+            if "connectors" not in record or record.get("topology") != fingerprint or time.time() - record.get("time", 0) > 30:
+                mapping = ddc_displays(command(["ddcutil", "detect", "--brief"]))
+                record = {"topology": fingerprint, "time": time.time(), "connectors": mapping}
+                cache.write_text(json.dumps(record))
+            mapping = record.get("connectors", {})
+        if args.target.isdigit():
+            selected = [list(mapping)[int(args.target)]]
+        errors = []
+        for name in selected:
+            try:
+                if internal(name):
+                    percent = backlight(args.action, args.step)
+                elif name in mapping:
+                    percent = adjust_ddc(mapping[name], args.action, args.step)
+                else:
+                    raise RuntimeError("No DDC brightness control on this connector")
+                subprocess.run(["notify-send", "-a", "Desktop", "-h", "string:x-canonical-private-synchronous:brightness",
+                                "-h", f"int:value:{percent}", "-t", "1500", "-i", "display-brightness-symbolic",
+                                f"{name}: {percent}%"], check=False)
+            except (OSError, ValueError, RuntimeError, subprocess.SubprocessError) as error:
                 cache.unlink(missing_ok=True)
-                raise SystemExit(result.returncode)
+                errors.append(f"{name}: {error}")
+        if errors:
+            raise RuntimeError("; ".join(errors))
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except (OSError, ValueError, IndexError, RuntimeError, subprocess.SubprocessError) as error:
+        print(f"Brightness: {error}", file=sys.stderr)
+        sys.exit(1)

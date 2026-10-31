@@ -22,22 +22,31 @@ binds {
     Mod+D repeat=false hotkey-overlay-title="Applications" { spawn "rofi" "-show" "drun"; }
 {{ end }}
     Mod+Shift+D { spawn "rofi" "-show" "drun"; }
-    // Mod+D hotkey-overlay-title="Run an Application: rofi" { spawn "rofi" "-show" "drun"; }
-    Super+Alt+L allow-when-locked=true hotkey-overlay-title="Lock the Screen" { spawn "swaylock" "-f"; }
+    Mod+Space repeat=false hotkey-overlay-title="Desktop controls" { spawn "desktop-control" "menu"; }
+    Mod+Ctrl+V repeat=false hotkey-overlay-title="Clipboard history" { spawn "desktop-control" "clipboard"; }
+    Mod+Ctrl+E repeat=false hotkey-overlay-title="Emoji and symbols" { spawn "rofimoji"; }
+    Mod+Ctrl+Q repeat=false hotkey-overlay-title="Calculator" { spawn "rofi" "-show" "calc" "-modi" "calc" "-no-show-match" "-no-sort"; }
+    Mod+Ctrl+A repeat=false hotkey-overlay-title="Audio settings" { spawn "pavucontrol"; }
+    Mod+Ctrl+B repeat=false hotkey-overlay-title="Bluetooth" { spawn "blueman-manager"; }
+    Mod+Ctrl+D repeat=false hotkey-overlay-title="Displays" { spawn "wdisplays"; }
+    Mod+Ctrl+Period repeat=false hotkey-overlay-title="Do Not Disturb" { spawn "desktop-control" "dnd" "toggle"; }
+    Mod+Ctrl+Shift+P repeat=false hotkey-overlay-title="Recover laptop display" { spawn "desktop-control" "displays" "recover"; }
+    XF86Calculator repeat=false { spawn "rofi" "-show" "calc" "-modi" "calc" "-no-show-match" "-no-sort"; }
+    Super+Alt+L allow-when-locked=true hotkey-overlay-title="Lock the Screen" { spawn "desktop-lock"; }
 
     // Use spawn-sh to run a shell command. Do this if you need pipes, multiple commands, etc.
     // Note: the entire command goes as a single argument. It's passed verbatim to `sh -c`.
     // For example, this is a standard bind to toggle the screen reader (orca).
     // Super+Alt+S allow-when-locked=true hotkey-overlay-title=null { spawn-sh "pkill orca || exec orca"; }
 
-    // Example volume keys mappings for PipeWire & WirePlumber.
-    // The allow-when-locked=true property makes them work even when the session is locked.
-    // Using spawn-sh allows to pass multiple arguments together with the command.
-    // "-l 1.0" limits the volume to 100%.
-    XF86AudioRaiseVolume allow-when-locked=true { spawn-sh "wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.05+ -l 1.0"; }
-    XF86AudioLowerVolume allow-when-locked=true { spawn-sh "wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.05-"; }
-    XF86AudioMute        allow-when-locked=true { spawn-sh "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"; }
-    XF86AudioMicMute     allow-when-locked=true { spawn-sh "wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"; }
+    // Shared audio feedback, precise adjustments, and output switching.
+    XF86AudioRaiseVolume allow-when-locked=true { spawn "audio-control" "up"; }
+    XF86AudioLowerVolume allow-when-locked=true { spawn "audio-control" "down"; }
+    XF86AudioMute allow-when-locked=true { spawn "audio-control" "mute"; }
+    XF86AudioMicMute allow-when-locked=true { spawn "audio-control" "mic-mute"; }
+    Alt+XF86AudioRaiseVolume allow-when-locked=true { spawn "audio-control" "up" "--step" "1"; }
+    Alt+XF86AudioLowerVolume allow-when-locked=true { spawn "audio-control" "down" "--step" "1"; }
+    Shift+XF86AudioMute repeat=false { spawn "audio-control" "next-output"; }
 
     // Example media keys mapping using playerctl.
     // This will work with any MPRIS-enabled media player.
@@ -50,11 +59,13 @@ binds {
     XF86AudioNext        allow-when-locked=true { spawn-sh "playerctl next"; }
     XF86Explorer         allow-when-locked=true { spawn-sh "playerctl next"; }
 
-    // Example brightness key mappings for brightnessctl.
-    // You can use regular spawn with multiple arguments too (to avoid going through "sh"),
-    // but you need to manually put each argument in separate "" quotes.
-    XF86MonBrightnessUp allow-when-locked=true { spawn "brightnessctl" "--class=backlight" "set" "+10%"; }
-    XF86MonBrightnessDown allow-when-locked=true { spawn "brightnessctl" "--class=backlight" "set" "10%-"; }
+    // Focused monitor by default; Shift adjusts all active displays; Alt is precise.
+    XF86MonBrightnessUp allow-when-locked=true { spawn "brightness-control" "up"; }
+    XF86MonBrightnessDown allow-when-locked=true { spawn "brightness-control" "down"; }
+    Shift+XF86MonBrightnessUp allow-when-locked=true { spawn "brightness-control" "up" "all"; }
+    Shift+XF86MonBrightnessDown allow-when-locked=true { spawn "brightness-control" "down" "all"; }
+    Alt+XF86MonBrightnessUp allow-when-locked=true { spawn "brightness-control" "up" "--step" "1"; }
+    Alt+XF86MonBrightnessDown allow-when-locked=true { spawn "brightness-control" "down" "--step" "1"; }
 
     // Open/close the Overview: a zoomed-out view of workspaces and windows.
     // You can also move the mouse into the top-left hot corner,
