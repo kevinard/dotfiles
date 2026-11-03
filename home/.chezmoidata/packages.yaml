@@ -221,3 +221,7 @@ packages:
     - tlp
     native:
     - power-profiles-daemon
+    scheduler:
+    - system76-scheduler
+    - base-devel
+    - rustup

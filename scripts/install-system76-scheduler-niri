@@ -1,0 +1,30 @@
+#!/bin/bash
+set -euo pipefail
+# Build the patched upstream Rust helper in an isolated, detached checkout.
+revision=f2fa09c8ae9fd8d8851015699d5cd44957c2b167
+if [[ ${1:-} == --help ]]; then
+    echo 'Build and install the recorded scheduler helper revision. Optional argument: local checkout to clone.'
+    exit 0
+fi
+state_dir="${XDG_STATE_HOME:-$HOME/.local/state}/system76-scheduler-niri"
+binary="$HOME/.local/bin/system76-scheduler-niri"
+if [[ $# -eq 0 && -f "$state_dir/dotfiles-installed-revision" && -x "$binary" &&
+      $(< "$state_dir/dotfiles-installed-revision") == "$revision" ]]; then
+    echo 'Scheduler helper is already at the recorded revision; no rebuild needed.'
+    exit 0
+fi
+work_dir=$(mktemp -d)
+trap 'rm -rf -- "$work_dir"' EXIT
+git clone --no-checkout "${1:-https://github.com/kevinard/system76-scheduler-niri.git}" "$work_dir/source"
+git -C "$work_dir/source" checkout --detach "$revision"
+cd "$work_dir/source"
+# Build with the configured Rust toolchain and Cargo.lock. A local checkout
+# still builds the recorded commit, leaving the caller's working tree untouched.
+CARGO_TARGET_DIR="$work_dir/target" cargo build --release --locked
+test -x "$work_dir/target/release/system76-scheduler-niri"
+install -d -m 0755 "$HOME/.local/bin"
+install -m 0755 "$work_dir/target/release/system76-scheduler-niri" "$binary.new"
+mv -f "$binary.new" "$binary"
+mkdir -p "$state_dir"
+printf '%s\n' "$revision" > "$state_dir/dotfiles-installed-revision"
+echo 'Rust scheduler helper installed. Log out and back in to use it.'

@@ -57,7 +57,8 @@ def default_init_options(distro):
 
 def run(argv, **kwargs):
     print("+ " + shlex.join(map(str, argv)), flush=True)
-    return subprocess.run(list(map(str, argv)), check=True, **kwargs)
+    kwargs.setdefault("check", True)
+    return subprocess.run(list(map(str, argv)), **kwargs)
 
 
 def chezmoi_command(config):
@@ -90,6 +91,11 @@ def configure(args, distro):
             print("Canopa package build skipped; run scripts/install-canopa before selecting Canopa at login.")
         else:
             run([REPO / "scripts/install-canopa"])
+    if distro == "arch" and data.get("processScheduler", False):
+        if args.skip_desktop_build:
+            print("Scheduler helper build skipped; run scripts/install-system76-scheduler-niri before starting niri.")
+        else:
+            run([REPO / "scripts/install-system76-scheduler-niri"])
     print("Configuration applied. Log out and back in for the managed session environment.")
     if data.get("desktopShell", "canopa") == "canopa":
         print("Select Canopa at login. ./setup login previews the optional Canopa Greeter.")
@@ -112,6 +118,22 @@ def load_ssh_token():
     print('In this terminal, use: export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/ssh-agent.socket"')
     print("Then test: ssh -T git@github.com (verify GitHub's host fingerprint on first use).")
     print("No keys were generated or reset. Re-run after a new agent session or token swap.")
+
+
+def configure_scheduler(args):
+    if not args.config.is_file():
+        raise RuntimeError("run ./setup first, then set [data].processScheduler to true to opt in")
+    data = json.loads(run(chezmoi_command(args.config) + ["data", "--format=json"],
+                          stdout=subprocess.PIPE, text=True).stdout)
+    enabled = data.get("processScheduler", False)
+    if type(enabled) is not bool:
+        raise RuntimeError("processScheduler must be a boolean")
+    command = [REPO / "scripts/provision-desktop", "--scheduler", "enable" if enabled else "disable"]
+    if args.apply:
+        command = ["sudo", *command, "--apply"]
+    run(command)
+    if args.apply and not enabled:
+        run(["systemctl", "--user", "stop", "system76-scheduler-niri.service"], check=False)
 
 
 def report(distro):
@@ -153,6 +175,9 @@ def main(argv=None):
     system = commands.add_parser("system", help="preview/apply desktop memory, bounded network waits and optional Btrfs/UKI recovery")
     system.add_argument("--apply", action="store_true")
     system.add_argument("--snapshots", action="store_true")
+    scheduler = commands.add_parser("scheduler", help="preview/apply the opt-in process scheduler from saved configuration")
+    scheduler.add_argument("--apply", action="store_true")
+    scheduler.add_argument("--config", type=Path, default=config_dir / "chezmoi/chezmoi.toml")
     login = commands.add_parser("login", help="preview/select Canopa Greeter for the next boot")
     login.add_argument("--apply", action="store_true")
     commands.add_parser("ssh", help="load resident keys from a connected token into the managed Arch agent")
@@ -180,6 +205,8 @@ def main(argv=None):
             if args.snapshots:
                 command.append("--snapshots")
             run(command)
+        elif args.stage == "scheduler":
+            configure_scheduler(args)
         elif args.stage == "login":
             command = [REPO / "scripts/provision-canopa-login"]
             if args.apply:

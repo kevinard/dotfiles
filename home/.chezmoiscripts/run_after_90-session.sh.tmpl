@@ -7,7 +7,7 @@ mkdir -p "$unit_dir"
 # Remove only enablement links for units previously owned by this repository.
 # This also removes the untracked default.target link that kept the start page alive.
 for target in default.target graphical-session.target sway-session.target wayland-session@hyprland.desktop.target niri.service canopa-session.target timers.target; do
-    for unit in startpage.service startpage-work.service thunar.service udiskie.service kanshi.service waybar.service cliphist@text.service cliphist@image.service battery-alert.timer hypridle.service swayidle.service canopa-shell.service canopa-notify.service canopa-session.target dunst.service hyprpolkitagent.service polkit-agent.service; do
+    for unit in startpage.service startpage-work.service thunar.service udiskie.service kanshi.service waybar.service cliphist@text.service cliphist@image.service battery-alert.timer hypridle.service swayidle.service canopa-shell.service canopa-notify.service canopa-session.target dunst.service hyprpolkitagent.service polkit-agent.service system76-scheduler-niri.service; do
         rm -f -- "$unit_dir/$target.wants/$unit"
     done
 done
@@ -19,6 +19,9 @@ for unit in kanshi.service swayidle.service cliphist@text.service cliphist@image
 done
 {{ if $m.battery -}}
 systemctl --user add-wants niri.service battery-alert.timer
+{{ end -}}
+{{ if $m.scheduler -}}
+systemctl --user add-wants niri.service system76-scheduler-niri.service
 {{ end -}}
 {{ end -}}
 # The packaged Canopa target owns its companions and the dotfiles target drop-in.

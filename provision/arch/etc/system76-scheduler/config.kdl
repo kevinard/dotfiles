@@ -1,0 +1,56 @@
+// SPDX-License-Identifier: MPL-2.0
+// Adapted from pop-os/system76-scheduler's v2 defaults.
+version "2.0"
+autogroup-enabled false
+
+// Process priorities only: leave kernel latency/preemption and TLP policy alone.
+cfs-profiles enable=false
+
+process-scheduler enable=true {
+    // Periodic discovery avoids an execsnoop/BPF dependency.
+    refresh-rate 10
+    execsnoop false
+    assignments {
+        sound-server nice=-10 sched="other" io=(best-effort)0 {
+            "/usr/bin/pipewire"
+            "/usr/bin/pipewire-pulse"
+            "/usr/bin/jackd"
+        }
+        recording nice=-5 sched="other" io=(best-effort)2
+        pipewire nice=-4 sched="other" io=(best-effort)2
+        games nice=-3 sched="other" io=(best-effort)2
+        desktop-environment nice=-3 sched="other" io=(best-effort)2
+        foreground nice=0 sched="other" io=(best-effort)4
+        background nice=4 sched="other" io=(best-effort)4
+        interactive-development nice=0 sched="other" io=(best-effort)4
+        // Builders retain normal scheduling and ordinary I/O service under load.
+        batch nice=5 sched="other" io=(best-effort)4
+        package-manager nice=5 sched="other" io=(best-effort)6
+        session-services nice=2 sched="other" io=(best-effort)4 {
+            include cgroup="/user.slice/*/session.slice/*" parent="systemd"
+            exclude cgroup="/user.slice/*app-dbus*"
+        }
+        system-services nice=5 sched="other" io=(best-effort)4 {
+            include cgroup="/system.slice/*"
+        }
+    }
+    // Preserve explicit scheduling decisions made by the caller or rtkit.
+    exceptions {
+        include descends="chrt"
+        include descends="gamemoderun"
+        include descends="ionice"
+        include descends="nice"
+        include descends="taskset"
+        include descends="schedtool"
+        chrt
+        dbus
+        dbus-broker
+        gamemoderun
+        ionice
+        nice
+        rtkit-daemon
+        systemd
+        taskset
+        schedtool
+    }
+}

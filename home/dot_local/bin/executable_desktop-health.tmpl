@@ -31,6 +31,18 @@ for unit in niri.service swayidle.service kanshi.service; do check_unit "$unit";
 check_unit waybar.service; check_unit dunst.service
 {{ end }}
 check_unit xdg-desktop-portal.service
+{{ if $m.scheduler }}
+printf '\nProcess scheduler (opt-in):\n'
+check_command system76-scheduler
+check_command system76-scheduler-niri
+check_unit system76-scheduler-niri.service
+if systemctl is-active --quiet com.system76.Scheduler.service; then
+    echo 'OK   com.system76.Scheduler.service'
+else
+    echo 'FAIL scheduler inactive; preview ./setup scheduler, apply it and reboot'
+    failed=1
+fi
+{{ end }}
 if systemctl is-active --quiet tlp.service && systemctl is-active --quiet power-profiles-daemon.service; then
     echo 'FAIL conflicting power managers'; failed=1
 fi

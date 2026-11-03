@@ -101,8 +101,9 @@ It stops at the first failed stage. Without `--apply`, it initializes choices an
 shows the diff only. Existing chezmoi configuration is kept; edit it with
 `chezmoi edit-config` to change choices. `--reconfigure` explicitly regenerates the
 template using saved data; it can remove custom config sections, so back those up.
-`--skip-desktop-build` leaves Canopa installation for `scripts/install-canopa`.
-The build needs network access and a configured Rust toolchain; do not start that
+`--skip-desktop-build` leaves Canopa installation for `scripts/install-canopa`
+and an opted-in scheduler helper for `scripts/install-system76-scheduler-niri`.
+The builds need network access and a configured Rust toolchain; do not start that
 desktop until all companion binaries are installed.
 
 Use the same command again to resume after a failure. There is no persistent

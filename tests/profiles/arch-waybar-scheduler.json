@@ -1,0 +1,22 @@
+{
+  "env": "home",
+  "email": "test@example.test",
+  "fullname": "Dotfiles Test",
+  "gpgsign": "no",
+  "themeFlavour": "latte",
+  "themeColor": "lavender",
+  "projectPaths": [
+    "/tmp/test projects"
+  ],
+  "desktopShell": "waybar",
+  "hasBattery": false,
+  "cpuVendor": "amd",
+  "gpuVendor": "amd",
+  "powerManager": "none",
+  "chezmoi": {
+    "osRelease": {
+      "id": "arch"
+    }
+  },
+  "processScheduler": true
+}

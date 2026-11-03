@@ -76,6 +76,10 @@ def check_profile(fixture, source, work):
     desktop = "niri" if arch else "none"
     shell = data.get("desktopShell", "canopa") if arch else "none"
     units = ".config/systemd/user/"
+    scheduler = data.get("processScheduler", False)
+    assert (units + "system76-scheduler-niri.service" in rendered) == scheduler
+    # The Rust binary is installed from a pinned fork, outside chezmoi's files.
+    assert ".local/bin/system76-scheduler-niri" not in rendered
     assert (units + "swayidle.service" in rendered) == (shell == "waybar")
     assert units + "canopa-shell.service" not in rendered # Owned by the system package.
     assert (units + "canopa-session.target.d/50-dotfiles.conf" in rendered) == (shell == "canopa")
@@ -93,13 +97,17 @@ def check_profile(fixture, source, work):
     package_script = rendered[".chezmoiscripts/" + package_name]["contents"]
     if arch:
         assert "systemctl --user enable ssh-agent.service" in script
+        assert ("systemctl --user add-wants niri.service system76-scheduler-niri.service" in script) == (scheduler and shell == "waybar")
         if shell == "canopa":
+            wants = rendered[units + "canopa-session.target.d/50-dotfiles.conf"]["contents"]
+            assert ("system76-scheduler-niri.service" in wants) == scheduler
             assert "org.canopa.Files.desktop" in rendered[".config/mimeapps.list"]["contents"]
         installed = set()
         for line in package_script.splitlines():
             if line.startswith("sudo pacman -Syu --needed "):
                 installed.update(shlex.split(line)[4:])
         assert {"pam-u2f", "libfido2"} <= installed
+        assert ("system76-scheduler" in installed) == scheduler
         if shell == "canopa":
             assert {"pam", "polkit", "gtk4", "clang", "cmake", "wayland-protocols",
                     "libdisplay-info", "libpipewire", "seatd", "pango", "cairo", "libdrm",
@@ -132,7 +140,8 @@ def check_profile(fixture, source, work):
     init_data.setdefault("gpuVendor", "intel")
     init_data.setdefault("powerManager", "tlp")
     override.write_text(json.dumps(init_data))
-    tomllib.loads(run(command + ["execute-template", "--init", "--file", str(source / ".chezmoi.toml.tmpl")]))
+    saved = tomllib.loads(run(command + ["execute-template", "--init", "--file", str(source / ".chezmoi.toml.tmpl")]))
+    assert saved["data"]["processScheduler"] == scheduler
     # Simulated prompts are keyed by their displayed question, not the data key.
     choices = {"Identity": data["env"], "Catppuccin flavour": data["themeFlavour"],
                "Catppuccin accent": data["themeColor"]}
@@ -154,6 +163,7 @@ def check_profile(fixture, source, work):
     if arch:
         assert fresh["desktopShell"] == shell
         assert fresh["hasBattery"] == data.get("hasBattery", True)
+        assert fresh["processScheduler"] is False
     else:
         assert not {"desktopShell", "hasBattery", "cpuVendor", "gpuVendor", "powerManager"} & fresh.keys()
     assert fresh["env"] == data["env"] and fresh["email"] == "test@example.test"

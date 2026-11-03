@@ -118,6 +118,46 @@ class MachineSetup(unittest.TestCase):
                                   if call.args[0] == [REPO / "scripts/install-canopa"]]
                 self.assertEqual(bool(build_commands), builds)
 
+    def test_scheduler_helper_build_follows_apply_only_when_selected(self):
+        self.config.write_text("[data]\n")
+        self.args.apply = True
+        for enabled in (False, True):
+            for skip in (False, True):
+                self.args.skip_desktop_build = skip
+                data = subprocess.CompletedProcess([], 0, stdout=json.dumps({
+                    "desktopShell": "waybar", "processScheduler": enabled}))
+                with self.subTest(enabled=enabled, skip=skip), \
+                        patch.object(self.setup.shutil, "which", return_value="/usr/bin/chezmoi"), \
+                        patch.object(self.setup, "run", return_value=data) as commands, \
+                        redirect_stdout(io.StringIO()):
+                    self.setup.configure(self.args, "arch")
+                builds = [call.args[0] for call in commands.call_args_list
+                          if call.args[0] == [REPO / "scripts/install-system76-scheduler-niri"]]
+                self.assertEqual(bool(builds), enabled and not skip)
+
+    def test_installed_scheduler_helper_does_not_need_network_or_compiler(self):
+        root = Path(self.temporary.name)
+        state = root / "state/system76-scheduler-niri"
+        state.mkdir(parents=True)
+        installer = REPO / "scripts/install-system76-scheduler-niri"
+        revision = next(line.split("=", 1)[1] for line in installer.read_text().splitlines()
+                        if line.startswith("revision="))
+        (state / "dotfiles-installed-revision").write_text(revision + "\n")
+        binary = root / ".local/bin/system76-scheduler-niri"
+        binary.parent.mkdir(parents=True)
+        binary.write_text("#!/bin/sh\nexit 0\n")
+        binary.chmod(0o755)
+        environment = {"HOME": str(root), "XDG_STATE_HOME": str(root / "state"), "PATH": "/nonexistent"}
+        result = subprocess.run(["/bin/bash", str(installer)], env=environment,
+                                text=True, capture_output=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("no rebuild needed", result.stdout)
+        binary.unlink()
+        incomplete = subprocess.run(["/bin/bash", str(installer)], env=environment,
+                                    text=True, capture_output=True)
+        self.assertNotEqual(incomplete.returncode, 0)
+        self.assertNotIn("no rebuild needed", incomplete.stdout)
+
     def test_ssh_uses_managed_socket_without_clearing_agent(self):
         with patch.dict(os.environ, {"XDG_RUNTIME_DIR": self.temporary.name,
                                     "SSH_AUTH_SOCK": "/some/forwarded-agent"}), \
@@ -197,6 +237,7 @@ class MachineSetup(unittest.TestCase):
                                     (["--preview"], ["configure"]),
                                     (["--customize"], ["configure", "--apply", "--customize"]),
                                     (["ssh"], ["ssh"]), (["auth"], ["auth"]),
+                                    (["scheduler", "--apply"], ["scheduler", "--apply"]),
                                     (["login", "--apply"], ["login", "--apply"])):
             with self.subTest(arguments=arguments):
                 result = subprocess.run([str(entry)] + arguments, cwd=root,
@@ -214,6 +255,28 @@ class MachineSetup(unittest.TestCase):
             if apply:
                 expected = ["sudo", REPO / "scripts/provision-desktop", "--apply", "--snapshots"]
             commands.assert_called_once_with(expected)
+
+    def test_scheduler_uses_saved_opt_in_and_separate_root_stage(self):
+        self.config.write_text("[data]\n")
+        for enabled in (False, True):
+            for apply in (False, True):
+                self.args.apply = apply
+                data = subprocess.CompletedProcess([], 0, stdout=json.dumps({"processScheduler": enabled}))
+                with self.subTest(enabled=enabled, apply=apply), \
+                        patch.object(self.setup, "run", return_value=data) as commands:
+                    self.setup.configure_scheduler(self.args)
+                expected = [REPO / "scripts/provision-desktop", "--scheduler", "enable" if enabled else "disable"]
+                if apply:
+                    expected = ["sudo", *expected, "--apply"]
+                self.assertEqual(commands.call_args_list[1].args[0], expected)
+                self.assertEqual(len(commands.call_args_list), 3 if apply and not enabled else 2)
+
+    def test_scheduler_rejects_non_boolean_before_root_commands(self):
+        self.config.write_text("[data]\n")
+        data = subprocess.CompletedProcess([], 0, stdout='{"processScheduler":"false"}')
+        with patch.object(self.setup, "run", return_value=data) as commands, self.assertRaisesRegex(RuntimeError, "boolean"):
+            self.setup.configure_scheduler(self.args)
+        self.assertEqual(commands.call_count, 1)
 
 
 if __name__ == "__main__":

@@ -8,6 +8,13 @@ provisioning, not a tree to copy wholesale into `/etc`. Review each file against
 machine. The installation runbook describes the boot-related subset; networking,
 DNS, display manager, printer and font policies are independent choices.
 
+The optional process scheduler has its own opt-in setting and root stage:
+set `[data].processScheduler = true`, apply home configuration, then preview
+`./setup scheduler` and apply with `./setup scheduler --apply`. It backs up
+Arch's two packaged scheduler configuration files and enables
+`com.system76.Scheduler.service` for the next boot. It does not apply the other
+root examples. See [scheduler activation and rollback](../../docs/desktop.md#optional-process-scheduler).
+
 The desktop memory/boot/snapshot subset has an explicit installer:
 `./setup system --snapshots` previews it and `./setup system --apply --snapshots`
 installs it. Apply home dotfiles and log in again first; reboot after provisioning.

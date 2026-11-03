@@ -1,6 +1,9 @@
 {{- $m := includeTemplate "machine" . | fromJson }}
 **/__pycache__
 **/*.pyc
+{{ if not $m.scheduler }}
+.config/systemd/user/system76-scheduler-niri.service
+{{ end }}
 {{ if ne $m.shell "canopa" }}
 .config/canopa
 .config/systemd/user/canopa-*.service.d

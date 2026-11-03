@@ -89,6 +89,65 @@ TLP, portal selection and hardware power workarounds retain their existing
 policies. File-watch/open-file limits require an observed problem before changing
 them; the root stage does not change these limits.
 
+## Optional process scheduler
+
+System76 Scheduler is off by default. To opt in, set `processScheduler = true`
+under `[data]` in `chezmoi edit-config`, then run:
+
+```sh
+./setup                       # Install the package and build the Rust helper
+./setup scheduler             # Preview scheduler policy only
+./setup scheduler --apply     # Back up root configuration and enable the daemon
+```
+
+Reboot, then run `desktop-health` inside niri. This stage is independent of
+`./setup system`: it does not install memory, boot or snapshot policy. It performs
+a full Arch package upgrade and installs `/etc/system76-scheduler/config.kdl` and
+`/etc/system76-scheduler/process-scheduler/pop_os.kdl`, with replaced files backed
+up under `/var/backups/dotfiles-scheduler`. Review any additional local scheduler
+rules before enabling; they are still loaded. The root daemon applies to the
+whole machine, including other users. No helper runs as root.
+
+The policy adjusts process priorities only; legacy CFS latency tuning and
+execsnoop/BPF monitoring are disabled. TLP retains power management. Niri,
+Xwayland Satellite, the Canopa shell/providers/notifications and the Waybar
+fallback use nice -3. Focused applications use nice 0, background applications
+nice 4, language servers such as `rust-analyzer` and `clangd` nice 0, and named
+compilers/build tools nice 5. These use normal `SCHED_OTHER` scheduling and
+best-effort I/O; development tools never use `SCHED_IDLE` or idle I/O.
+Explicit wrapper choices (`nice`, `ionice`, `chrt`, `gamemoderun`, etc.) are exempt.
+
+The patched [Rust helper fork](https://github.com/kevinard/system76-scheduler-niri)
+handles the initial window snapshot, new/changed/closed windows and focus changes.
+Missing window information or PID clears the previous application's preference.
+It uses one blocking event loop; stream or D-Bus errors exit with failure so
+systemd can restart it. Its lifetime follows the Niri graphical session. If only
+the scheduler daemon restarts while focus stays unchanged, resend the selection
+with `systemctl --user restart system76-scheduler-niri.service`.
+`scripts/install-system76-scheduler-niri` builds commit
+`f2fa09c8ae9fd8d8851015699d5cd44957c2b167` with Cargo.lock and the configured
+Rust toolchain, then installs the binary atomically in `~/.local/bin`. Repeated
+setup skips an already installed revision. An optional local-checkout argument
+avoids downloading the fork, while still building that same pinned commit.
+It replaces the earlier Python helper at that path. `--skip-desktop-build` leaves
+the helper build for an explicit installer run. The IPC API is pinned to Niri
+26.04; review that dependency and run the fork's tests when updating Niri.
+
+Inspect `journalctl --user -u system76-scheduler-niri.service -b` and
+`journalctl -u com.system76.Scheduler.service -b`. While switching between a browser
+and editor during the same parallel build, check `ps -eo pid,ni,cls,comm` and
+`ionice -p PID` for representative processes. Compare input/animation smoothness,
+editor assistance, audio and build duration with the scheduler disabled. Terminal
+multiplexers, shared browser processes and containers can have process trees that
+do not map cleanly to a single focused window; verify the workloads you use.
+
+To opt out, set `processScheduler = false`, run `./setup`, then
+`./setup scheduler` and `./setup scheduler --apply`. The latter stops/disables
+the system daemon and stops the user helper; packages and configuration files are
+kept. Reboot to reset inherited process priorities and the kernel autogroup
+setting. A home apply alone removes the managed session enablement link; it does
+not stop a running helper or disable root policy.
+
 ## Snapshots and UKI recovery
 
 The snapshot option requires Btrfs root, a separately mounted Btrfs `/.snapshots`

@@ -30,8 +30,8 @@ emoji and calculator tools retain their existing shortcuts.
 The packaged target starts its companions after compositor readiness. A compositor
 wrapper reads the managed `.profile` and imports the desktop environment into
 D-Bus/systemd, including helper paths and the managed SSH agent socket. A dotfiles
-drop-in adds clipboard watchers and battery alerts when applicable. Desktop
-daemons use `session.slice`; Canopa launches applications through
+drop-in adds clipboard watchers, battery alerts when applicable, and the optional
+scheduler. Desktop daemons use `session.slice`; Canopa launches applications through
 Niri into application scopes. Native polkit and pinentry windows float and are
 excluded from captures. Exactly one shell, notification daemon, polkit agent and
 idle controller should run in a session.

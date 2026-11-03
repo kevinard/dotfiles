@@ -38,6 +38,7 @@ asks every question on first install, or opens your saved configuration afterwar
 - [Recovery and maintenance](docs/maintenance.md)
 - [Full Canopa desktop and migration](docs/canopa.md)
 - [Desktop controls, memory policy and snapshots](docs/desktop.md)
+- [Opt-in process priorities for niri](docs/desktop.md#optional-process-scheduler)
 
 `./setup --help` lists the commands. [Quick setup notes](docs/setup.md) cover the
 first desktop login; [detailed reference](docs/reference/setup.md) is optional.

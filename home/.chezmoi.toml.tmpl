@@ -36,6 +36,8 @@ hasBattery = {{ $battery }}
 cpuVendor = {{ $cpu | quote }}
 gpuVendor = {{ $gpu | quote }}
 powerManager = {{ $power | quote }}
+processScheduler = {{ if hasKey . "processScheduler" }}{{ .processScheduler }}{{ else }}false{{ end }}
+# Opt in with true; ./setup scheduler previews the separate system policy.
 {{ end -}}
 projectPaths = {{ $projects | toJson }}
 # Edit projectPaths here to add other project roots (paths may contain spaces).

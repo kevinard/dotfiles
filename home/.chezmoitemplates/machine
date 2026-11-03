@@ -5,6 +5,7 @@
 {{- $cpu := "none" -}}
 {{- $gpu := "none" -}}
 {{- $power := "none" -}}
+{{- $scheduler := false -}}
 {{- if eq .chezmoi.osRelease.id "arch" -}}
 {{- $desktop = "niri" -}}
 {{- $shell = get . "desktopShell" | default "canopa" -}}
@@ -13,10 +14,12 @@
 {{- $cpu = get . "cpuVendor" | default "none" -}}
 {{- $gpu = get . "gpuVendor" | default (get . "graphicsStack" | default "none") -}}
 {{- $power = get . "powerManager" | default (ternary "tlp" "none" $battery) -}}
+{{- if hasKey . "processScheduler" }}{{ $scheduler = .processScheduler }}{{ end -}}
 {{- if not (has $shell (list "canopa" "waybar")) }}{{ fail "desktopShell must be canopa or waybar on Arch" }}{{ end -}}
 {{- if not (kindIs "bool" $battery) }}{{ fail "hasBattery must be a boolean" }}{{ end -}}
+{{- if not (kindIs "bool" $scheduler) }}{{ fail "processScheduler must be a boolean" }}{{ end -}}
 {{- if not (has $cpu (list "intel" "amd" "none")) }}{{ fail "cpuVendor must be intel, amd or none" }}{{ end -}}
 {{- if not (has $gpu (list "intel" "amd" "nvidia" "none")) }}{{ fail "gpuVendor must be intel, amd, nvidia or none" }}{{ end -}}
 {{- if not (has $power (list "native" "tlp" "none")) }}{{ fail "powerManager must be native, tlp or none" }}{{ end -}}
 {{- end -}}
-{{- dict "desktop" $desktop "shell" $shell "battery" $battery "cpu" $cpu "gpu" $gpu "power" $power | toJson -}}
+{{- dict "desktop" $desktop "shell" $shell "battery" $battery "cpu" $cpu "gpu" $gpu "power" $power "scheduler" $scheduler | toJson -}}

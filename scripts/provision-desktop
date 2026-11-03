@@ -22,6 +22,11 @@ SYSTEM_FILES = [
     "etc/systemd/user/app.slice.d/90-desktop-oomd.conf",
     "etc/systemd/system/systemd-networkd-wait-online.service.d/wait-for-only-one-interface.conf",
 ]
+SCHEDULER_FILES = [
+    "etc/system76-scheduler/config.kdl",
+    "etc/system76-scheduler/process-scheduler/pop_os.kdl",
+]
+SCHEDULER_UNIT = "com.system76.Scheduler.service"
 
 
 def register_root(contents):
@@ -96,11 +101,51 @@ def install_contents(contents, destination, mode, backup_root):
         staging.unlink(missing_ok=True)
 
 
+def provision_scheduler(mode, apply):
+    """Separate opt-in stage: never install memory, boot or snapshot policy."""
+    files = [(SOURCE / item, Path("/") / item, 0o644) for item in SCHEDULER_FILES]
+    if mode == "enable":
+        print("Packages: system76-scheduler (full Arch upgrade)")
+        for source, destination, _ in files:
+            print(f"{source.relative_to(REPO)} -> {destination}")
+        print(f"Enable {SCHEDULER_UNIT} for the next boot; no live priority changes.")
+    else:
+        print(f"Disable and stop {SCHEDULER_UNIT}; keep its package and configuration.")
+        print("Reboot to reset process priorities and restore the kernel autogroup default.")
+    if not apply:
+        print("Preview only. Use ./setup scheduler --apply to apply this policy.")
+        return
+    if os.geteuid() != 0:
+        raise RuntimeError("--apply requires sudo")
+    if not Path("/etc/arch-release").exists():
+        raise RuntimeError("Only Arch is supported")
+    if mode == "disable":
+        # A never-enabled opt-out is harmless, including on a fresh installation.
+        if Path("/usr/lib/systemd/system/" + SCHEDULER_UNIT).exists():
+            subprocess.run(["systemctl", "disable", "--now", SCHEDULER_UNIT], check=True)
+        return
+    for _, destination, _ in files:
+        if destination.is_symlink():
+            raise RuntimeError(f"Refusing to replace a symlink: {destination}")
+    subprocess.run(["pacman", "-Syu", "--needed", "system76-scheduler"], check=True)
+    backup = Path("/var/backups/dotfiles-scheduler") / datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%f")
+    for source, destination, mode in files:
+        install(source, destination, mode, backup)
+    subprocess.run(["systemctl", "enable", SCHEDULER_UNIT], check=True)
+    print(f"Scheduler policy installed; replaced files are backed up under {backup}.")
+    print("Reboot to activate it, then run desktop-health inside niri.")
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--apply", action="store_true", help="install files/packages and enable units for the next boot")
     parser.add_argument("--snapshots", action="store_true", help="also configure pre-transaction root snapshots with paired UKIs")
+    parser.add_argument("--scheduler", choices=("enable", "disable"), help="manage only the optional process scheduler")
     args = parser.parse_args(argv)
+    if args.scheduler:
+        if args.snapshots:
+            parser.error("--scheduler is a separate stage from --snapshots")
+        return provision_scheduler(args.scheduler, args.apply)
     packages = ["zram-generator"] + (["snapper", "btrfs-progs"] if args.snapshots else [])
     files = [(SOURCE / item, Path("/") / item, 0o644) for item in SYSTEM_FILES]
     snapshot_hook = None

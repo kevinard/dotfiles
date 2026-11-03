@@ -18,6 +18,7 @@ hasBattery = true
 cpuVendor = "intel" # choose the actual CPU; use "none" for a VM/unknown vendor
 gpuVendor = "intel" # choose the actual GPU; supports amd/nvidia/none too
 powerManager = "tlp"
+processScheduler = false # Optional; see desktop.md for activation and rollback
 projectPaths = ["/home/kevinard/projects"]
 ```
 
@@ -42,10 +43,16 @@ source builds and TTY upgrade steps. Native Settings owns display/input and idle
 preferences; Kanshi, Swayidle, Thunar's daemon and Hyprpolkitagent remain in the
 Waybar fallback session.
 
+When `processScheduler = true`, setup also builds the recorded Rust helper from
+the [scheduler fork](https://github.com/kevinard/system76-scheduler-niri), using
+`scripts/install-system76-scheduler-niri`. Its installer follows the same temporary
+checkout and revision-marker pattern, and never changes your development checkout.
+See [scheduler activation and rollback](desktop.md#optional-process-scheduler).
+
 Select **Canopa** in an existing login manager, or run `canopa-session` from a
 TTY. The packaged Canopa target starts its companions after compositor readiness.
-The dotfiles add clipboard watchers and optional battery alerts. The ordinary
-Niri/Waybar session retains its `niri.service` integration.
+The dotfiles add clipboard watchers, optional battery alerts and the opted-in
+scheduler. The ordinary Niri/Waybar session retains its `niri.service` integration.
 The personal start page follows the graphical session and serves loopback only.
 
 Arch's reconciliation script runs after every apply, reloads unit definitions, and
