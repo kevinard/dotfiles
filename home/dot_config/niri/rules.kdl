@@ -40,6 +40,13 @@ window-rule {
     // block-out-from "screencast"
 }
 
+// Native authorization dialogs remain visible and float above application windows.
+window-rule {
+    match app-id=r#"^org\.canopa\.(Polkit|Pinentry)$"#
+    open-floating true
+    block-out-from "screen-capture"
+}
+
 // Block out notifications from screencasts.
 layer-rule {
     match namespace="^(notifications|canopa-notify-banners)$"

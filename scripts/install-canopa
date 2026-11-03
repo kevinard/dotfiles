@@ -1,48 +1,210 @@
-#!/bin/bash
-set -euo pipefail
-# Independent application builds are explicit, never hidden inside chezmoi apply.
-# A temporary checkout leaves the development repository and running shell alone.
-revision=c2d1d369e25a20975672350dc8d1012d74ef9fd4
-if [[ ${1:-} == --help ]]; then
-    echo 'Build and install the recorded Canopa revision. Optional argument: local checkout to clone.'
-    exit 0
-fi
-config_file="${XDG_CONFIG_HOME:-$HOME/.config}/canopa/config.kdl"
-state_dir="${XDG_STATE_HOME:-$HOME/.local/state}/canopa"
-binaries=(canopa canopa-shell canopa-notify canopa-wifi-provider canopa-audio-provider canopa-media-provider)
-if [[ ! -f "$config_file" ]]; then
-    echo 'Apply the Canopa configuration before running this installer.' >&2
-    exit 1
-fi
-# Repeated setup should not clone/build an already installed revision. Supplying
-# a local checkout still deliberately rebuilds it, as before.
-if [[ $# -eq 0 && -f "$state_dir/dotfiles-installed-revision" &&
-      $(< "$state_dir/dotfiles-installed-revision") == "$revision" ]]; then
-    ready=1
-    for binary in "${binaries[@]}"; do
-        [[ -x "$HOME/.local/bin/$binary" ]] || ready=0
-    done
-    if [[ $ready -eq 1 ]]; then
-        "$HOME/.local/bin/canopa" config check --file "$config_file"
-        echo 'Canopa is already at the recorded revision; no rebuild needed.'
-        exit 0
-    fi
-fi
-work_dir=$(mktemp -d)
-trap 'rm -rf -- "$work_dir"' EXIT
-git clone --no-checkout "${1:-https://github.com/kevinard/canopa.git}" "$work_dir/source"
-git -C "$work_dir/source" checkout --detach "$revision"
-cd "$work_dir/source"
-CARGO_TARGET_DIR="$work_dir/target" cargo build --release --workspace --bins --locked
-"$work_dir/target/release/canopa" config check --file "$config_file"
-install -d -m 0755 "$HOME/.local/bin"
-for binary in "${binaries[@]}"; do
-    test -x "$work_dir/target/release/$binary"
-done
-for binary in "${binaries[@]}"; do
-    install -m 0755 "$work_dir/target/release/$binary" "$HOME/.local/bin/$binary.new"
-    mv -f "$HOME/.local/bin/$binary.new" "$HOME/.local/bin/$binary"
-done
-mkdir -p "$state_dir"
-printf '%s\n' "$revision" > "$state_dir/dotfiles-installed-revision"
-echo 'Canopa installed. Log out and back in to use the new binaries.'
+#!/usr/bin/env python3
+"""Build the pinned Canopa desktop as Arch packages, then install through pacman."""
+import argparse
+import hashlib
+import os
+from pathlib import Path
+import platform
+import shlex
+import shutil
+import subprocess
+import tempfile
+import tomllib
+
+REVISION = "887ec8ae8e19087e965e5c18b49016398edec8fe"
+STASIS_REVISION = "d84e75e22cc00329712fb1caa83445d2f12ce921"
+PROGRAMS = ("canopa", "canopa-shell", "canopa-notify", "canopa-files", "canopa-settings",
+            "canopa-wifi-provider", "canopa-audio-provider", "canopa-media-provider",
+            "canopa-wallpaper", "canopa-lock", "canopa-idle", "canopa-greeter",
+            "canopa-polkit", "canopa-pinentry", "xdg-desktop-portal-canopa", "canopa-session")
+PACKAGES = ("canopa", "canopa-compositor", "canopa-login", "stasis")
+
+
+def run(argv, **kwargs):
+    print("+ " + shlex.join(map(str, argv)), flush=True)
+    return subprocess.run(list(map(str, argv)), check=True, **kwargs)
+
+
+def capture(argv, **kwargs):
+    return run(argv, stdout=subprocess.PIPE, text=True, **kwargs).stdout.strip()
+
+
+def package_versions():
+    try:
+        return capture(["pacman", "-Q", *PACKAGES])
+    except subprocess.CalledProcessError:
+        return ""
+
+
+def installed(state, config, system=Path("/usr")):
+    marker = state / "dotfiles-installed-packages"
+    if not marker.is_file() or not all(os.access(system / "bin" / name, os.X_OK) for name in PROGRAMS):
+        return False
+    if not os.access(system / "lib/canopa/niri", os.X_OK) or not os.access(system / "bin/stasis", os.X_OK):
+        return False
+    versions = package_versions()
+    expected = REVISION + "\n" + STASIS_REVISION + "\n" + versions + "\n"
+    if not versions or marker.read_text() != expected:
+        return False
+    run([system / "bin/canopa", "config", "check", "--file", config])
+    return True
+
+
+def clone(source, revision, destination):
+    run(["git", "clone", "--no-checkout", "--", source, destination])
+    run(["git", "-C", destination, "checkout", "--detach", revision])
+
+
+def build_canopa(source, work, cache, environment, config):
+    checkout = work / "canopa"
+    clone(source, REVISION, checkout)
+    output = Path(tempfile.mkdtemp(prefix="canopa-packages-", dir=cache)) / "build"
+    run(["python3", checkout / "scripts/package-arch.py", "--output", output])
+    # Development commits share pkgver. A monotonic pkgrel distinguishes revisions.
+    epoch = capture(["git", "-C", checkout, "show", "-s", "--format=%ct", "HEAD"])
+    recipe = output / "PKGBUILD"
+    recipe.write_text(recipe.read_text().replace("pkgrel=1\n", f"pkgrel=1.{epoch}\n", 1))
+    (output / ".SRCINFO").write_text(capture(["makepkg", "--printsrcinfo"], cwd=output) + "\n")
+    toolchain = tomllib.loads((checkout / "rust-toolchain.toml").read_text())["toolchain"]["channel"]
+    env = environment | {"RUSTUP_TOOLCHAIN": toolchain,
+                         "CANOPA_PACKAGE_TARGET_DIR": str(cache / "target" / REVISION),
+                         "CANOPA_NIRI_WORK_DIR": str(cache / "niri-sources" / REVISION)}
+    run(["python3", checkout / "scripts/build-guard.py", "--path", output, "--", "makepkg"],
+        cwd=output, env=env)
+    run([cache / "target" / REVISION / "release/canopa", "config", "check", "--file", config])
+    return package_files(output), toolchain
+
+
+def package_files(directory):
+    files = [Path(line) for line in capture(["makepkg", "--packagelist"], cwd=directory).splitlines()]
+    if not files or not all(path.is_file() for path in files):
+        raise RuntimeError(f"missing package outputs in {directory}")
+    return files
+
+
+def build_stasis(work, cache, environment, toolchain, source):
+    checkout = work / "stasis"
+    clone(source, STASIS_REVISION, checkout)
+    output = Path(tempfile.mkdtemp(prefix="stasis-packages-", dir=cache))
+    archive = output / "stasis-1.7.0.tar"
+    run(["git", "-C", checkout, "archive", "--format=tar", "--prefix=stasis-1.7.0/",
+         "--output", archive, STASIS_REVISION])
+    digest = hashlib.sha256(archive.read_bytes()).hexdigest()
+    (output / "PKGBUILD").write_text(f'''pkgname=stasis
+pkgver=1.7.0
+pkgrel=1
+pkgdesc='Wayland idle manager, pinned to Canopa-tested revision {STASIS_REVISION}'
+arch=(x86_64)
+url='https://github.com/saltnpepper97/stasis'
+license=('GPL-3.0-only')
+depends=(gcc-libs glibc)
+makedepends=(rust)
+options=(!lto)
+source=('stasis-1.7.0.tar')
+sha256sums=('{digest}')
+build() {{
+    cd "$srcdir/stasis-1.7.0"
+    cargo build --release --locked
+}}
+package() {{
+    install -Dm755 "$CARGO_TARGET_DIR/release/stasis" "$pkgdir/usr/bin/stasis"
+    install -Dm644 "$srcdir/stasis-1.7.0/LICENSE" "$pkgdir/usr/share/licenses/stasis/LICENSE"
+}}
+''')
+    env = environment | {"RUSTUP_TOOLCHAIN": toolchain,
+                         "CARGO_TARGET_DIR": str(cache / "stasis-target" / STASIS_REVISION)}
+    run(["makepkg"], cwd=output, env=env)
+    return package_files(output)
+
+
+def retire_companions(state, local_bin):
+    conflicts = [local_bin / name for name in PROGRAMS if (local_bin / name).exists()
+                 or (local_bin / name).is_symlink()]
+    if conflicts:
+        backup = Path(tempfile.mkdtemp(prefix="companions-", dir=state))
+        for path in conflicts:
+            path.rename(backup / path.name)
+        print(f"Previous local binaries saved in {backup}")
+
+
+def retire_unit_overrides(state, unit_dir):
+    names = [f"canopa-{name}.service" for name in
+             ("shell", "notify", "wallpaper", "lock", "idle", "polkit", "compositor")]
+    names += ["canopa-session.target", "canopa-shutdown.target", "xdg-desktop-portal-canopa.service"]
+    overrides = [unit_dir / name for name in names if (unit_dir / name).exists()
+                 or (unit_dir / name).is_symlink()]
+    if overrides:
+        backup = Path(tempfile.mkdtemp(prefix="units-", dir=state))
+        for path in overrides:
+            path.rename(backup / path.name)
+        print(f"Previous local unit overrides saved in {backup}")
+
+
+def configure_pinentry(state, gnupg, program):
+    gnupg.mkdir(mode=0o700, parents=True, exist_ok=True)
+    path = gnupg / "gpg-agent.conf"
+    if path.is_symlink() or (path.exists() and not path.is_file()):
+        raise RuntimeError(f"review non-regular GnuPG configuration: {path}")
+    original = path.read_text() if path.exists() else ""
+    lines = [line for line in original.splitlines()
+             if line.split(None, 1)[:1] != ["pinentry-program"]]
+    lines.append("pinentry-program " + str(program))
+    updated = "\n".join(lines) + "\n"
+    if updated == original:
+        return
+    if path.exists():
+        backup = Path(tempfile.mkdtemp(prefix="gnupg-", dir=state)) / path.name
+        shutil.copy2(path, backup)
+    with tempfile.NamedTemporaryFile(mode="w", dir=gnupg, delete=False) as temporary:
+        temporary.write(updated)
+    os.replace(temporary.name, path)
+    print("Pinentry configured; run gpgconf --reload gpg-agent in your next graphical session.")
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("source", nargs="?", default="https://github.com/kevinard/canopa.git",
+                        help="optional local checkout; only the recorded commit is built")
+    parser.add_argument("--stasis-source", default="https://github.com/saltnpepper97/stasis.git")
+    parser.add_argument("--build-only", action="store_true", help="retain packages without installing or migrating")
+    args = parser.parse_args(argv)
+    if os.geteuid() == 0 or platform.freedesktop_os_release()["ID"] != "arch" or platform.machine() != "x86_64":
+        raise RuntimeError("build as your regular user on Arch Linux x86-64")
+    config = Path(os.environ.get("XDG_CONFIG_HOME", Path.home() / ".config")) / "canopa/config.kdl"
+    if not config.is_file():
+        raise RuntimeError("apply the Canopa configuration before running this installer")
+    state = Path(os.environ.get("XDG_STATE_HOME", Path.home() / ".local/state")) / "canopa"
+    state.mkdir(mode=0o700, parents=True, exist_ok=True)
+    if not args.build_only and args.source == parser.get_default("source") and installed(state, config):
+        print("Canopa packages are at the recorded revisions; no rebuild needed.")
+    else:
+        cache = Path(os.environ.get("XDG_CACHE_HOME", Path.home() / ".cache")) / "dotfiles/canopa"
+        cache.mkdir(parents=True, exist_ok=True)
+        environment = dict(os.environ, CARGO_BUILD_JOBS=os.environ.get("CARGO_BUILD_JOBS", "1"))
+        with tempfile.TemporaryDirectory(prefix="canopa-source-") as temporary:
+            work = Path(temporary)
+            packages, toolchain = build_canopa(args.source, work, cache, environment, config)
+            packages += build_stasis(work, cache, environment, toolchain, args.stasis_source)
+            print("Packages retained:\n" + "\n".join(map(str, packages)))
+            if args.build_only:
+                return
+            active = subprocess.run(["systemctl", "--user", "is-active", "--quiet", "canopa-shell.service"],
+                                    check=False).returncode == 0
+            if active:
+                raise RuntimeError("packages are ready; log out and re-run from a TTY to replace the running Canopa desktop")
+            run(["sudo", "pacman", "-U", "--needed", *packages])
+        (state / "dotfiles-installed-packages").write_text(
+            REVISION + "\n" + STASIS_REVISION + "\n" + package_versions() + "\n")
+    retire_companions(state, Path.home() / ".local/bin")
+    retire_unit_overrides(state, config.parent.parent / "systemd/user")
+    configure_pinentry(state, Path(os.environ.get("GNUPGHOME", Path.home() / ".gnupg")),
+                       Path.home() / ".local/bin/desktop-pinentry")
+    run(["systemctl", "--user", "daemon-reload"])
+    print("Log out and select Canopa at login. ./setup login previews the optional Canopa login screen.")
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except (OSError, RuntimeError, ValueError, subprocess.CalledProcessError) as error:
+        raise SystemExit(f"Canopa installation stopped: {error}")

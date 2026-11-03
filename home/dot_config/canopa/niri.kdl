@@ -1,0 +1,10 @@
+// Keep the established desktop while Settings owns separate input/display files.
+include "niri-input.kdl"
+include "niri-displays.kdl"
+include "niri-custom.kdl"
+include "../niri/layout.kdl"
+include "../niri/animations.kdl"
+include "../niri/misc.kdl"
+include "../niri/binds.kdl"
+include "../niri/rules.kdl"
+include "../niri/execs.kdl"

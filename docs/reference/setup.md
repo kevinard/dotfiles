@@ -96,13 +96,13 @@ where stronger separation is required. Never copy a machine's complete chezmoi
 config onto another machine without reviewing hardware choices.
 
 `configure` initializes missing configuration, displays a diff, and with `--apply`
-installs packages, applies files and builds the pinned Canopa revision if selected.
+installs packages, applies files and builds/installs the pinned Canopa package set if selected.
 It stops at the first failed stage. Without `--apply`, it initializes choices and
 shows the diff only. Existing chezmoi configuration is kept; edit it with
 `chezmoi edit-config` to change choices. `--reconfigure` explicitly regenerates the
 template using saved data; it can remove custom config sections, so back those up.
 `--skip-desktop-build` leaves Canopa installation for `scripts/install-canopa`.
-The build needs network access and rustup's pinned toolchain; do not start that
+The build needs network access and a configured Rust toolchain; do not start that
 desktop until all companion binaries are installed.
 
 Use the same command again to resume after a failure. There is no persistent
@@ -117,7 +117,9 @@ Set Zsh as your login shell if desired:
 chsh -s /usr/bin/zsh
 ```
 
-First test `niri-session` from a TTY after logging in again. For an optional SDDM
+First test `canopa-session` from a TTY after logging in again (`niri-session` for Waybar).
+For Canopa Greeter, use `./setup login` followed by `./setup login --apply` and reboot;
+see [the Canopa guide](../canopa.md). For an optional SDDM
 graphical login, the simplest initial greeter uses SDDM's default X11 backend:
 
 ```sh

@@ -1,0 +1,8 @@
+#!/bin/sh
+# Login managers may launch the packaged session without reading .profile.
+set -eu
+. "$HOME/.profile"
+dbus-update-activation-environment --systemd PATH XDG_CONFIG_HOME XDG_DATA_HOME \
+    XDG_CACHE_HOME XDG_STATE_HOME ZDOTDIR CARGO_HOME GOPATH SCALINGO_HOME \
+    SSH_AUTH_SOCK EDITOR VISUAL PAGER TERMINAL BROWSER READER LANG
+exec "$@"

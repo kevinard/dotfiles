@@ -190,6 +190,31 @@ packages:
     - libxkbcommon
     - dbus
     - at-spi2-core
+    # Full desktop, compositor and optional login package build/runtime closure.
+    - clang
+    - cmake
+    - wayland-protocols
+    - pam
+    - polkit
+    - gtk4
+    - gst-plugins-base-libs
+    - libinput
+    - libdisplay-info
+    - libpipewire
+    - seatd
+    - pango
+    - cairo
+    - libdrm
+    - mesa
+    - udisks2
+    - foot
+    - libqalculate
+    - xdg-desktop-portal
+    - greetd
+    - cage
+    - gnupg
+    - pinentry
+    - sound-theme-freedesktop
     personal:
     - telegram-desktop
     tlp:

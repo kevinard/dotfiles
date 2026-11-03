@@ -32,22 +32,21 @@ CPU/GPU groups. Optional Brother AUR drivers remain documented in the package da
 build them explicitly as an ordinary user after reviewing their PKGBUILDs. No AUR
 helper is installed merely to install official packages.
 
-For a fresh Canopa installation on Arch, apply the package/configuration phase,
-then run `scripts/install-canopa` from this checkout before logging into niri. It
-builds the recorded Canopa commit with Cargo.lock in a disposable checkout. A local
-checkout can be supplied as its argument; your development checkout is never changed.
-It installs all six companion binaries and records the revision, without restarting
-the desktop. An already installed revision is checked rather than rebuilt unless
-you supply a local checkout. Rustup must have the pinned toolchain specified by
-that project.
-Canopa's own `scripts/update.sh` remains an intentional development workflow; update
-the recorded revision in this repository after testing it.
+Canopa now uses its complete packaged desktop and compatible compositor, rather
+than six binaries in `~/.local/bin`. `./setup` builds pinned, checksummed Arch
+packages as the ordinary user, then installs through pacman. All applications,
+lockscreen PAM policy, session entry and portal registration are included. The
+optional login package does not select a display manager until
+`./setup login --apply`. See [Canopa installation and migration](canopa.md) for backups, local
+source builds and TTY upgrade steps. Native Settings owns display/input and idle
+preferences; Kanshi, Swayidle, Thunar's daemon and Hyprpolkitagent remain in the
+Waybar fallback session.
 
-On a fresh Arch installation, choose and explicitly enable a display manager
-(for example SDDM), or start `niri-session` from a login TTY. Niri uses the distribution's
-session integration. Cliphist, kanshi, swayidle, the chosen shell/notification owner
-and the polkit agent are wanted by `niri.service` and stop with `graphical-session.target`.
-The personal start page also follows that session and serves loopback only.
+Select **Canopa** in an existing login manager, or run `canopa-session` from a
+TTY. The packaged Canopa target starts its companions after compositor readiness.
+The dotfiles add clipboard watchers and optional battery alerts. The ordinary
+Niri/Waybar session retains its `niri.service` integration.
+The personal start page follows the graphical session and serves loopback only.
 
 Arch's reconciliation script runs after every apply, reloads unit definitions, and
 removes only known old enablement links. If a different target owns an extra link,
@@ -71,6 +70,7 @@ Optional Solo authentication is a separate enrollment and root-policy step; see
 credentials outside the repository. Test both tokens and root-password recovery
 before enabling the policy on a new machine.
 
-After Arch deployment, run `desktop-health`. Manually test lock after ten minutes,
+After Arch deployment, run `desktop-health`. Manually test the configured idle lock,
 suspend/resume, an inhibited presentation, dock unplug/replug and a portal screencast.
-Swayidle waits for `swaylock -f` before sleep; verify this on the actual laptop.
+Canopa waits for compositor lock readiness before sleep; the Waybar fallback
+uses Swayidle with `swaylock -f`. Verify both on the actual laptop.

@@ -12,8 +12,8 @@ From this checkout, as your normal user:
 ```
 
 It asks for home/work, email and name, then installs packages, applies dotfiles
-and builds Canopa on Arch. CPU, GPU and battery are detected; hybrid GPUs get an
-extra choice. Defaults: Canopa, mocha/lavender, TLP on laptops, no GPG signing.
+and builds/installs the full Canopa desktop and compatible compositor as Arch
+packages. CPU, GPU and battery are detected; hybrid GPUs get an extra choice. Defaults: Canopa, mocha/lavender, TLP on laptops, no GPG signing.
 
 Use `./setup --preview` to inspect changes first, or `./setup --customize` to choose
 everything on first install (it opens the config editor on an existing machine).
@@ -23,19 +23,19 @@ Change preferences later with `chezmoi edit-config`, then run `./setup` again.
 ## 2. Start a fresh session
 
 If you want Zsh as your login shell, run `chsh -s /usr/bin/zsh`. Log out and back in.
-On Arch, start `niri-session` from a TTY, or select niri in your existing greeter.
-Run `desktop-health` inside niri to check the desktop services.
+Select **Canopa** in your existing greeter, or run `canopa-session` from a TTY.
+Run `desktop-health` inside Canopa to check its services. Waybar users select the
+ordinary Niri session or run `niri-session` instead.
 
-For a fresh installation without a greeter, SDDM with its default X11 greeter is
-one option; the user session still runs on Wayland:
+For the Canopa login screen:
 
 ```sh
-sudo pacman -Syu --needed xorg-server sddm
-sudo systemctl enable sddm.service
+./setup login             # Preview greetd configuration
+./setup login --apply     # Back up the old configuration; select greetd for next boot
 ```
 
-Keep only one display manager. Do not install the optional SDDM `wayland.conf`
-reference when using that default greeter path.
+Reboot afterward. The current desktop and display manager keep running until then.
+See [the full Canopa guide](canopa.md) for migration, upgrades and rollback.
 
 ## 3. Connect your accounts
 

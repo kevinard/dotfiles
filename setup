@@ -5,11 +5,12 @@ repo_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 case "${1:-}" in
     -h|--help)
         cat <<'HELP'
-Usage: ./setup [--preview | --customize | system | ssh | auth | check]
+Usage: ./setup [--preview | --customize | login | system | ssh | auth | check]
 
   ./setup              Install/update packages, dotfiles and the selected desktop.
   ./setup --preview    Show changes without applying them.
   ./setup --customize  Choose initial settings, or edit your saved configuration.
+  ./setup login        Preview Canopa Greeter; --apply selects it for next boot.
   ./setup system       Preview memory/boot policy; --apply installs it through sudo.
   ./setup system --snapshots  Also include paired Btrfs/UKI recovery.
   ./setup ssh          Load the connected Solo's SSH keys.
@@ -24,7 +25,7 @@ HELP
         shift
         set -- configure "$@"
         ;;
-    ssh|auth|check|plan|configure|system) ;;
+    ssh|auth|check|plan|configure|system|login) ;;
     *) set -- configure --apply "$@" ;;
 esac
 exec "$repo_dir/scripts/setup-machine" "$@"

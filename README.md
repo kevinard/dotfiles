@@ -14,7 +14,9 @@ cd "${XDG_DATA_HOME:-$HOME/.local/share}/chezmoi"
 
 Answer home/work, email and name. Hardware is detected; the defaults are Canopa,
 mocha/lavender, and no GPG signing. A hybrid GPU may need one extra choice.
-Existing settings are kept. Log out and back in afterward.
+Existing settings are kept. Log out and select **Canopa** afterward.
+`./setup login` previews its optional login screen; `./setup login --apply`
+selects it for the next boot.
 
 ## Everyday use
 
@@ -34,6 +36,7 @@ asks every question on first install, or opens your saved configuration afterwar
 - [Solo keys for login and sudo](docs/hardware-auth.md)
 - [Existing-install migration](docs/bootstrap.md)
 - [Recovery and maintenance](docs/maintenance.md)
+- [Full Canopa desktop and migration](docs/canopa.md)
 - [Desktop controls, memory policy and snapshots](docs/desktop.md)
 
 `./setup --help` lists the commands. [Quick setup notes](docs/setup.md) cover the

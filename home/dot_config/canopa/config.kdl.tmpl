@@ -1,137 +1,131 @@
-// Shared configuration for Canopa shell and notifications.
+{{- $m := includeTemplate "machine" . | fromJson -}}
+{{- $p := index .palettes .themeFlavour -}}
+// Bundled Canopa spine, quick settings, applications and session confirmations.
+// After editing this file in Settings, use chezmoi merge to retain the changes.
 schema-version 1
-
 appearance {
     color-scheme "{{ if eq .themeFlavour "latte" }}light{{ else }}dark{{ end }}"
+    accent "{{ index $p .themeColor }}"
+    typography { family "Inter" "Noto Sans" "sans-serif"; }
 }
-
 shell {
     bar "main" {
-      edge "left"
-      collapsed-width 42
-      modules {
-        start "launcher" "workspaces"
-        center "focused-window"
-        end "tray" "notifications" "network" "volume" "battery" "clock"
-      }
-      panel {
-        presentation "drawer"
-        // drawer-mode "push-bar"
-        width 480
-        start "launcher"
-        center "focused-window"
-        end "network" "volume" "battery" "clock"
-      }
-      actions {
-        click { toggle-panel }
-        Super+Space { toggle-menu "main" }
-        Ctrl+E { toggle-menu "apps" }
-      }
+        edge "left"
+        thickness 64
+        margin 12
+        ui { background "spine"; radius 28; border width=0; padding 12 10; gap 8; }
+        actions { click { open-panel; }; }
+        modules {
+            start "launcher" "overview"
+            center "workspaces"
+            end "tray" "notifications" "system" "clock"
+        }
+        panel {
+            title "Quick settings"
+            presentation "drawer"
+            drawer-mode "overlay"
+            width 392
+            ui { margin 12 0; radius 24; border width=0; }
+            start "network" "volume"
+            center "notifications" "media" "idle-inhibitor"
+            end{{ if $m.battery }} "battery"{{ end }} "settings" "wallpaper" "files" "session-lock" "session-logout" "session-reboot" "session-poweroff"
+        }
     }
-
-
     modules {
-
         module "launcher" {
             type "button"
-            icon "󰀻"
-            label "Apps"
-            horizontal-format "{icon} {label}"
-            tooltip "Search installed applications"
-            actions {
-                click { toggle-menu "apps" }
-                right-click { toggle-menu "main" }
-            }
+            icon "canopa:mark"
+            label "Applications"
+            ui { padding 12 0; foreground "accent"; }
+            actions { click { toggle-menu "Applications"; }; }
         }
-
-        // Clicking opens the built-in Wi-Fi provider.
-        module "network" {
-            icons {
-                icon "" state="full"
-                icon "" state="limited"
-                icon "⚠" state="none"
-            }
+        module "overview" {
+            type "button"
+            icon "canopa:overview"
+            label "Overview"
+            actions { click { command { argv "niri" "msg" "action" "toggle-overview"; }; }; }
         }
-
-        module "volume" {
-            format {
-                segment "{icon}" {
-                    style color="accent"
-                    style state="quiet" color="warning"
-                    style state="muted" color="warning"
-                }
-                // segment "{value}%"
-            }
-            states {
-                state "quiet" threshold=33
-            }
-            icons {
-                icon "" at=61
-                icon "" at=31
-                icon "" at=0
-                icon "󰖁" state="muted"
-            }
-            actions {
-                click { open-panel }
-                right-click { launch "desktop-launch" "pavucontrol" }
-                // right-click { launch "qpwgraph" }
-            }
+        module "system" {
+            type "button"
+            icon "canopa:controls"
+            label "Quick settings"
+            actions { click { toggle-bar-panel; }; }
         }
-
-        module "battery" {
-            icons {
-                icon "󰂎" at=0
-                icon "󰁺" at=9
-                icon "󰁻" at=19
-                icon "󰁼" at=29
-                icon "󰁽" at=39
-                icon "󰁾" at=49
-                icon "󰁿" at=59
-                icon "󰂀" at=69
-                icon "󰂁" at=79
-                icon "󰂂" at=89
-                icon "󰁹" at=99
-                icon "󱐋" state="charging"
-            }
+        module "settings" {
+            type "button"
+            icon "preferences-system"
+            label "Settings"
+            actions { click { launch "canopa-settings"; }; }
         }
-
-        // Click: calendar. Right-click: main menu.
-        module "clock" {
-            format "{time}"
-            actions {
-                right-click { toggle-menu "main" }
-            }
+        module "wallpaper" {
+            type "button"
+            icon "preferences-desktop-wallpaper"
+            label "Wallpaper"
+            actions { click { launch "canopa" "wallpaper" "pick"; }; }
         }
+        module "files" {
+            type "button"
+            icon "system-file-manager"
+            label "Files"
+            actions { click { launch "canopa-files"; }; }
+        }
+        module "session-lock" {
+            type "button"
+            icon "canopa:lock"
+            label "Lock"
+            actions { click { launch "desktop-lock"; }; }
+        }
+        module "session-logout" {
+            type "button"
+            icon "canopa:logout"
+            label "Log out"
+            actions { click { open-menu "Log out?"; }; }
+        }
+        module "session-reboot" {
+            type "button"
+            icon "canopa:reboot"
+            label "Reboot"
+            actions { click { open-menu "Reboot?"; }; }
+        }
+        module "session-poweroff" {
+            type "button"
+            icon "canopa:poweroff"
+            label "Power off"
+            actions { click { open-menu "Power off?"; }; }
+        }
+        module "idle-inhibitor" { backend "stasis"; }
+        module "clock" { format "{time}"; ui { padding 16 0; }; }
     }
-
     menus {
-        menu "main" show-icons=#true prompt="Menu" {
-            item "Terminal" {
-                launch "desktop-launch" "kitty"
-                icon "kitty"
-            }
-            item "Browser" {
-                launch "desktop-launch" "firefox"
-                icon "firefox"
-            }
-            item "Desktop controls" { launch "desktop-control" "menu"; }
-            item "Clipboard history" { launch "desktop-control" "clipboard"; }
-            item "Emoji and symbols" { launch "desktop-launch" "rofimoji"; }
-            item "Calculator" { launch "desktop-launch" "rofi" "-show" "calc" "-modi" "calc" "-no-show-match" "-no-sort"; }
-            item "Audio settings" { launch "desktop-launch" "pavucontrol"; }
-            item "Bluetooth" { launch "desktop-launch" "blueman-manager"; }
-            item "Displays" { launch "desktop-launch" "wdisplays"; }
-            item "Lock" { launch "desktop-lock"; }
-            item "Power" { launch "desktop-launch" "rofi" "-show" "powermenu"; }
+        menu "Applications" show-icons=#true prompt="Search applications" { source "installed-apps"; }
+        menu "Log out?" prompt="Unsaved work may be lost" {
+            item "Cancel" { open-bar-panel; }
+            item "Log out" { command { argv "niri" "msg" "action" "quit" "--skip-confirmation"; }; }
         }
-
-        menu "apps" show-icons=#true prompt="Applications" {
-            source "installed-apps"
+        menu "Reboot?" prompt="Unsaved work may be lost" {
+            item "Cancel" { open-bar-panel; }
+            item "Reboot" { command { argv "systemctl" "reboot"; }; }
+        }
+        menu "Power off?" prompt="Unsaved work may be lost" {
+            item "Cancel" { open-bar-panel; }
+            item "Power off" { command { argv "systemctl" "poweroff"; }; }
         }
     }
 }
-
 notifications {
     sound enabled=#true theme="freedesktop" default="message-new-instant"
-    icons theme="hicolor" scale=1
+    icons theme="Papirus" scale=1
 }
+wallpaper {
+    color "{{ $p.base }}"
+    fit "fill"
+}
+lockscreen {
+    use-wallpaper #true
+    dim 65
+    clock-format "%H:%M"
+    date-format "%A, %d %B"
+    widgets "username" "keyboard"{{ if $m.battery }} "battery"{{ end }}
+}
+polkit { font "Inter"; auth-timeout 120; }
+pinentry { font "Inter"; auth-timeout 120; }

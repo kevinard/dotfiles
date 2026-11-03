@@ -1,0 +1,14 @@
+// Additional settings live outside the includes edited by Canopa Settings.
+input {
+    keyboard { numlock; }
+    touchpad {
+        drag true
+        drag-lock
+        tap-button-map "left-right-middle"
+        click-method "clickfinger"
+    }
+    trackpoint { scroll-button 274; }
+    warp-mouse-to-focus mode="center-xy"
+    focus-follows-mouse max-scroll-amount="0%"
+    disable-power-key-handling
+}

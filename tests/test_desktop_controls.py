@@ -184,6 +184,24 @@ def record(name):
 
 
 class DesktopControls(unittest.TestCase):
+    def test_canopa_menu_opens_native_quick_settings(self):
+        desktop = load("desktop-control")
+        with patch.object(desktop, "config", return_value={"notificationBackend": "canopa"}), \
+                patch.object(desktop, "command") as commands, \
+                patch.object(desktop.subprocess, "run") as rofi:
+            desktop.menu()
+        commands.assert_called_once_with(["canopa-shell", "--toggle-panel"])
+        rofi.assert_not_called()
+
+    def test_canopa_display_recovery_does_not_start_a_competing_layout_daemon(self):
+        desktop = load("desktop-control")
+        with patch.object(desktop, "config", return_value={"notificationBackend": "canopa"}), \
+                patch.object(desktop, "command", side_effect=['{"eDP-1": {}}', "", "", ""]) as commands:
+            desktop.recover_displays()
+        self.assertEqual([call.args[0] for call in commands.call_args_list], [
+            ["niri", "msg", "--json", "outputs"], ["niri", "msg", "output", "eDP-1", "on"],
+            ["niri", "msg", "action", "power-on-monitors"], ["brightness-control", "clear"]])
+
     def test_canopa_uses_its_pinned_control_socket_and_on_off_responses(self):
         desktop = load("desktop-control")
         with patch.dict(os.environ, {"XDG_RUNTIME_DIR": "/tmp/test-runtime"}), \

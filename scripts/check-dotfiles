@@ -76,8 +76,9 @@ def check_profile(fixture, source, work):
     desktop = "niri" if arch else "none"
     shell = data.get("desktopShell", "canopa") if arch else "none"
     units = ".config/systemd/user/"
-    assert (units + "swayidle.service" in rendered) == (desktop == "niri")
-    assert (units + "canopa-shell.service" in rendered) == (shell == "canopa")
+    assert (units + "swayidle.service" in rendered) == (shell == "waybar")
+    assert units + "canopa-shell.service" not in rendered # Owned by the system package.
+    assert (units + "canopa-session.target.d/50-dotfiles.conf" in rendered) == (shell == "canopa")
     assert (units + "waybar.service" in rendered) == (shell == "waybar")
     assert (".config/niri/config.kdl" in rendered) == (desktop == "niri")
     assert (units + "ssh-agent.service" in rendered) == arch
@@ -92,17 +93,28 @@ def check_profile(fixture, source, work):
     package_script = rendered[".chezmoiscripts/" + package_name]["contents"]
     if arch:
         assert "systemctl --user enable ssh-agent.service" in script
+        if shell == "canopa":
+            assert "org.canopa.Files.desktop" in rendered[".config/mimeapps.list"]["contents"]
         installed = set()
         for line in package_script.splitlines():
             if line.startswith("sudo pacman -Syu --needed "):
                 installed.update(shlex.split(line)[4:])
         assert {"pam-u2f", "libfido2"} <= installed
+        if shell == "canopa":
+            assert {"pam", "polkit", "gtk4", "clang", "cmake", "wayland-protocols",
+                    "libdisplay-info", "libpipewire", "seatd", "pango", "cairo", "libdrm",
+                    "gst-plugins-base-libs", "libqalculate", "udisks2", "foot", "greetd",
+                    "cage", "gnupg", "pinentry", "sound-theme-freedesktop"} <= installed
         if data["env"] == "work":
             assert "telegram-desktop" not in installed
     if desktop == "niri" and shutil.which("niri"):
         run(["niri", "validate", "--config", str(destination / ".config/niri/config.kdl")])
+        if shell == "canopa":
+            run(["niri", "validate", "--config", str(destination / ".config/canopa/niri.kdl")])
     if shell == "canopa" and shutil.which("canopa"):
         run(["canopa", "config", "check", "--file", str(destination / ".config/canopa/config.kdl")])
+    if shell == "canopa" and shutil.which("canopa-settings") and shutil.which("niri"):
+        run(["canopa-settings", "check", "--directory", str(destination / ".config/canopa")])
     profile = destination / ".profile"
     # Exercise .profile under all supported shells, not just their parsers.
     environment = {"HOME": str(destination), "PATH": "/usr/bin:/bin", "LESSOPEN": ""}
@@ -169,7 +181,7 @@ def main():
     snapshot_helper = REPO / "provision/arch/libexec/dotfiles-snapshot"
     validate_file(snapshot_helper, snapshot_helper.read_text())
     print("PASS helper regressions and repository scripts")
-    for executable in ("niri", "canopa", "desktop-file-validate"):
+    for executable in ("niri", "canopa", "canopa-settings", "desktop-file-validate"):
         if not shutil.which(executable):
             print(f"SKIP optional {executable} validation (not installed)")
 

@@ -87,10 +87,12 @@ def configure(args, distro):
                           stdout=subprocess.PIPE, text=True).stdout)
     if distro == "arch" and data.get("desktopShell", "canopa") == "canopa":
         if args.skip_desktop_build:
-            print("Canopa build skipped; run scripts/install-canopa before starting niri.")
+            print("Canopa package build skipped; run scripts/install-canopa before selecting Canopa at login.")
         else:
             run([REPO / "scripts/install-canopa"])
     print("Configuration applied. Log out and back in for the managed session environment.")
+    if data.get("desktopShell", "canopa") == "canopa":
+        print("Select Canopa at login. ./setup login previews the optional Canopa Greeter.")
     print("Optional: ./setup ssh to load your Solo. ./setup --help lists other actions.")
 
 
@@ -151,6 +153,8 @@ def main(argv=None):
     system = commands.add_parser("system", help="preview/apply desktop memory, bounded network waits and optional Btrfs/UKI recovery")
     system.add_argument("--apply", action="store_true")
     system.add_argument("--snapshots", action="store_true")
+    login = commands.add_parser("login", help="preview/select Canopa Greeter for the next boot")
+    login.add_argument("--apply", action="store_true")
     commands.add_parser("ssh", help="load resident keys from a connected token into the managed Arch agent")
     commands.add_parser("auth", help="stage two PAM registrations; activation follows the runbook")
     commands.add_parser("check", help="read-only network, disk and boot inventory plus manual checks")
@@ -175,6 +179,11 @@ def main(argv=None):
                 command = ["sudo", *command, "--apply"]
             if args.snapshots:
                 command.append("--snapshots")
+            run(command)
+        elif args.stage == "login":
+            command = [REPO / "scripts/provision-canopa-login"]
+            if args.apply:
+                command = ["sudo", *command, "--apply"]
             run(command)
         elif args.stage == "ssh":
             load_ssh_token()

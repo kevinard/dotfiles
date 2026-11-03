@@ -2,11 +2,15 @@
 
 Run `./setup` to install the home configuration and desktop dependencies, then log
 out and back in. `Super+Space` opens the shared desktop controls menu in either
-shell. Canopa's launcher also exposes individual tools. No OCR action or Omarchy
+shell. Canopa opens its native Quick settings panel; the Waybar fallback uses Rofi.
+Canopa's launcher also exposes individual tools. No OCR action or Omarchy
 software bundle is added.
 
 | Control | Shortcut |
 | --- | --- |
+| Canopa applications | Super+D |
+| Canopa Files | Super+E |
+| Canopa Settings | Super+Ctrl+Comma |
 | Clipboard history | Super+Ctrl+V |
 | Emoji and symbols | Super+Ctrl+E |
 | Calculator | Super+Ctrl+Q or Calculator key |
@@ -35,9 +39,9 @@ The font aliases in `home/dot_config/fontconfig/fonts.conf` map `system-ui` to
 Inter and `ui-monospace` to the existing monospace preferences, headed by Atkinson
 Hyperlegible Mono. Existing serif, sans-serif and monospace selections are retained.
 
-Niri already handles the internal panel when the lid opens/closes; Kanshi retains
-the existing dock layouts. No competing lid daemon is introduced. The recovery
-shortcut enables the internal connector, powers displays on, reloads Kanshi and
+Niri already handles the internal panel when the lid opens/closes. Canopa Settings
+owns its saved monitor/input includes; the Waybar fallback retains Kanshi dock layouts. No competing lid daemon is introduced. The recovery
+shortcut enables the internal connector, powers displays on, reloads Kanshi in the Waybar session and
 invalidates the DDC cache. It does not rewrite monitor configuration.
 
 ## System policy
@@ -68,9 +72,10 @@ a fresh session before enabling the policy. After reboot, run `desktop-health`,
 actual scope placement, including Canopa-launched applications. One application
 may be terminated to preserve responsiveness.
 
-Swayidle starts the locker directly and waits for readiness before sleep; its
-children already inherit the protected session slice. Manual locking prefers a
-protected scope and falls back to direct locking if scope creation fails.
+Canopa's lock listener coordinates compositor lock readiness with logind; its
+Stasis supervisor owns automatic idle policy. Both use the protected session slice.
+The Waybar fallback uses Swayidle and Swaylock. Manual Canopa locking waits for
+readiness through the listener; fallback locking uses a protected scope.
 
 The networkd wait-online drop-in keeps the existing `--any` policy and adds
 `--timeout=10`. When offline, that wait fails after ten seconds instead of waiting
@@ -134,6 +139,8 @@ installation before relying on it:
    and firmware entries before unmounting and rebooting. Home/application data
    remain at newer versions; account for application data migrations. Verify both
    normal and LTS boots before retiring the preserved root.
+
+See [Canopa session setup and recovery](canopa.md) for native desktop components.
 
 After deployment, check focused/external brightness, headphone switching during
 playback, offline boot timing, suspend locking and dock hotplug.

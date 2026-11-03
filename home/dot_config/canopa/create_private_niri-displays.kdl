@@ -1,0 +1,2 @@
+// Initial preferences; Canopa Settings owns subsequent edits.
+output "eDP-1" { scale 1; }

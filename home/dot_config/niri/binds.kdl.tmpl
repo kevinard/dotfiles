@@ -17,7 +17,9 @@ binds {
     // Suggested binds for running programs: terminal, app launcher, screen locker.
     Mod+Return hotkey-overlay-title="Open a Terminal: kitty" { spawn "kitty"; }
 {{ if eq $m.shell "canopa" }}
-    Mod+D repeat=false hotkey-overlay-title="Applications" { spawn "canopa-shell" "--toggle-menu" "apps"; }
+    Mod+D repeat=false hotkey-overlay-title="Applications" { spawn "canopa-shell" "--toggle-menu" "Applications"; }
+    Mod+E repeat=false hotkey-overlay-title="Files" { spawn "canopa-files"; }
+    Mod+Ctrl+Comma repeat=false hotkey-overlay-title="Settings" { spawn "canopa-settings"; }
 {{ else }}
     Mod+D repeat=false hotkey-overlay-title="Applications" { spawn "rofi" "-show" "drun"; }
 {{ end }}

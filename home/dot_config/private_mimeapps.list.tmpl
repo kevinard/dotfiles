@@ -1,4 +1,6 @@
+{{- $m := includeTemplate "machine" . | fromJson -}}
 [Added Associations]
+inode/directory={{ if eq $m.shell "canopa" }}org.canopa.Files.desktop{{ else }}thunar.desktop{{ end }};
 application/pdf=org.pwmt.zathura.desktop;
 x-scheme-handler/http=firefox.desktop;
 x-scheme-handler/https=firefox.desktop;
@@ -19,6 +21,7 @@ x-scheme-handler/tg=org.telegram.desktop.desktop;
 {{ end -}}
 
 [Default Applications]
+inode/directory={{ if eq $m.shell "canopa" }}org.canopa.Files.desktop{{ else }}thunar.desktop{{ end }}
 application/pdf=org.pwmt.zathura.desktop
 x-scheme-handler/http=firefox.desktop
 x-scheme-handler/https=firefox.desktop

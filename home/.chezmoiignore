@@ -3,8 +3,15 @@
 **/*.pyc
 {{ if ne $m.shell "canopa" }}
 .config/canopa
-.config/systemd/user/canopa-shell.service
-.config/systemd/user/canopa-notify.service
+.config/systemd/user/canopa-*.service.d
+.config/systemd/user/canopa-session.target.d
+.config/systemd/user/xdg-desktop-portal-canopa.service.d
+.config/xdg-desktop-portal/canopa-portals.conf
+{{ end }}
+{{ if eq $m.shell "canopa" }}
+.config/systemd/user/kanshi.service
+.config/systemd/user/swayidle.service
+.config/systemd/user/thunar.service
 {{ end }}
 {{ if ne $m.shell "waybar" }}
 .config/waybar

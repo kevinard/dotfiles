@@ -1,0 +1,66 @@
+#!/usr/bin/env python3
+"""Preview or select the packaged Canopa greetd login screen for the next boot."""
+import argparse
+from datetime import datetime, timezone
+import difflib
+import os
+from pathlib import Path
+import shutil
+import subprocess
+
+SOURCE = Path("/usr/share/canopa/greetd/canopa.toml")
+DESTINATION = Path("/etc/greetd/config.toml")
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--apply", action="store_true")
+    args = parser.parse_args(argv)
+    if not SOURCE.is_file():
+        raise RuntimeError("install the Canopa packages with ./setup first")
+    if DESTINATION.is_symlink():
+        raise RuntimeError("review the existing greetd configuration symlink before replacing it")
+    original = DESTINATION.read_text() if DESTINATION.exists() else ""
+    updated = SOURCE.read_text()
+    print("".join(difflib.unified_diff(original.splitlines(True), updated.splitlines(True),
+                                    fromfile=str(DESTINATION), tofile=str(SOURCE))))
+    print("Select greetd as display-manager.service for the next boot; keep the current session running.")
+    if not args.apply:
+        print("Preview only. ./setup login --apply backs up configuration and selects greetd.")
+        return
+    if os.geteuid() != 0 or not Path("/etc/arch-release").is_file():
+        raise RuntimeError("the apply stage requires root on Arch; use ./setup login --apply")
+    # Validate the administrator-owned presentation before changing login policy.
+    subprocess.run(["/usr/bin/canopa-greeter", "--canopa-config", "/etc/canopa/greeter.kdl",
+                    "check-config"], check=True)
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S.%fZ")
+    backup = Path("/var/backups/dotfiles-canopa-login") / stamp
+    backup.mkdir(mode=0o700, parents=True)
+    if DESTINATION.exists():
+        shutil.copy2(DESTINATION, backup / "config.toml")
+    manager = Path("/etc/systemd/system/display-manager.service")
+    previous = os.readlink(manager) if manager.is_symlink() else ""
+    (backup / "previous-display-manager").write_text(
+        previous + "\n" if previous else "none\n")
+    DESTINATION.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(SOURCE, DESTINATION)
+    DESTINATION.chmod(0o644)
+    old_unit = Path(previous).name if previous else ""
+    if old_unit and old_unit != "greetd.service":
+        subprocess.run(["systemctl", "disable", old_unit], check=True)
+    try:
+        subprocess.run(["systemctl", "enable", "--force", "greetd.service"], check=True)
+    except subprocess.CalledProcessError:
+        if old_unit and old_unit != "greetd.service":
+            subprocess.run(["systemctl", "enable", "--force", old_unit], check=False)
+        if (backup / "config.toml").is_file():
+            shutil.copyfile(backup / "config.toml", DESTINATION)
+        raise
+    print(f"Login configuration backed up under {backup}. Reboot to use Canopa Greeter.")
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except (OSError, RuntimeError, subprocess.CalledProcessError) as error:
+        raise SystemExit(f"Login setup stopped: {error}")

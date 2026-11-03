@@ -1,0 +1,62 @@
+@description "Canopa idle policy (Stasis 1.7)"
+
+default:
+  enable_loginctl_integration true
+  enable_dbus_inhibit true
+  monitor_gamepad false
+  monitor_games false
+  monitor_media false
+  inhibit_apps [ ]
+  suspend_inhibit_apps [ ]
+  pause_on_lid_close false
+  notify_before_action true
+  debounce_seconds 5
+
+  # Commands use absolute executable paths supplied by canopa-idle run.
+  # Timeouts are sequential: lock after 5m, displays off 1m later, sleep 10m later.
+  lock_screen:
+    timeout 300
+    command "exec \"$CANOPA_LOCK\""
+  end
+  dpms:
+    timeout 60
+    command "\"$CANOPA_NIRI\" msg action power-off-monitors"
+    resume_command "\"$CANOPA_NIRI\" msg action power-on-monitors"
+  end
+  suspend:
+    timeout 600
+    command "exec \"$CANOPA_IDLE\" suspend"
+  end
+
+  # A laptop uses these plans instead of the desktop plan above.
+  ac:
+    lock_screen:
+      timeout 300
+      command "exec \"$CANOPA_LOCK\""
+    end
+    dpms:
+      timeout 60
+      command "\"$CANOPA_NIRI\" msg action power-off-monitors"
+      resume_command "\"$CANOPA_NIRI\" msg action power-on-monitors"
+    end
+    suspend:
+      timeout 600
+      command "exec \"$CANOPA_IDLE\" suspend"
+    end
+  end
+  battery:
+    lock_screen:
+      timeout 120
+      command "exec \"$CANOPA_LOCK\""
+    end
+    dpms:
+      timeout 30
+      command "\"$CANOPA_NIRI\" msg action power-off-monitors"
+      resume_command "\"$CANOPA_NIRI\" msg action power-on-monitors"
+    end
+    suspend:
+      timeout 300
+      command "exec \"$CANOPA_IDLE\" suspend"
+    end
+  end
+end

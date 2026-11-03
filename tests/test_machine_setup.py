@@ -196,41 +196,12 @@ class MachineSetup(unittest.TestCase):
         for arguments, expected in (([], ["configure", "--apply"]),
                                     (["--preview"], ["configure"]),
                                     (["--customize"], ["configure", "--apply", "--customize"]),
-                                    (["ssh"], ["ssh"]), (["auth"], ["auth"])):
+                                    (["ssh"], ["ssh"]), (["auth"], ["auth"]),
+                                    (["login", "--apply"], ["login", "--apply"])):
             with self.subTest(arguments=arguments):
                 result = subprocess.run([str(entry)] + arguments, cwd=root,
                                         text=True, capture_output=True, check=True)
                 self.assertEqual(json.loads(result.stdout), expected)
-
-    def test_installed_canopa_does_not_need_network_or_compiler(self):
-        root = Path(self.temporary.name)
-        config = root / "config/canopa/config.kdl"
-        config.parent.mkdir(parents=True)
-        config.write_text("// test configuration\n")
-        marker = root / "state/canopa/dotfiles-installed-revision"
-        marker.parent.mkdir(parents=True)
-        installer = REPO / "scripts/install-canopa"
-        revision = next(line.split("=", 1)[1] for line in installer.read_text().splitlines()
-                        if line.startswith("revision="))
-        marker.write_text(revision + "\n")
-        binary_dir = root / ".local/bin"
-        binary_dir.mkdir(parents=True)
-        for name in ("canopa", "canopa-shell", "canopa-notify", "canopa-wifi-provider",
-                     "canopa-audio-provider", "canopa-media-provider"):
-            executable = binary_dir / name
-            executable.write_text("#!/bin/sh\nexit 0\n")
-            executable.chmod(0o755)
-        environment = {"HOME": str(root), "XDG_CONFIG_HOME": str(root / "config"),
-                       "XDG_STATE_HOME": str(root / "state"), "PATH": "/nonexistent"}
-        result = subprocess.run(["/bin/bash", str(installer)], env=environment,
-                                text=True, capture_output=True)
-        self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("no rebuild needed", result.stdout)
-        (binary_dir / "canopa-shell").unlink()
-        incomplete = subprocess.run(["/bin/bash", str(installer)], env=environment,
-                                    text=True, capture_output=True)
-        self.assertNotEqual(incomplete.returncode, 0)
-        self.assertNotIn("no rebuild needed", incomplete.stdout)
 
     def test_system_stage_preview_and_apply_have_distinct_privilege_boundaries(self):
         for apply in (False, True):

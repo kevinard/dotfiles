@@ -1,0 +1,14 @@
+// Initial preferences; Canopa Settings owns subsequent edits.
+input {
+    keyboard {
+        xkb {
+            layout "us"
+            variant "altgr-intl"
+            options "shift:both_capslock,caps:escape"
+        }
+        repeat-delay 300
+        repeat-rate 40
+    }
+    mouse { accel-speed 0.0; }
+    touchpad { accel-speed 0.0; tap; }
+}

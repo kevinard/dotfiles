@@ -87,11 +87,15 @@ def recover_displays():
         if name.startswith(("eDP-", "LVDS-", "DSI-")):
             command(["niri", "msg", "output", name, "on"])
     command(["niri", "msg", "action", "power-on-monitors"])
-    command(["systemctl", "--user", "reload", "kanshi.service"])
+    if config()["notificationBackend"] != "canopa":
+        command(["systemctl", "--user", "reload", "kanshi.service"])
     command(["brightness-control", "clear"])
 
 
 def menu():
+    if config()["notificationBackend"] == "canopa":
+        command(["canopa-shell", "--toggle-panel"])
+        return
     entries = {
         "Clipboard history": ["desktop-control", "clipboard"],
         "Emoji and symbols": ["rofimoji"],
