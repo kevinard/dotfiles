@@ -1,0 +1,83 @@
+#!/usr/bin/env python3
+"""Translate OpenSSH askpass requests to Canopa pinentry."""
+import json
+import os
+import signal
+import subprocess
+import sys
+from urllib.parse import unquote_to_bytes
+
+
+def wayland_environment():
+    env = os.environ.copy()
+    if not env.get("WAYLAND_DISPLAY"):
+        # The user SSH agent can start before the compositor imports its display.
+        response = subprocess.check_output([
+            "/usr/bin/busctl", "--user", "--json=short", "get-property",
+            "org.freedesktop.systemd1", "/org/freedesktop/systemd1",
+            "org.freedesktop.systemd1.Manager", "Environment",
+        ], timeout=2, stderr=subprocess.DEVNULL)
+        for entry in json.loads(response)["data"]:
+            name, _, value = entry.partition("=")
+            if name == "WAYLAND_DISPLAY" and value:
+                env[name] = value
+                break
+        else:
+            raise RuntimeError("no Wayland display")
+    return env
+
+
+def exchange(pinentry, command=None):
+    if command is not None:
+        pinentry.stdin.write(command + b"\n")
+        pinentry.stdin.flush()
+    data = bytearray()
+    for line in pinentry.stdout:
+        line = line.rstrip(b"\r\n")
+        if line == b"OK" or line.startswith(b"OK "):
+            return bytes(data)
+        if line.startswith(b"D "):
+            data.extend(unquote_to_bytes(line[2:]))
+        if line.startswith(b"ERR"):
+            break
+    raise RuntimeError("pinentry request failed")
+
+
+def dialog(prompt, command):
+    description = prompt.replace(b"%", b"%25").replace(b"\r", b"%0D").replace(b"\n", b"%0A")
+    with subprocess.Popen(["/usr/bin/canopa-pinentry"], env=wayland_environment(),
+                          stdin=subprocess.PIPE, stdout=subprocess.PIPE) as pinentry:
+        try:
+            exchange(pinentry)
+            exchange(pinentry, b"SETTITLE OpenSSH")
+            exchange(pinentry, b"SETDESC " + description)
+            if command == b"GETPIN":
+                label = b"PIN:" if prompt.startswith(b"Enter PIN ") else b"Response:"
+                exchange(pinentry, b"SETPROMPT " + label)
+            response = exchange(pinentry, command)
+            exchange(pinentry, b"BYE")
+            return response
+        except BaseException:
+            # OpenSSH terminates touch notices when signing finishes.
+            pinentry.kill()
+            raise
+
+
+def main():
+    signal.signal(signal.SIGTERM, signal.default_int_handler)
+    prompt = os.fsencode(sys.argv[1]) if len(sys.argv) > 1 else b"OpenSSH"
+    command = {"confirm": b"CONFIRM", "none": b"MESSAGE"}.get(
+        os.environ.get("SSH_ASKPASS_PROMPT"), b"GETPIN")
+    try:
+        response = dialog(prompt, command)
+    except (KeyboardInterrupt, OSError, RuntimeError, subprocess.SubprocessError):
+        return 1
+    if command == b"GETPIN":
+        sys.stdout.buffer.write(response + b"\n")
+    if command == b"CONFIRM":
+        sys.stdout.buffer.write(b"yes\n")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

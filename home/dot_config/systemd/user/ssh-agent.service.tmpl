@@ -1,0 +1,16 @@
+{{- $m := includeTemplate "machine" . | fromJson -}}
+[Unit]
+Description=Personal SSH authentication agent
+Requires=ssh-agent.socket
+
+[Service]
+ExecStart=/usr/bin/ssh-agent -D
+{{ if eq $m.shell "canopa" -}}
+Environment=SSH_ASKPASS=%h/.local/bin/canopa-ssh-askpass
+Environment=SSH_ASKPASS_REQUIRE=force
+# The helper looks up the current display when prompted.
+UnsetEnvironment=WAYLAND_DISPLAY
+{{ end }}
+
+[Install]
+WantedBy=default.target

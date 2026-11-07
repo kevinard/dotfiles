@@ -9,6 +9,7 @@
 .config/systemd/user/canopa-*.service.d
 .config/systemd/user/canopa-session.target.d
 .config/systemd/user/xdg-desktop-portal-canopa.service.d
+.local/bin/canopa-ssh-askpass
 {{ end }}
 {{ if ne $m.shell "waybar" }}
 .config/autostart/dotfiles-preferences.desktop

@@ -99,6 +99,13 @@ def check_profile(fixture, source, work):
     assert (units + "ssh-agent.service" in rendered) == arch
     if arch:
         assert 'SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/ssh-agent.socket"' in rendered[".profile"]["contents"]
+    askpass = ".local/bin/canopa-ssh-askpass"
+    ssh_agent = rendered[units + "ssh-agent.service"]["contents"]
+    assert "Requires=ssh-agent.socket" in ssh_agent.splitlines()
+    assert "ExecStart=/usr/bin/ssh-agent -D" in ssh_agent.splitlines()
+    assert (askpass in rendered) == (shell == "canopa")
+    assert ("SSH_ASKPASS_REQUIRE=" in rendered[".profile"]["contents"]) == (shell == "canopa")
+    assert ("Environment=SSH_ASKPASS=%h/" + askpass in ssh_agent) == (shell == "canopa")
     assert not any("hyprland" in name or "sway-session" in name for name in rendered)
     for name in ("startpage.service", "startpage-work.service"):
         if units + name in rendered:

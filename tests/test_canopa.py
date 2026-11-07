@@ -5,9 +5,11 @@ import importlib.util
 import io
 import os
 from pathlib import Path
+import runpy
 import shutil
 import subprocess
 import tempfile
+from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 
@@ -217,6 +219,20 @@ class CanopaLogin(unittest.TestCase):
                 ['/usr/bin/canopa-greeter', '--canopa-config', '/etc/canopa/greeter.kdl', 'check-config'],
                 ['systemctl', 'disable', 'sddm.service'],
                 ['systemctl', 'enable', '--force', 'greetd.service']])
+
+
+class CanopaAskpass(unittest.TestCase):
+    def test_assuan_data_is_decoded_only_on_success(self):
+        helper = REPO / 'home/dot_local/bin/executable_canopa-ssh-askpass'
+        exchange = runpy.run_path(str(helper))['exchange']
+        data = b'D 12%25\nS STATUS ignored\nD 34\n'
+        pinentry = SimpleNamespace(stdin=io.BytesIO(), stdout=io.BytesIO(data + b'OK\n'))
+        self.assertEqual(exchange(pinentry, b'GETPIN'), b'12%34')
+        self.assertEqual(pinentry.stdin.getvalue(), b'GETPIN\n')
+
+        pinentry.stdout = io.BytesIO(data + b'ERR 1 cancelled\n')
+        with self.assertRaises(RuntimeError):
+            exchange(pinentry, b'GETPIN')
 
 
 class CanopaPreferences(unittest.TestCase):

@@ -1,3 +1,4 @@
+{{- $m := includeTemplate "machine" . | fromJson -}}
 # Portable login environment (also read by niri-session).
 export XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
 export XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
@@ -40,3 +41,9 @@ export CATPPUCCIN_FLAVOUR={{ .themeFlavour | shellQuote }}
 {{ if eq .chezmoi.osRelease.id "arch" }}
 if [ -n "${XDG_RUNTIME_DIR:-}" ]; then export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/ssh-agent.socket"; fi
 {{ end }}
+{{ if eq $m.shell "canopa" -}}
+if [ -x /usr/bin/canopa-pinentry ] && { [ -n "${WAYLAND_DISPLAY:-}" ] || [ "${CANOPA_SESSION:-}" = 1 ]; }; then
+    export SSH_ASKPASS="${SSH_ASKPASS:-$HOME/.local/bin/canopa-ssh-askpass}"
+    export SSH_ASKPASS_REQUIRE="${SSH_ASKPASS_REQUIRE:-prefer}"
+fi
+{{ end -}}
