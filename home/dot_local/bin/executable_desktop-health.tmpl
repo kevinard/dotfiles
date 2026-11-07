@@ -12,21 +12,25 @@ check_unit() {
 }
 printf 'Configured desktop: {{ $m.desktop }} / {{ $m.shell }}\n'
 printf 'Current desktop: %s\n' "${XDG_CURRENT_DESKTOP:-unset}"
-for executable in niri cliphist wl-paste rofi pactl brightness-control desktop-control desktop-lock; do check_command "$executable"; done
-for unit in cliphist@text.service cliphist@image.service; do check_unit "$unit"; done
+for executable in niri pactl brightness-control desktop-control desktop-lock; do check_command "$executable"; done
 {{ if eq $m.shell "canopa" }}
-for executable in canopa canopa-session canopa-shell canopa-notify canopa-files canopa-settings canopa-wifi-provider canopa-audio-provider canopa-media-provider canopa-wallpaper canopa-lock canopa-idle canopa-greeter canopa-polkit canopa-pinentry xdg-desktop-portal-canopa stasis; do check_command "$executable"; done
-for unit in canopa-compositor.service canopa-session.target canopa-shell.service canopa-notify.service canopa-wallpaper.service canopa-lock.service canopa-polkit.service canopa-idle.service; do check_unit "$unit"; done
+for executable in canopa canopa-session canopa-shell canopa-notify canopa-files canopa-settings canopa-wifi-provider canopa-audio-provider canopa-media-provider canopa-wallpaper canopa-lock canopa-idle canopa-polkit canopa-pinentry xdg-desktop-portal-canopa; do check_command "$executable"; done
+for unit in canopa-compositor.service canopa-session.target canopa-shell.service canopa-notify.service canopa-wallpaper.service canopa-lock.service canopa-polkit.service; do check_unit "$unit"; done
+if [ -x /usr/bin/stasis ]; then
+    check_unit canopa-idle.service
+else
+    echo 'INFO Stasis is absent; automatic idle policy is optional'
+fi
 if command -v canopa >/dev/null; then canopa config check || failed=1; fi
 if command -v canopa-settings >/dev/null; then canopa-settings check || failed=1; fi
 if [ "${CANOPA_SESSION:-}" != 1 ]; then echo 'FAIL select Canopa at login'; failed=1; fi
 if [ ! -r /etc/pam.d/canopa-lock ]; then echo 'FAIL missing Canopa lock PAM policy'; failed=1; fi
-check_unit xdg-desktop-portal-canopa.service
 if systemctl --user is-active --quiet swayidle.service || systemctl --user is-active --quiet hyprpolkitagent.service || systemctl --user is-active --quiet dunst.service || systemctl --user is-active --quiet stasis.service; then
     echo 'FAIL competing desktop services; log out and select Canopa'; failed=1
 fi
 {{ else }}
-for executable in waybar dunstctl swaylock swayidle kanshi; do check_command "$executable"; done
+for executable in cliphist wl-paste rofi waybar dunstctl swaylock swayidle kanshi; do check_command "$executable"; done
+for unit in cliphist@text.service cliphist@image.service; do check_unit "$unit"; done
 for unit in niri.service swayidle.service kanshi.service; do check_unit "$unit"; done
 check_unit waybar.service; check_unit dunst.service
 {{ end }}
@@ -53,7 +57,7 @@ printf '\nMemory policy (optional root provisioning):\n'
 swapon --show
 if systemctl is-active --quiet systemd-oomd.service; then
     oomctl || failed=1
-    for unit in {{ if eq $m.shell "canopa" }}canopa-compositor.service canopa-shell.service canopa-notify.service canopa-wallpaper.service canopa-lock.service canopa-polkit.service canopa-idle.service{{ else }}swayidle.service waybar.service dunst.service{{ end }}; do
+    for unit in {{ if eq $m.shell "canopa" }}canopa-compositor.service canopa-shell.service canopa-notify.service canopa-wallpaper.service canopa-lock.service canopa-polkit.service{{ else }}swayidle.service waybar.service dunst.service{{ end }}; do
         slice=$(systemctl --user show "$unit" --property=Slice --value)
         if [ "$slice" != session.slice ]; then
             printf 'FAIL %s is in %s; log in again before relying on the OOM policy\n' "$unit" "$slice"

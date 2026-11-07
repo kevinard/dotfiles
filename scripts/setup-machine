@@ -83,21 +83,26 @@ def configure(args, distro):
     if not args.apply:
         print("Preview only. Run ./setup to install packages and apply files.")
         return
-    run(command + ["apply"])
     data = json.loads(run(command + ["data", "--format=json"],
                           stdout=subprocess.PIPE, text=True).stdout)
-    if distro == "arch" and data.get("desktopShell", "canopa") == "canopa":
-        if args.skip_desktop_build:
-            print("Canopa package build skipped; run scripts/install-canopa before selecting Canopa at login.")
+    canopa = data.get("desktopShell", "canopa") == "canopa"
+    if canopa:
+        required = ("canopa", "canopa-session", "/usr/lib/canopa/niri")
+        if all(shutil.which(program) for program in required):
+            print("Using the installed Canopa desktop.")
+        elif args.skip_desktop_build:
+            print("Install the Canopa desktop and compositor before selecting Canopa at login.")
         else:
-            run([REPO / "scripts/install-canopa"])
+            raise RuntimeError("install the Canopa desktop and compositor from your checkout or "
+                               "existing packages first (see docs/canopa.md)")
+    run(command + ["apply"])
     if distro == "arch" and data.get("processScheduler", False):
         if args.skip_desktop_build:
             print("Scheduler helper build skipped; run scripts/install-system76-scheduler-niri before starting niri.")
         else:
             run([REPO / "scripts/install-system76-scheduler-niri"])
     print("Configuration applied. Log out and back in for the managed session environment.")
-    if data.get("desktopShell", "canopa") == "canopa":
+    if canopa:
         print("Select Canopa at login. ./setup login previews the optional Canopa Greeter.")
     print("Optional: ./setup ssh to load your Solo. ./setup --help lists other actions.")
 
@@ -167,10 +172,11 @@ def main(argv=None):
     commands = parser.add_subparsers(dest="stage", required=True)
     commands.add_parser("plan", help="show the complete installation/setup sequence")
     config = commands.add_parser("configure", help="initialize choices and preview/apply dotfiles")
-    config.add_argument("--apply", action="store_true", help="install packages, apply and build Canopa if selected")
+    config.add_argument("--apply", action="store_true", help="install dotfiles packages and apply configuration")
     config.add_argument("--customize", action="store_true", help="ask all initial questions, or edit existing configuration")
     config.add_argument("--reconfigure", action="store_true", help="regenerate config from saved choices/template")
-    config.add_argument("--skip-desktop-build", action="store_true")
+    config.add_argument("--skip-desktop-build", action="store_true",
+                        help="allow applying before Canopa is installed and skip the optional scheduler helper build")
     config.add_argument("--config", type=Path, default=config_dir / "chezmoi/chezmoi.toml")
     system = commands.add_parser("system", help="preview/apply desktop memory, bounded network waits and optional Btrfs/UKI recovery")
     system.add_argument("--apply", action="store_true")

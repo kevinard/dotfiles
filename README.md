@@ -4,7 +4,9 @@ Arch: niri desktop and development tools for home and work identities.
 
 ## Install
 
-On an installed OS with Git, Python 3 and chezmoi available, run as your normal user:
+On an installed OS with Git, Python 3 and chezmoi available, install the Canopa
+desktop and compositor packages from your existing build for the default profile.
+See [Canopa setup](docs/canopa.md). Then run as your normal user:
 
 ```sh
 git clone https://github.com/kevinard/dotfiles.git "${XDG_DATA_HOME:-$HOME/.local/share}/chezmoi"
@@ -22,7 +24,7 @@ selects it for the next boot.
 
 ```sh
 ./setup --preview     # See changes first
-./setup              # Apply configuration; install/update packages and desktop
+./setup              # Apply configuration and install/update dotfiles packages
 ./setup ssh          # Load the connected Solo's SSH keys (Arch)
 chezmoi edit-config  # Change saved preferences
 ```

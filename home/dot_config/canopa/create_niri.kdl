@@ -1,4 +1,4 @@
-// Keep the established desktop while Settings owns separate input/display files.
+// Initial dotfiles layout. Settings owns the separate input and display files.
 include "niri-input.kdl"
 include "niri-displays.kdl"
 include "niri-custom.kdl"

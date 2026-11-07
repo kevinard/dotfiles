@@ -109,6 +109,7 @@ class ScopedCommands(unittest.TestCase):
         self.root = Path(self.temporary.name)
         self.log = self.root / "commands.jsonl"
         self.environment = os.environ | {"PATH": str(self.root) + ":/usr/bin:/bin", "COMMAND_LOG": str(self.log)}
+        self.environment.pop("CANOPA_SESSION", None)
         self.stub("systemd-run", '''
 import os, sys
 record("systemd-run")

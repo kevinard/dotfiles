@@ -6,11 +6,13 @@
 .config/uwsm/env
 .config/xdg-desktop-portal/sway-portals.conf
 .config/systemd/user/udiskie.service
+.local/share/applications/chromium.desktop
+.local/share/applications/code.desktop
+.local/bin/color-picker
+{{ if eq (includeTemplate "machine" . | fromJson).shell "waybar" }}
 .config/waybar/old_style.css
 .config/rofi/themes/powermenu.old.rasi
 .config/rofi/scripts/wifimenu.sh
-.local/share/applications/chromium.desktop
-.local/share/applications/code.desktop
 .config/rofi/scripts/projects.sh
-.local/bin/color-picker
+{{ end }}
 {{ end -}}

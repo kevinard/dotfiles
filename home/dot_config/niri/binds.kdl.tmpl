@@ -20,20 +20,22 @@ binds {
     Mod+D repeat=false hotkey-overlay-title="Applications" { spawn "canopa-shell" "--toggle-menu" "Applications"; }
     Mod+E repeat=false hotkey-overlay-title="Files" { spawn "canopa-files"; }
     Mod+Ctrl+Comma repeat=false hotkey-overlay-title="Settings" { spawn "canopa-settings"; }
+    Mod+Ctrl+D repeat=false hotkey-overlay-title="Displays" { spawn "canopa-settings" "--page" "displays"; }
+    XF86Calculator repeat=false hotkey-overlay-title="Applications and calculator" { spawn "canopa-shell" "--toggle-menu" "Applications"; }
 {{ else }}
     Mod+D repeat=false hotkey-overlay-title="Applications" { spawn "rofi" "-show" "drun"; }
-{{ end }}
     Mod+Shift+D { spawn "rofi" "-show" "drun"; }
-    Mod+Space repeat=false hotkey-overlay-title="Desktop controls" { spawn "desktop-control" "menu"; }
     Mod+Ctrl+V repeat=false hotkey-overlay-title="Clipboard history" { spawn "desktop-control" "clipboard"; }
     Mod+Ctrl+E repeat=false hotkey-overlay-title="Emoji and symbols" { spawn "rofimoji"; }
     Mod+Ctrl+Q repeat=false hotkey-overlay-title="Calculator" { spawn "rofi" "-show" "calc" "-modi" "calc" "-no-show-match" "-no-sort"; }
+    Mod+Ctrl+D repeat=false hotkey-overlay-title="Displays" { spawn "wdisplays"; }
+    XF86Calculator repeat=false { spawn "rofi" "-show" "calc" "-modi" "calc" "-no-show-match" "-no-sort"; }
+{{ end }}
+    Mod+Space repeat=false hotkey-overlay-title="Desktop controls" { spawn "desktop-control" "menu"; }
     Mod+Ctrl+A repeat=false hotkey-overlay-title="Audio settings" { spawn "pavucontrol"; }
     Mod+Ctrl+B repeat=false hotkey-overlay-title="Bluetooth" { spawn "blueman-manager"; }
-    Mod+Ctrl+D repeat=false hotkey-overlay-title="Displays" { spawn "wdisplays"; }
     Mod+Ctrl+Period repeat=false hotkey-overlay-title="Do Not Disturb" { spawn "desktop-control" "dnd" "toggle"; }
     Mod+Ctrl+Shift+P repeat=false hotkey-overlay-title="Recover laptop display" { spawn "desktop-control" "displays" "recover"; }
-    XF86Calculator repeat=false { spawn "rofi" "-show" "calc" "-modi" "calc" "-no-show-match" "-no-sort"; }
     Super+Alt+L allow-when-locked=true hotkey-overlay-title="Lock the Screen" { spawn "desktop-lock"; }
 
     // Use spawn-sh to run a shell command. Do this if you need pipes, multiple commands, etc.

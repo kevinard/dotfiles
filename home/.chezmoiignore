@@ -9,21 +9,32 @@
 .config/systemd/user/canopa-*.service.d
 .config/systemd/user/canopa-session.target.d
 .config/systemd/user/xdg-desktop-portal-canopa.service.d
-.config/xdg-desktop-portal/canopa-portals.conf
 {{ end }}
-{{ if eq $m.shell "canopa" }}
+{{ if ne $m.shell "waybar" }}
+.config/autostart/dotfiles-preferences.desktop
+.config/Thunar
+.config/cliphist
+.config/kanshi
+.config/rofi
+.config/rofimoji.rc
+.config/swappy
+.config/waybar
+.config/xdg-desktop-portal/niri-portals.conf
+.config/xfce4
+.config/systemd/user/cliphist@.service
+.config/systemd/user/dunst.service.d
+.config/systemd/user/hyprpolkitagent.service.d
 .config/systemd/user/kanshi.service
 .config/systemd/user/swayidle.service
 .config/systemd/user/thunar.service
-{{ end }}
-{{ if ne $m.shell "waybar" }}
-.config/waybar
 .config/systemd/user/waybar.service
-.config/systemd/user/dunst.service.d
+.gnupg/gpg-agent.conf
+.local/bin/clipboard-store
+.local/bin/import-gsettings
 {{ end }}
 {{ if not $m.battery }}
 .config/systemd/user/battery-alert.*
 {{ end }}
-{{ if ne .env "home" }}
+{{ if or (ne .env "home") (eq $m.shell "canopa") }}
 .local/share/dbus-1/services/org.freedesktop.secrets.service
 {{ end }}

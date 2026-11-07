@@ -15,7 +15,9 @@ application/x-extension-xht=firefox.desktop;
 image/jpeg=imv.desktop;
 application/x-php=nvim.desktop;
 image/png=imv.desktop;
+{{ if eq $m.shell "waybar" -}}
 application/zip=thunar.desktop;
+{{ end -}}
 {{ if eq .env "home" -}}
 x-scheme-handler/tg=org.telegram.desktop.desktop;
 {{ end -}}

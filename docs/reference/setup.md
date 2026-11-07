@@ -96,21 +96,19 @@ where stronger separation is required. Never copy a machine's complete chezmoi
 config onto another machine without reviewing hardware choices.
 
 `configure` initializes missing configuration, displays a diff, and with `--apply`
-installs packages, applies files and builds/installs the pinned Canopa package set if selected.
+installs dotfiles packages and applies files. The Canopa profile checks for the
+existing desktop and compositor before applying.
 It stops at the first failed stage. Without `--apply`, it initializes choices and
 shows the diff only. Existing chezmoi configuration is kept; edit it with
 `chezmoi edit-config` to change choices. `--reconfigure` explicitly regenerates the
 template using saved data; it can remove custom config sections, so back those up.
-`--skip-desktop-build` leaves Canopa installation for `scripts/install-canopa`
-and an opted-in scheduler helper for `scripts/install-system76-scheduler-niri`.
-The builds need network access and a configured Rust toolchain; do not start that
-desktop until all companion binaries are installed.
+`--skip-desktop-build` allows staging dotfiles before Canopa is installed and
+skips building the opted-in scheduler helper. See [Canopa setup](../canopa.md)
+and `scripts/install-system76-scheduler-niri` for those separate installations.
 
 Use the same command again to resume after a failure. There is no persistent
 "completed" flag that would hide a partially installed stage. Reapplying is
-convergent, but explicitly invoking configuration can perform another Arch upgrade
-and a Canopa build if the recorded revision or installed binaries need updating.
-It does not pull the dotfiles repository or discard your changes.
+convergent. A change to the package manifest can trigger another Arch upgrade.
 
 Set Zsh as your login shell if desired:
 

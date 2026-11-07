@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build the pinned Canopa desktop as Arch packages, then install through pacman."""
+"""Build the legacy pinned Canopa package set. For current builds, see docs/canopa.md."""
 import argparse
 import hashlib
 import os

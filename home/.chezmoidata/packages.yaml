@@ -66,9 +66,6 @@ packages:
     - wireplumber
     - qt5-wayland
     - qt6-wayland
-    - xdg-desktop-portal-gnome
-    - xdg-desktop-portal-gtk
-    - meson
     - upower
     - qpwgraph
     - pavucontrol
@@ -96,11 +93,6 @@ packages:
     - luarocks
     - plocate
     - papirus-icon-theme
-    - thunar
-    - thunar-archive-plugin
-    - xarchiver
-    - thunar-volman
-    - catfish
     - gvfs
     - gvfs-mtp
     - gvfs-gphoto2
@@ -108,10 +100,6 @@ packages:
     - gvfs-smb
     - gvfs-dnssd
     - sshfs
-    - tumbler
-    - ffmpegthumbnailer
-    - webp-pixbuf-loader
-    - libgsf
     - poppler-glib
     - xdg-user-dirs
     - xdg-utils
@@ -154,7 +142,19 @@ packages:
     - util-linux
     - adwaita-icon-theme
     - adwaita-cursors
-    niri:
+    - xwayland-satellite
+    waybar:
+    - xdg-desktop-portal-gnome
+    - xdg-desktop-portal-gtk
+    - thunar
+    - thunar-archive-plugin
+    - xarchiver
+    - thunar-volman
+    - catfish
+    - tumbler
+    - ffmpegthumbnailer
+    - webp-pixbuf-loader
+    - libgsf
     - kanshi
     - grim
     - slurp
@@ -163,7 +163,6 @@ packages:
     - sddm
     - rofi
     - niri
-    - xwayland-satellite
     - nwg-look
     - qt5ct
     - qt6ct
@@ -176,45 +175,10 @@ packages:
     - swayidle
     - swaylock
     - libpulse
-    waybar:
     - waybar
     - dunst
     - python-gobject
-    canopa:
-    - base-devel
-    - rustup
-    - alsa-lib
-    - libpulse
-    - systemd-libs
-    - wayland
-    - libxkbcommon
-    - dbus
-    - at-spi2-core
-    # Full desktop, compositor and optional login package build/runtime closure.
-    - clang
-    - cmake
-    - wayland-protocols
-    - pam
-    - polkit
-    - gtk4
-    - gst-plugins-base-libs
-    - libinput
-    - libdisplay-info
-    - libpipewire
-    - seatd
-    - pango
-    - cairo
-    - libdrm
-    - mesa
-    - udisks2
-    - foot
-    - libqalculate
-    - xdg-desktop-portal
-    - greetd
-    - cage
-    - gnupg
     - pinentry
-    - sound-theme-freedesktop
     personal:
     - telegram-desktop
     tlp:

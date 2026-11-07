@@ -1,3 +1,8 @@
 {{- $m := includeTemplate "machine" . | fromJson -}}
 [Unit]
-Wants=cliphist@text.service cliphist@image.service{{ if $m.battery }} battery-alert.timer{{ end }}{{ if $m.scheduler }} system76-scheduler-niri.service{{ end }}
+{{ if $m.battery -}}
+Wants=battery-alert.timer
+{{ end -}}
+{{ if $m.scheduler -}}
+Wants=system76-scheduler-niri.service
+{{ end -}}

@@ -117,8 +117,9 @@ uses the same tested kernel command line and encryption/root layout.
 
 Enable the network/time/mirror/cache services that match your chosen setup. If using
 iwd + networkd, install only the relevant reviewed `.network` files; the checked-in
-MAC/link example is host-specific. The dotfiles package phase later declares desktop
-dependencies, including niri, swayidle and swaylock.
+MAC/link example is host-specific. Install Canopa from its packages for the default
+profile. The dotfiles package phase installs Niri, Swayidle and Swaylock for the
+Waybar profile.
 
 Exit the chroot, unmount, and reboot. **No configuration commands follow
 `arch-chroot` in an executable parent script.** First verify passphrase boot and the

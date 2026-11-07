@@ -224,14 +224,15 @@ class CanopaPreferences(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
             source, destination = root / 'source', root / 'home'
-            source.mkdir()
             destination.mkdir()
-            names = ('niri-input.kdl', 'niri-displays.kdl', 'niri-custom.kdl', 'stasis.rune')
+            shutil.copytree(REPO / 'home/dot_config/canopa', source)
+            shutil.copytree(REPO / 'home/.chezmoitemplates', source / '.chezmoitemplates')
+            shutil.copytree(REPO / 'home/.chezmoidata', source / '.chezmoidata')
+            names = ('config.kdl', 'niri.kdl', 'niri-input.kdl', 'niri-displays.kdl', 'niri-custom.kdl', 'stasis.rune')
             for name in names:
-                shutil.copy2(REPO / 'home/dot_config/canopa' / ('create_private_' + name), source / ('create_private_' + name))
                 (destination / name).write_text('custom Settings preference\n')
             config = root / 'config.json'
-            config.write_text('{}')
+            config.write_text('{"data":{"themeFlavour":"mocha","themeColor":"lavender"}}')
             command = ['chezmoi', '--source', str(source), '--destination', str(destination),
                        '--config', str(config), '--cache', str(root / 'cache'),
                        '--persistent-state', str(root / 'state'), 'apply']

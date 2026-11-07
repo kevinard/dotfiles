@@ -17,7 +17,7 @@ def main(argv=None):
     parser.add_argument("--apply", action="store_true")
     args = parser.parse_args(argv)
     if not SOURCE.is_file():
-        raise RuntimeError("install the Canopa packages with ./setup first")
+        raise RuntimeError("install the optional canopa-login package first; see docs/canopa.md")
     if DESTINATION.is_symlink():
         raise RuntimeError("review the existing greetd configuration symlink before replacing it")
     original = DESTINATION.read_text() if DESTINATION.exists() else ""

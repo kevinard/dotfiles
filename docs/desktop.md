@@ -11,14 +11,18 @@ software bundle is added.
 | Canopa applications | Super+D |
 | Canopa Files | Super+E |
 | Canopa Settings | Super+Ctrl+Comma |
-| Clipboard history | Super+Ctrl+V |
-| Emoji and symbols | Super+Ctrl+E |
-| Calculator | Super+Ctrl+Q or Calculator key |
+| Waybar clipboard history | Super+Ctrl+V |
+| Waybar emoji and symbols | Super+Ctrl+E |
+| Waybar calculator | Super+Ctrl+Q or Calculator key |
 | Audio settings | Super+Ctrl+A |
 | Bluetooth | Super+Ctrl+B |
 | Displays | Super+Ctrl+D |
 | Do Not Disturb | Super+Ctrl+Period |
 | Recover laptop display | Super+Ctrl+Shift+P |
+
+In Canopa, open Applications and enter `clip` for clipboard history, `emoji` or
+`symbol` for characters, or a calculation. The Calculator key also opens
+Applications. Clipboard recording can be enabled in Canopa Settings.
 
 Brightness keys adjust the focused display: laptop backlight or connector-matched
 DDC/CI. Shift adjusts all active displays; Alt uses 1% steps. Ordinary steps are

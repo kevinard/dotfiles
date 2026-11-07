@@ -98,25 +98,37 @@ class MachineSetup(unittest.TestCase):
     def test_failed_apply_stops_before_desktop_build(self):
         self.config.write_text("[data]\n")
         self.args.apply = True
+        data = subprocess.CompletedProcess([], 0, stdout='{"processScheduler":true}')
         with patch.object(self.setup.shutil, "which", return_value="/usr/bin/chezmoi"), \
-                patch.object(self.setup, "run", side_effect=[None, subprocess.CalledProcessError(1, ["chezmoi", "apply"])]) as commands, \
+                patch.object(self.setup, "run", side_effect=[None, data, subprocess.CalledProcessError(1, ["chezmoi", "apply"])]) as commands, \
                 redirect_stdout(io.StringIO()), self.assertRaises(subprocess.CalledProcessError):
             self.setup.configure(self.args, "arch")
-        self.assertEqual([call.args[0][-1] for call in commands.call_args_list], ["diff", "apply"])
+        self.assertEqual([call.args[0][-1] for call in commands.call_args_list], ["diff", "--format=json", "apply"])
 
-    def test_canopa_build_follows_apply_only_on_arch(self):
+    def test_setup_reuses_installed_canopa_without_an_installer(self):
         self.config.write_text("[data]\n")
         self.args.apply = True
-        data = subprocess.CompletedProcess([], 0, stdout=json.dumps({"desktopShell": "canopa"}))
-        for distro, builds in (("arch", True),):
-            with self.subTest(distro=distro), \
-                    patch.object(self.setup.shutil, "which", return_value="/usr/bin/chezmoi"), \
-                    patch.object(self.setup, "run", return_value=data) as commands, \
-                    redirect_stdout(io.StringIO()):
-                self.setup.configure(self.args, distro)
-                build_commands = [call.args[0] for call in commands.call_args_list
-                                  if call.args[0] == [REPO / "scripts/install-canopa"]]
-                self.assertEqual(bool(build_commands), builds)
+        data = subprocess.CompletedProcess([], 0, stdout="{}")
+        output = io.StringIO()
+        with patch.object(self.setup.shutil, "which", side_effect=lambda program: program), \
+                patch.object(self.setup, "run", return_value=data) as commands, redirect_stdout(output):
+            self.setup.configure(self.args, "arch")
+        self.assertIn("Using the installed Canopa desktop", output.getvalue())
+        self.assertEqual([call.args[0][-1] for call in commands.call_args_list], ["diff", "--format=json", "apply"])
+
+    def test_missing_canopa_stops_before_apply_unless_explicitly_skipped(self):
+        self.config.write_text("[data]\n")
+        self.args.apply = True
+        data = subprocess.CompletedProcess([], 0, stdout='{"desktopShell":"canopa"}')
+        with patch.object(self.setup.shutil, "which", side_effect={"chezmoi": "/usr/bin/chezmoi"}.get), \
+                patch.object(self.setup, "run", return_value=data) as commands, redirect_stdout(io.StringIO()):
+            with self.assertRaisesRegex(RuntimeError, "install the Canopa desktop and compositor"):
+                self.setup.configure(self.args, "arch")
+            self.assertEqual([call.args[0][-1] for call in commands.call_args_list], ["diff", "--format=json"])
+            commands.reset_mock()
+            self.args.skip_desktop_build = True
+            self.setup.configure(self.args, "arch")
+            self.assertEqual([call.args[0][-1] for call in commands.call_args_list], ["diff", "--format=json", "apply"])
 
     def test_scheduler_helper_build_follows_apply_only_when_selected(self):
         self.config.write_text("[data]\n")

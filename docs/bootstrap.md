@@ -33,15 +33,12 @@ CPU/GPU groups. Optional Brother AUR drivers remain documented in the package da
 build them explicitly as an ordinary user after reviewing their PKGBUILDs. No AUR
 helper is installed merely to install official packages.
 
-Canopa now uses its complete packaged desktop and compatible compositor, rather
-than six binaries in `~/.local/bin`. `./setup` builds pinned, checksummed Arch
-packages as the ordinary user, then installs through pacman. All applications,
-lockscreen PAM policy, session entry and portal registration are included. The
-optional login package does not select a display manager until
-`./setup login --apply`. See [Canopa installation and migration](canopa.md) for backups, local
-source builds and TTY upgrade steps. Native Settings owns display/input and idle
-preferences; Kanshi, Swayidle, Thunar's daemon and Hyprpolkitagent remain in the
-Waybar fallback session.
+The Canopa profile uses the existing packaged desktop and compatible compositor.
+The packages provide applications, lockscreen PAM policy, session entry and
+portal registration. See [Canopa setup](canopa.md) for reusing a build and
+reviewing older user portal overrides. Native Settings owns display, input and
+idle preferences. Kanshi, Swayidle, Thunar and Hyprpolkitagent belong to the
+Waybar profile.
 
 When `processScheduler = true`, setup also builds the recorded Rust helper from
 the [scheduler fork](https://github.com/kevinard/system76-scheduler-niri), using
@@ -51,8 +48,8 @@ See [scheduler activation and rollback](desktop.md#optional-process-scheduler).
 
 Select **Canopa** in an existing login manager, or run `canopa-session` from a
 TTY. The packaged Canopa target starts its companions after compositor readiness.
-The dotfiles add clipboard watchers, optional battery alerts and the opted-in
-scheduler. The ordinary Niri/Waybar session retains its `niri.service` integration.
+The dotfiles add optional battery alerts and the opted-in scheduler. The ordinary
+Niri/Waybar session retains its clipboard watchers and `niri.service` integration.
 The personal start page follows the graphical session and serves loopback only.
 
 Arch's reconciliation script runs after every apply, reloads unit definitions, and

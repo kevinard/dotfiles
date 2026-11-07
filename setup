@@ -7,7 +7,7 @@ case "${1:-}" in
         cat <<'HELP'
 Usage: ./setup [--preview | --customize | login | system | scheduler | ssh | auth | check]
 
-  ./setup              Install/update packages, dotfiles and the selected desktop.
+  ./setup              Install/update dotfiles and their packages. Uses installed Canopa.
   ./setup --preview    Show changes without applying them.
   ./setup --customize  Choose initial settings, or edit your saved configuration.
   ./setup login        Preview Canopa Greeter; --apply selects it for next boot.

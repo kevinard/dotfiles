@@ -1,7 +1,7 @@
 {{- $m := includeTemplate "machine" . | fromJson -}}
 {{- $p := index .palettes .themeFlavour -}}
 // Bundled Canopa spine, quick settings, applications and session confirmations.
-// After editing this file in Settings, use chezmoi merge to retain the changes.
+// Created only when missing so Settings can edit it.
 schema-version 1
 appearance {
     color-scheme "{{ if eq .themeFlavour "latte" }}light{{ else }}dark{{ end }}"
@@ -97,7 +97,7 @@ shell {
         module "clock" { format "{time}"; ui { padding 16 0; }; }
     }
     menus {
-        menu "Applications" show-icons=#true prompt="Search applications" { source "installed-apps"; }
+        menu "Applications" show-icons=#true prompt="Search apps and files" { source "launcher"; }
         menu "Log out?" prompt="Unsaved work may be lost" {
             item "Cancel" { open-bar-panel; }
             item "Log out" { command { argv "niri" "msg" "action" "quit" "--skip-confirmation"; }; }

@@ -5,15 +5,19 @@ Already have Arch installed? Start at step 1. For a new disk, use the
 
 ## 1. Install your configuration
 
+The default Canopa profile uses an installed Canopa desktop and compositor.
+If you have built them already, install the matching package files from that
+build. See [Canopa setup](canopa.md).
+
 From this checkout, as your normal user:
 
 ```sh
 ./setup
 ```
 
-It asks for home/work, email and name, then installs packages, applies dotfiles
-and builds/installs the full Canopa desktop and compatible compositor as Arch
-packages. CPU, GPU and battery are detected; hybrid GPUs get an extra choice. Defaults: Canopa, mocha/lavender, TLP on laptops, no GPG signing.
+It asks for home/work, email and name, then installs dotfiles packages and
+applies configuration. CPU, GPU and battery are detected; hybrid GPUs get an
+extra choice. Defaults are Canopa, mocha/lavender, TLP on laptops and no GPG signing.
 
 Use `./setup --preview` to inspect changes first, or `./setup --customize` to choose
 everything on first install (it opens the config editor on an existing machine).
@@ -27,7 +31,7 @@ Select **Canopa** in your existing greeter, or run `canopa-session` from a TTY.
 Run `desktop-health` inside Canopa to check its services. Waybar users select the
 ordinary Niri session or run `niri-session` instead.
 
-For the Canopa login screen:
+With the optional `canopa-login` package installed, select the Canopa login screen:
 
 ```sh
 ./setup login             # Preview greetd configuration

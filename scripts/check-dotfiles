@@ -84,6 +84,11 @@ def check_profile(fixture, source, work):
     assert units + "canopa-shell.service" not in rendered # Owned by the system package.
     assert (units + "canopa-session.target.d/50-dotfiles.conf" in rendered) == (shell == "canopa")
     assert (units + "waybar.service" in rendered) == (shell == "waybar")
+    for path in (".config/rofi/config.rasi", ".config/Thunar/uca.xml", ".config/xfce4/helpers.rc",
+                 ".config/xdg-desktop-portal/niri-portals.conf", ".gnupg/gpg-agent.conf",
+                 units + "cliphist@.service"):
+        assert (path in rendered) == (shell == "waybar"), path
+    assert ".config/xdg-desktop-portal/canopa-portals.conf" not in rendered
     assert (".config/niri/config.kdl" in rendered) == (desktop == "niri")
     assert (units + "ssh-agent.service" in rendered) == arch
     if arch:
@@ -101,18 +106,22 @@ def check_profile(fixture, source, work):
         if shell == "canopa":
             wants = rendered[units + "canopa-session.target.d/50-dotfiles.conf"]["contents"]
             assert ("system76-scheduler-niri.service" in wants) == scheduler
+            assert "cliphist" not in wants
             assert "org.canopa.Files.desktop" in rendered[".config/mimeapps.list"]["contents"]
+            assert "thunar.desktop" not in rendered[".config/mimeapps.list"]["contents"]
         installed = set()
         for line in package_script.splitlines():
             if line.startswith("sudo pacman -Syu --needed "):
                 installed.update(shlex.split(line)[4:])
         assert {"pam-u2f", "libfido2"} <= installed
         assert ("system76-scheduler" in installed) == scheduler
-        if shell == "canopa":
-            assert {"pam", "polkit", "gtk4", "clang", "cmake", "wayland-protocols",
-                    "libdisplay-info", "libpipewire", "seatd", "pango", "cairo", "libdrm",
-                    "gst-plugins-base-libs", "libqalculate", "udisks2", "foot", "greetd",
-                    "cage", "gnupg", "pinentry", "sound-theme-freedesktop"} <= installed
+        fallback_packages = {"thunar", "rofi", "xdg-desktop-portal-gnome", "sddm",
+                             "hyprpolkitagent", "swayidle", "swaylock", "cliphist", "wdisplays"}
+        if shell == "waybar":
+            assert fallback_packages <= installed
+        else:
+            assert installed.isdisjoint(fallback_packages | {"clang", "cmake", "greetd", "cage", "meson"})
+        assert ("rustup" in installed) == scheduler
         if data["env"] == "work":
             assert "telegram-desktop" not in installed
     if desktop == "niri" and shutil.which("niri"):
