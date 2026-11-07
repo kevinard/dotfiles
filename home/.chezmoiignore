@@ -28,7 +28,6 @@
 .config/systemd/user/swayidle.service
 .config/systemd/user/thunar.service
 .config/systemd/user/waybar.service
-.gnupg/gpg-agent.conf
 .local/bin/clipboard-store
 .local/bin/import-gsettings
 {{ end }}

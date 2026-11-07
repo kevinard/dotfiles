@@ -85,9 +85,15 @@ def check_profile(fixture, source, work):
     assert (units + "canopa-session.target.d/50-dotfiles.conf" in rendered) == (shell == "canopa")
     assert (units + "waybar.service" in rendered) == (shell == "waybar")
     for path in (".config/rofi/config.rasi", ".config/Thunar/uca.xml", ".config/xfce4/helpers.rc",
-                 ".config/xdg-desktop-portal/niri-portals.conf", ".gnupg/gpg-agent.conf",
+                 ".config/xdg-desktop-portal/niri-portals.conf",
                  units + "cliphist@.service"):
         assert (path in rendered) == (shell == "waybar"), path
+    pinentry = "/usr/bin/canopa-pinentry" if shell == "canopa" else "/usr/bin/pinentry"
+    assert ".gnupg" not in rendered
+    assert ".config/gnupg/scdaemon.conf" in rendered
+    agent_config = rendered[".config/gnupg/gpg-agent.conf"]["contents"]
+    assert [line for line in agent_config.splitlines() if line.startswith("pinentry-program ")] == [
+        f"pinentry-program {pinentry}"]
     assert ".config/xdg-desktop-portal/canopa-portals.conf" not in rendered
     assert (".config/niri/config.kdl" in rendered) == (desktop == "niri")
     assert (units + "ssh-agent.service" in rendered) == arch
@@ -136,7 +142,8 @@ def check_profile(fixture, source, work):
     # Exercise .profile under all supported shells, not just their parsers.
     environment = {"HOME": str(destination), "PATH": "/usr/bin:/bin", "LESSOPEN": ""}
     for interpreter in ("sh", "bash", "zsh"):
-        run([interpreter, "-c", '. "$1"', "dotfiles-test", str(profile)], env=environment)
+        run([interpreter, "-c", '. "$1"; test "$GNUPGHOME" = "$HOME/.config/gnupg"',
+             "dotfiles-test", str(profile)], env=environment)
     run(["zsh", "-n", str(destination / ".zshenv")])
     run(["zsh", "-n", str(destination / ".config/zsh/.zprofile")])
     run(["zsh", "-f", "-c", 'source "$HOME/.config/zsh/.zshrc"; test "$SCALINGO_HOME" = "$HOME/scalingo"'], env=environment)

@@ -197,7 +197,7 @@ def main(argv=None):
             REVISION + "\n" + STASIS_REVISION + "\n" + package_versions() + "\n")
     retire_companions(state, Path.home() / ".local/bin")
     retire_unit_overrides(state, config.parent.parent / "systemd/user")
-    configure_pinentry(state, Path(os.environ.get("GNUPGHOME", Path.home() / ".gnupg")),
+    configure_pinentry(state, Path(os.environ.get("GNUPGHOME") or Path.home() / ".config/gnupg"),
                        Path.home() / ".local/bin/desktop-pinentry")
     run(["systemctl", "--user", "daemon-reload"])
     print("Log out and select Canopa at login. ./setup login previews the optional Canopa login screen.")
