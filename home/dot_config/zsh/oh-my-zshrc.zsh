@@ -43,9 +43,18 @@ zstyle ':completion:*:*:docker-*:*' option-stacking yes
 # Add wisely, as too many plugins slow down shell startup.
 plugins=(git colored-man-pages extract spaceship-section-scalingo docker docker-compose fzf jsontools zsh-syntax-highlighting zsh-history-substring-search zsh-autosuggestions)
 
+# Completion cache belongs in XDG cache, not in the configuration directory.
+[[ -d ${XDG_CACHE_HOME:-$HOME/.cache}/zsh ]] || mkdir -p "${XDG_CACHE_HOME:-$HOME/.cache}/zsh"
+ZSH_COMPDUMP="${XDG_CACHE_HOME:-$HOME/.cache}/zsh/zcompdump-${HOST%%.*}-${ZSH_VERSION}"
+
 source $ZSH/oh-my-zsh.sh
 
 bindkey '^[[A' history-substring-search-up
 bindkey '^[[B' history-substring-search-down
+# oh-my-zsh enables application keypad mode, where arrows send the terminfo
+# sequences (^[OA/^[OB in kitty) instead of ^[[A/^[[B.
+zmodload -i zsh/terminfo
+[[ -n ${terminfo[kcuu1]} ]] && bindkey "${terminfo[kcuu1]}" history-substring-search-up
+[[ -n ${terminfo[kcud1]} ]] && bindkey "${terminfo[kcud1]}" history-substring-search-down
 
 ZSH_THEME_TERM_TITLE_IDLE="%~"

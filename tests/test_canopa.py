@@ -33,31 +33,6 @@ class CanopaInstall(unittest.TestCase):
         self.state = self.root / 'state'
         self.state.mkdir()
 
-    def test_pinentry_migration_preserves_options_and_backs_up_previous_config(self):
-        gnupg = self.root / 'gnupg'
-        gnupg.mkdir()
-        config = gnupg / 'gpg-agent.conf'
-        original = '# My agent\ndefault-cache-ttl 300\npinentry-program /old/pinentry\nenable-ssh-support\n'
-        config.write_text(original)
-        with redirect_stdout(io.StringIO()):
-            self.installer.configure_pinentry(self.state, gnupg, Path('/home/test/desktop-pinentry'))
-            self.installer.configure_pinentry(self.state, gnupg, Path('/home/test/desktop-pinentry'))
-        self.assertEqual(config.read_text(), '# My agent\ndefault-cache-ttl 300\nenable-ssh-support\npinentry-program /home/test/desktop-pinentry\n')
-        backups = list(self.state.glob('gnupg-*/gpg-agent.conf'))
-        self.assertEqual(len(backups), 1)
-        self.assertEqual(backups[0].read_text(), original)
-        self.assertEqual(config.stat().st_mode & 0o777, 0o600)
-
-    def test_pinentry_refuses_symlink_without_modifying_target(self):
-        target = self.root / 'agent'
-        target.write_text('keep me\n')
-        gnupg = self.root / 'gnupg'
-        gnupg.mkdir()
-        (gnupg / 'gpg-agent.conf').symlink_to(target)
-        with self.assertRaisesRegex(RuntimeError, 'non-regular'):
-            self.installer.configure_pinentry(self.state, gnupg, Path('/pinentry'))
-        self.assertEqual(target.read_text(), 'keep me\n')
-
     def test_local_binary_migration_retains_unrelated_tools_and_original_symlink(self):
         local = self.root / 'bin'
         local.mkdir()
@@ -111,8 +86,7 @@ class CanopaInstall(unittest.TestCase):
                                  return_value=([self.root / 'canopa.pkg'], '1.95.0')), \
                     patch.object(self.installer, 'build_stasis', return_value=[self.root / 'stasis.pkg']), \
                     patch.object(self.installer, 'run') as commands, \
-                    patch.object(self.installer, 'retire_companions') as retire, \
-                    patch.object(self.installer, 'configure_pinentry') as pinentry, redirect_stdout(io.StringIO()):
+                    patch.object(self.installer, 'retire_companions') as retire, redirect_stdout(io.StringIO()):
                 if failed:
                     with self.assertRaisesRegex(RuntimeError, 'failed'):
                         self.installer.main(['--build-only'])
@@ -120,7 +94,6 @@ class CanopaInstall(unittest.TestCase):
                     self.installer.main(['--build-only'])
                 commands.assert_not_called()
                 retire.assert_not_called()
-                pinentry.assert_not_called()
         self.assertFalse((self.state / 'canopa/dotfiles-installed-packages').exists())
 
     def test_install_failure_or_active_desktop_preserves_local_binaries_and_unit_overrides(self):

@@ -9,9 +9,18 @@ import shlex
 import shutil
 import subprocess
 import sys
+import tomllib
 
 
 REPO = Path(__file__).resolve().parents[1]
+
+
+def nvidia_open_supported(device):
+    """nvidia-open needs Turing or newer; NVIDIA PCI device IDs from 0x1e00 onward."""
+    try:
+        return int(device, 16) >= 0x1E00
+    except ValueError:
+        return True # Unknown device: keep the vendor and let the driver choice stand.
 
 
 def hardware_defaults(sys_root=Path("/sys"), cpuinfo=Path("/proc/cpuinfo")):
@@ -31,7 +40,10 @@ def hardware_defaults(sys_root=Path("/sys"), cpuinfo=Path("/proc/cpuinfo")):
     for path in (sys_root / "class/drm").glob("card*/device/vendor"):
         card = path.parent.parent.name
         if card.startswith("card") and card[4:].isdigit():
-            vendors.add(gpu_names.get(read(path).lower(), "none"))
+            vendor = gpu_names.get(read(path).lower(), "none")
+            if vendor == "nvidia" and not nvidia_open_supported(read(path.parent / "device")):
+                vendor = "none" # Maxwell/Pascal/Volta: nouveau from the distribution defaults.
+            vendors.add(vendor)
     # Hybrid systems need a real choice; never silently select one vendor's driver.
     gpu = next(iter(vendors)) if len(vendors) == 1 else (None if vendors else "none")
     return battery, cpu, gpu
@@ -53,6 +65,21 @@ def default_init_options(distro):
     for question, answer in choices.items():
         options += ["--promptChoice", question + "=" + answer]
     return options
+
+
+# Choices added after a configuration was first saved; without them the machine
+# template silently falls back to generic defaults (for example no CPU microcode).
+HARDWARE_KEYS = ("desktopShell", "hasBattery", "cpuVendor", "gpuVendor", "powerManager")
+
+
+def missing_choices(config, distro):
+    if distro != "arch":
+        return []
+    try:
+        data = tomllib.loads(config.read_text()).get("data", {})
+    except (OSError, tomllib.TOMLDecodeError):
+        return [] # chezmoi reports unreadable configuration itself.
+    return [key for key in HARDWARE_KEYS if key not in data]
 
 
 def run(argv, **kwargs):
@@ -78,6 +105,13 @@ def configure(args, distro):
     elif args.reconfigure:
         run(command + ["init"])
     elif not args.config.exists():
+        run(command + ["init"] + default_init_options(distro))
+    elif missing := missing_choices(args.config, distro):
+        # Saved answers are kept; only the missing choices take detected defaults.
+        backup = args.config.with_name(args.config.name + ".bak")
+        shutil.copy2(args.config, backup)
+        print(f"Saved configuration lacks {', '.join(missing)}; adding detected defaults "
+              f"(previous file kept as {backup}).")
         run(command + ["init"] + default_init_options(distro))
     run(command + ["--no-pager", "diff"])
     if not args.apply:

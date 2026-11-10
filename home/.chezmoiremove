@@ -1,4 +1,6 @@
 .local/bin/mise
+# Completion caches now live in $XDG_CACHE_HOME/zsh.
+.config/zsh/.zcompdump-*
 {{ if eq .chezmoi.osRelease.id "arch" -}}
 .local/bin/hyprland-run-or-raise
 .local/bin/hyprland-samedir
@@ -6,6 +8,11 @@
 .config/uwsm/env
 .config/xdg-desktop-portal/sway-portals.conf
 .config/systemd/user/udiskie.service
+.config/systemd/user/hypridle.service
+.config/systemd/user/hyprpaper.service
+.config/systemd/user/dunst.service
+# Replaced by ssh-agent.service.d on top of the packaged OpenSSH unit.
+.config/systemd/user/ssh-agent.service
 .local/share/applications/chromium.desktop
 .local/share/applications/code.desktop
 .local/bin/color-picker

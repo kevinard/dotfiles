@@ -140,26 +140,6 @@ def retire_unit_overrides(state, unit_dir):
         print(f"Previous local unit overrides saved in {backup}")
 
 
-def configure_pinentry(state, gnupg, program):
-    gnupg.mkdir(mode=0o700, parents=True, exist_ok=True)
-    path = gnupg / "gpg-agent.conf"
-    if path.is_symlink() or (path.exists() and not path.is_file()):
-        raise RuntimeError(f"review non-regular GnuPG configuration: {path}")
-    original = path.read_text() if path.exists() else ""
-    lines = [line for line in original.splitlines()
-             if line.split(None, 1)[:1] != ["pinentry-program"]]
-    lines.append("pinentry-program " + str(program))
-    updated = "\n".join(lines) + "\n"
-    if updated == original:
-        return
-    if path.exists():
-        backup = Path(tempfile.mkdtemp(prefix="gnupg-", dir=state)) / path.name
-        shutil.copy2(path, backup)
-    with tempfile.NamedTemporaryFile(mode="w", dir=gnupg, delete=False) as temporary:
-        temporary.write(updated)
-    os.replace(temporary.name, path)
-    print("Pinentry configured; run gpgconf --reload gpg-agent in your next graphical session.")
-
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
@@ -197,8 +177,6 @@ def main(argv=None):
             REVISION + "\n" + STASIS_REVISION + "\n" + package_versions() + "\n")
     retire_companions(state, Path.home() / ".local/bin")
     retire_unit_overrides(state, config.parent.parent / "systemd/user")
-    configure_pinentry(state, Path(os.environ.get("GNUPGHOME") or Path.home() / ".config/gnupg"),
-                       Path.home() / ".local/bin/desktop-pinentry")
     run(["systemctl", "--user", "daemon-reload"])
     print("Log out and select Canopa at login. ./setup login previews the optional Canopa login screen.")
 

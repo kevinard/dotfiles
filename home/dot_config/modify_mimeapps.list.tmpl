@@ -1,0 +1,34 @@
+#!/usr/bin/env python3
+"""Merge managed MIME defaults into the current file, keeping application entries."""
+import sys
+
+# Managed keys win; keys that applications register (x-scheme-handler/...) survive.
+MANAGED = r"""{{ includeTemplate "mimeapps" . }}"""
+
+
+def parse(text):
+    order, sections, current = [], {}, None
+    for line in text.splitlines():
+        line = line.strip()
+        if line.startswith("[") and line.endswith("]"):
+            current = line
+            if current not in sections:
+                order.append(current)
+                sections[current] = {}
+        elif current and "=" in line and not line.startswith(("#", ";")):
+            key, value = line.split("=", 1)
+            sections[current][key.strip()] = value.strip()
+    return order, sections
+
+
+order, merged = parse(MANAGED)
+current_order, current = parse(sys.stdin.read())
+for section in current_order:
+    if section not in merged:
+        order.append(section)
+        merged[section] = {}
+    for key, value in current[section].items():
+        merged[section].setdefault(key, value)
+sys.stdout.write("\n".join(
+    "\n".join([section] + [f"{key}={value}" for key, value in merged[section].items()]) + "\n"
+    for section in order))

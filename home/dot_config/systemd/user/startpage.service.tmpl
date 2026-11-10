@@ -1,11 +1,11 @@
 [Unit]
-Description=Local start page (8080)
+Description=Local start page (127.0.0.1:24080, clear of common dev ports)
 {{ includeTemplate "graphical-unit" . }}
 ConditionPathIsDirectory=%h/.local/share/tilde
 
 [Service]
 WorkingDirectory=%h/.local/share/tilde
-ExecStart=/usr/bin/python3 -m http.server 8080 --bind 127.0.0.1
+ExecStart=/usr/bin/python3 -m http.server 24080 --bind 127.0.0.1
 Restart=on-failure
 NoNewPrivileges=true
 

@@ -1,0 +1,65 @@
+{{- if eq .chezmoi.osRelease.id "arch" -}}
+{{- $m := includeTemplate "machine" . | fromJson -}}
+#!/bin/bash
+# Runs when this rendered script changes (machine choices or unit lists), not on
+# every apply; run_after_85-systemd-reload.sh reloads changed units each time.
+set -euo pipefail
+unit_dir="${XDG_CONFIG_HOME:-$HOME/.config}/systemd/user"
+mkdir -p "$unit_dir"
+# Remove only enablement links for units previously owned by this repository.
+# This also removes the untracked default.target link that kept the start page alive.
+for target in default.target graphical-session.target sway-session.target wayland-session@hyprland.desktop.target niri.service canopa-session.target timers.target; do
+    for unit in startpage.service startpage-work.service thunar.service udiskie.service kanshi.service waybar.service cliphist@text.service cliphist@image.service battery-alert.timer hypridle.service hyprpaper.service swayidle.service canopa-shell.service canopa-notify.service canopa-session.target dunst.service hyprpolkitagent.service polkit-agent.service system76-scheduler-niri.service ssh-agent.service; do
+        rm -f -- "$unit_dir/$target.wants/$unit"
+    done
+    rmdir --ignore-fail-on-non-empty -- "$unit_dir/$target.wants" 2>/dev/null || true
+done
+# .chezmoiignore stops managing the other shell's units but never deletes them;
+# remove those repository-owned leftovers so they cannot start or confuse status.
+{{ if ne $m.shell "waybar" -}}
+rm -f -- "$unit_dir"/{cliphist@,kanshi,swayidle,thunar,waybar}.service
+rm -rf -- "$unit_dir"/{dunst,hyprpolkitagent}.service.d
+{{ end -}}
+{{ if ne $m.shell "canopa" -}}
+rm -rf -- "$unit_dir"/canopa-{compositor,idle,lock,notify,polkit,shell,wallpaper}.service.d \
+    "$unit_dir/canopa-session.target.d" "$unit_dir/xdg-desktop-portal-canopa.service.d"
+{{ end -}}
+{{ if not $m.battery -}}
+rm -f -- "$unit_dir"/battery-alert.{service,timer}
+{{ end -}}
+{{ if not $m.scheduler -}}
+rm -f -- "$unit_dir/system76-scheduler-niri.service"
+{{ end -}}
+systemctl --user daemon-reload
+systemctl --user enable startpage.service
+{{ if eq $m.shell "waybar" -}}
+for unit in kanshi.service swayidle.service cliphist@text.service cliphist@image.service thunar.service hyprpolkitagent.service waybar.service dunst.service; do
+    systemctl --user add-wants niri.service "$unit"
+done
+{{ if $m.battery -}}
+systemctl --user add-wants niri.service battery-alert.timer
+{{ end -}}
+{{ if $m.scheduler -}}
+systemctl --user add-wants niri.service system76-scheduler-niri.service
+{{ end -}}
+{{ end -}}
+# The packaged Canopa target owns its companions and the dotfiles target drop-in.
+# Apply takes effect at next login; no mid-session daemon replacement or restart.
+# The packaged ssh-agent.service enables its socket (Also=ssh-agent.socket).
+systemctl --user enable ssh-agent.service
+# Ask for sudo only when a system unit is not enabled yet.
+system_units=(docker.socket cups.socket bluetooth.service)
+{{ if eq $m.power "tlp" -}}
+system_units+=(tlp.service)
+{{ end -}}
+{{ if eq $m.cpu "intel" -}}
+system_units+=(thermald.service)
+{{ end -}}
+pending=()
+for unit in "${system_units[@]}"; do
+    systemctl is-enabled --quiet "$unit" 2>/dev/null || pending+=("$unit")
+done
+if ((${#pending[@]})); then
+    sudo systemctl enable "${pending[@]}"
+fi
+{{ end -}}

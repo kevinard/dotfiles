@@ -3,9 +3,9 @@ Operation=Install
 Operation=Upgrade
 Operation=Remove
 Type=Package
-# Uncomment the installed NVIDIA package
-Target=nvidia
-#Target=nvidia-open
+# Uncomment the installed NVIDIA package (Arch ships nvidia-open for Turing and newer)
+Target=nvidia-open
+#Target=nvidia
 #Target=nvidia-lts
 # If running a different kernel, modify below to match
 Target=linux

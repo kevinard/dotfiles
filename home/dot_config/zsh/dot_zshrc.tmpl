@@ -24,6 +24,15 @@ _fzf_compgen_dir() {
 }
 source "${ZDOTDIR:-$HOME}/custom/themes/catppuccin_{{ .themeFlavour }}-fzf.zsh"
 
+# History is state, not configuration; move the previous file once.
+zsh_state="${XDG_STATE_HOME:-$HOME/.local/state}/zsh"
+[[ -d $zsh_state ]] || mkdir -p -m 700 "$zsh_state"
+if [[ ! -e $zsh_state/history && -f ${ZDOTDIR:-$HOME}/.zsh_history ]]; then
+  mv -- "${ZDOTDIR:-$HOME}/.zsh_history" "$zsh_state/history"
+fi
+export HISTFILE="$zsh_state/history"
+unset zsh_state
+
 # Source oh-my-zsh
 if [[ -s "${ZDOTDIR:-$HOME}/oh-my-zsh/oh-my-zsh.sh" ]]; then
   source "${ZDOTDIR:-$HOME}/oh-my-zshrc.zsh"
@@ -49,7 +58,6 @@ alias fournill="ledger --file ~/fournill/ledger/main.journal"
 alias ans="source $HOME/.local/venv/ansible/bin/activate"
 {{- end }}
 
-export HISTFILE="$ZDOTDIR/.zsh_history"
 alias wget="wget --hsts-file=${XDG_DATA_HOME:-$HOME/.local/share}/wget-hsts"
 if (( $+commands[mise] )); then eval "$(mise activate zsh)"; fi
 if [[ -t 0 ]] && (( $+commands[gpg-connect-agent] )); then

@@ -58,8 +58,9 @@ later. Battery waits are two minutes, 30 seconds and five minutes. These waits a
 sequential. Change them in Settings. Canopa starts its own Stasis supervisor.
 Manual locking is available with or without Stasis.
 
-The Canopa profile sets `pinentry-program /usr/bin/canopa-pinentry` in
-`~/.config/gnupg/gpg-agent.conf`. On an existing install with `~/.gnupg`, stop
+The Canopa profile sets `pinentry-program ~/.local/bin/desktop-pinentry` in
+`~/.config/gnupg/gpg-agent.conf`: Canopa pinentry in a graphical session,
+`pinentry-curses` over SSH or on a TTY. On an existing install with `~/.gnupg`, stop
 GnuPG with `gpgconf --kill all` and move that directory to `~/.config/gnupg`
 before applying the dotfiles. Log in again to pick up `GNUPGHOME`.
 

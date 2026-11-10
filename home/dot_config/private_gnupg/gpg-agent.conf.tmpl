@@ -1,5 +1,6 @@
 {{- $m := includeTemplate "machine" . | fromJson -}}
-pinentry-program {{ if eq $m.shell "canopa" }}/usr/bin/canopa-pinentry{{ else }}/usr/bin/pinentry{{ end }}
+# Canopa dialogs fall back to pinentry-curses outside a graphical session.
+pinentry-program {{ if eq $m.shell "canopa" }}{{ joinPath .chezmoi.homeDir ".local/bin/desktop-pinentry" }}{{ else }}/usr/bin/pinentry{{ end }}
 default-cache-ttl 600
 max-cache-ttl 7200
 default-cache-ttl-ssh 60480000

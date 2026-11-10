@@ -1,8 +1,9 @@
 # Installation requirements, composed by desktop and hardware; not a removal policy.
 packages:
   arch:
+    # nvidia-open supports Turing (GTX 16xx/RTX 20xx) and newer; older cards keep nouveau.
     nvidia_graphics:
-    - nvidia
+    - nvidia-open
     - nvidia-utils
     - libva-nvidia-driver
     intel_graphics:
@@ -136,6 +137,7 @@ packages:
     - curl
     - python
     - libnotify
+    - pinentry
     - mise
     - tmux
     - less
@@ -178,7 +180,6 @@ packages:
     - waybar
     - dunst
     - python-gobject
-    - pinentry
     personal:
     - telegram-desktop
     tlp:

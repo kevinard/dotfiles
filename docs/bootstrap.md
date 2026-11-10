@@ -16,14 +16,15 @@ discarding identity/signing settings:
 desktopShell = "canopa"
 hasBattery = true
 cpuVendor = "intel" # choose the actual CPU; use "none" for a VM/unknown vendor
-gpuVendor = "intel" # choose the actual GPU; supports amd/nvidia/none too
+gpuVendor = "intel" # actual GPU: amd/nvidia/none too; nvidia means nvidia-open (Turing+), older NVIDIA uses none
 powerManager = "tlp"
 processScheduler = false # Optional; see desktop.md for activation and rollback
 projectPaths = ["/home/kevinard/projects"]
 ```
 
-Arch uses niri; `desktopShell` selects Canopa or the Waybar fallback. Legacy CPU
-selection defaults to `none`, rather than guessing microcode or thermal daemons.
+Arch uses niri; `desktopShell` selects Canopa or the Waybar fallback. `./setup` now adds
+missing hardware choices from detection (keeping a `.bak` copy); edit them afterwards
+with `chezmoi edit-config` if detection was wrong.
 `chezmoi init` offers validated choices for new hardware fields on Arch only.
 The former `desktop` field is no longer used on Arch.
 

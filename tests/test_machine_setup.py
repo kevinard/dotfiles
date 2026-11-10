@@ -17,6 +17,8 @@ from unittest.mock import patch
 
 sys.dont_write_bytecode = True
 REPO = Path(__file__).resolve().parents[1]
+COMPLETE_CONFIG = ('[data]\ndesktopShell = "canopa"\nhasBattery = false\ncpuVendor = "intel"\n'
+                   'gpuVendor = "intel"\npowerManager = "none"\n')
 
 
 class MachineSetup(unittest.TestCase):
@@ -43,12 +45,25 @@ class MachineSetup(unittest.TestCase):
             self.assertIn(str(self.config), call.args[0])
 
     def test_existing_configuration_is_not_regenerated(self):
-        self.config.write_text("[data]\n")
+        self.config.write_text(COMPLETE_CONFIG)
         with patch.object(self.setup.shutil, "which", return_value="/usr/bin/chezmoi"), \
                 patch.object(self.setup, "run") as commands, redirect_stdout(io.StringIO()):
             self.setup.configure(self.args, "arch")
         self.assertEqual(len(commands.call_args_list), 1)
         self.assertEqual(commands.call_args.args[0][-1], "diff")
+
+    def test_legacy_configuration_gains_missing_choices_with_backup(self):
+        legacy = '[data]\nenv = "home"\ngraphicsStack = "intel"\n'
+        self.config.write_text(legacy)
+        output = io.StringIO()
+        with patch.object(self.setup.shutil, "which", return_value="/usr/bin/chezmoi"), \
+                patch.object(self.setup, "default_init_options", return_value=["--defaults"]), \
+                patch.object(self.setup, "run") as commands, redirect_stdout(output):
+            self.setup.configure(self.args, "arch")
+        self.assertEqual(commands.call_args_list[0].args[0][-2:], ["init", "--defaults"])
+        self.assertEqual(commands.call_args_list[1].args[0][-1], "diff")
+        self.assertIn("cpuVendor", output.getvalue())
+        self.assertEqual((self.config.parent / "chezmoi.toml.bak").read_text(), legacy)
 
     def test_customize_preserves_existing_config_and_offers_editor(self):
         original = '[data]\nenv="work"\n\n[git]\nautoCommit=false\n'
@@ -91,12 +106,21 @@ class MachineSetup(unittest.TestCase):
             options = self.setup.default_init_options("arch")
         self.assertFalse(any(option.startswith("GPU vendor") for option in options))
 
+    def test_pre_turing_nvidia_keeps_distribution_driver(self):
+        root = Path(self.temporary.name)
+        device = root / "class/drm/card0/device"
+        device.mkdir(parents=True)
+        (device / "vendor").write_text("0x10de\n")
+        for pci_id, expected in (("0x1401", "none"), ("0x1db1", "none"), ("0x1e04", "nvidia"), ("0x2684", "nvidia")):
+            (device / "device").write_text(pci_id + "\n")
+            self.assertEqual(self.setup.hardware_defaults(root, root / "missing")[2], expected, pci_id)
+
     def test_missing_hardware_information_uses_generic_packages(self):
         root = Path(self.temporary.name)
         self.assertEqual(self.setup.hardware_defaults(root, root / "missing"), (False, "none", "none"))
 
     def test_failed_apply_stops_before_desktop_build(self):
-        self.config.write_text("[data]\n")
+        self.config.write_text(COMPLETE_CONFIG)
         self.args.apply = True
         data = subprocess.CompletedProcess([], 0, stdout='{"processScheduler":true}')
         with patch.object(self.setup.shutil, "which", return_value="/usr/bin/chezmoi"), \
@@ -106,7 +130,7 @@ class MachineSetup(unittest.TestCase):
         self.assertEqual([call.args[0][-1] for call in commands.call_args_list], ["diff", "--format=json", "apply"])
 
     def test_setup_reuses_installed_canopa_without_an_installer(self):
-        self.config.write_text("[data]\n")
+        self.config.write_text(COMPLETE_CONFIG)
         self.args.apply = True
         data = subprocess.CompletedProcess([], 0, stdout="{}")
         output = io.StringIO()
@@ -117,7 +141,7 @@ class MachineSetup(unittest.TestCase):
         self.assertEqual([call.args[0][-1] for call in commands.call_args_list], ["diff", "--format=json", "apply"])
 
     def test_missing_canopa_stops_before_apply_unless_explicitly_skipped(self):
-        self.config.write_text("[data]\n")
+        self.config.write_text(COMPLETE_CONFIG)
         self.args.apply = True
         data = subprocess.CompletedProcess([], 0, stdout='{"desktopShell":"canopa"}')
         with patch.object(self.setup.shutil, "which", side_effect={"chezmoi": "/usr/bin/chezmoi"}.get), \
@@ -131,7 +155,7 @@ class MachineSetup(unittest.TestCase):
             self.assertEqual([call.args[0][-1] for call in commands.call_args_list], ["diff", "--format=json", "apply"])
 
     def test_scheduler_helper_build_follows_apply_only_when_selected(self):
-        self.config.write_text("[data]\n")
+        self.config.write_text(COMPLETE_CONFIG)
         self.args.apply = True
         for enabled in (False, True):
             for skip in (False, True):
@@ -269,7 +293,7 @@ class MachineSetup(unittest.TestCase):
             commands.assert_called_once_with(expected)
 
     def test_scheduler_uses_saved_opt_in_and_separate_root_stage(self):
-        self.config.write_text("[data]\n")
+        self.config.write_text(COMPLETE_CONFIG)
         for enabled in (False, True):
             for apply in (False, True):
                 self.args.apply = apply
@@ -284,7 +308,7 @@ class MachineSetup(unittest.TestCase):
                 self.assertEqual(len(commands.call_args_list), 3 if apply and not enabled else 2)
 
     def test_scheduler_rejects_non_boolean_before_root_commands(self):
-        self.config.write_text("[data]\n")
+        self.config.write_text(COMPLETE_CONFIG)
         data = subprocess.CompletedProcess([], 0, stdout='{"processScheduler":"false"}')
         with patch.object(self.setup, "run", return_value=data) as commands, self.assertRaisesRegex(RuntimeError, "boolean"):
             self.setup.configure_scheduler(self.args)

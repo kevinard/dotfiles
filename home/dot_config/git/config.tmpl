@@ -55,8 +55,17 @@
   line-numbers = true
   side-by-side = true
 
+{{- with lookPath "gh" }}
+# GitHub CLI credentials (what `gh auth setup-git` writes), kept across applies.
+[credential "https://github.com"]
+  helper =
+  helper = !{{ . }} auth git-credential
+[credential "https://gist.github.com"]
+  helper =
+  helper = !{{ . }} auth git-credential
+{{- end }}
 
-{{- if ne .gpgsign "no" }}
+{{- if and .gpgsign (ne (lower .gpgsign) "no") }}
 # GPG Setup
 [user]
   signingkey = {{ .gpgsign | quote }}
