@@ -1,0 +1,492 @@
+#!/usr/bin/env python3
+"""Tidy a KeePass database for browser/iOS matching and merge a Bitwarden export.
+
+`report` previews every change and never writes. `apply` writes the same changes
+to a NEW file with the same credentials, for you to review and then merge into
+the original with KeePassXC. Passwords are never printed.
+"""
+import argparse
+import base64
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
+import getpass
+import hashlib
+import hmac
+import ipaddress
+import json
+import os
+from pathlib import Path
+import sys
+from urllib.parse import urlsplit
+
+PSL_PATH = Path("/usr/share/publicsuffix/public_suffix_list.dat")
+IMPORT_GROUP = "Imported from Bitwarden"
+ADDITIONAL_URL = "KP2A_URL" # KeePassXC's "Additional URL" attributes: KP2A_URL, KP2A_URL_1, ...
+RESERVED = {"Title", "UserName", "Password", "URL", "Notes", "otp"}
+
+
+# --- Domains ---------------------------------------------------------------------
+
+class Suffixes:
+    """Registrable-domain lookup from the public suffix list (publicsuffix-list package)."""
+
+    def __init__(self, path=None):
+        path = path or PSL_PATH
+        self.rules, self.wildcards, self.exceptions = set(), set(), set()
+        self.available = path.is_file()
+        for line in path.read_text(encoding="utf-8").splitlines() if self.available else ():
+            rule = line.split()[0].lower() if line.strip() and not line.startswith("//") else ""
+            if rule.startswith("!"):
+                self.exceptions.add(rule[1:])
+            elif rule.startswith("*."):
+                self.wildcards.add(rule[2:])
+            elif rule:
+                self.rules.add(rule)
+
+    def suffix_length(self, labels):
+        for start in range(len(labels)):
+            candidate = ".".join(labels[start:])
+            if candidate in self.exceptions:
+                return len(labels) - start - 1
+            if candidate in self.rules or ".".join(labels[start + 1:]) in self.wildcards:
+                return len(labels) - start
+        return 1 # Unlisted TLD, or no list installed: assume example.com.
+
+    def base_domain(self, host):
+        host = host.lower().rstrip(".")
+        try:
+            ipaddress.ip_address(host)
+            return host
+        except ValueError:
+            pass
+        labels = host.split(".")
+        length = self.suffix_length(labels)
+        return ".".join(labels[-(length + 1):]) if len(labels) > length else None
+
+
+def web_host(url):
+    """Hostname of an http(s) or scheme-less URL; None for androidapp://, ssh:// or text."""
+    url = (url or "").strip()
+    if not url or " " in url:
+        return None
+    try:
+        parts = urlsplit(url if "://" in url else "https://" + url)
+        host = parts.hostname
+    except ValueError:
+        return None
+    if parts.scheme not in ("http", "https") or not host or "." not in host:
+        return None
+    return host
+
+
+def with_scheme(url):
+    url = url.strip()
+    return url if "://" in url else "https://" + url
+
+
+# --- KeePass entries ----------------------------------------------------------------
+
+def additional_url_keys(entry):
+    return sorted((key for key in entry.custom_properties if key.startswith(ADDITIONAL_URL)),
+                  key=lambda key: (len(key), key))
+
+
+def entry_urls(entry):
+    return [entry.url or ""] + [entry.get_custom_property(key) or "" for key in additional_url_keys(entry)]
+
+
+def entry_bases(entry, suffixes):
+    return {base for url in entry_urls(entry)
+            if (host := web_host(url)) and (base := suffixes.base_domain(host))}
+
+
+def add_additional_url(entry, url):
+    name, index = ADDITIONAL_URL, 0
+    while name in entry.custom_properties:
+        index += 1
+        name = f"{ADDITIONAL_URL}_{index}"
+    entry.set_custom_property(name, url)
+
+
+def label(entry):
+    return "/".join(part or "(untitled)" for part in entry.path or []) or "(untitled)"
+
+
+def live_entries(kp):
+    """Entries outside the recycle bin."""
+    try:
+        bin_group = kp.recyclebin_group
+    except (AttributeError, TypeError, ValueError):
+        bin_group = None
+    def in_bin(entry):
+        group = entry.group
+        while bin_group is not None and group is not None:
+            if group.uuid == bin_group.uuid:
+                return True
+            group = group.parentgroup
+        return False
+    return [entry for entry in kp.entries if not in_bin(entry)]
+
+
+def password_set_time(entry):
+    """When the current password was set: the snapshot right after the last different one."""
+    current, since = entry.password or "", None
+    for snapshot in sorted(entry.history, key=lambda item: item.mtime, reverse=True):
+        if (snapshot.password or "") != current:
+            return since or entry.mtime
+        since = snapshot.mtime
+    return entry.ctime
+
+
+def sort_history(entry):
+    history = entry._element.find("History")
+    if history is None:
+        return
+    for snapshot in sorted(entry.history, key=lambda item: item.mtime):
+        history.remove(snapshot._element)
+        history.append(snapshot._element)
+
+
+def replace_password(entry, password):
+    entry.save_history()
+    entry.password = password
+    sort_history(entry)
+
+
+def keep_in_history(entry, password, when):
+    """Add `password` as a history snapshot dated `when`; the current password stays."""
+    current, modified = entry.password, entry.mtime
+    entry.password, entry.mtime = password, when
+    entry.save_history()
+    entry.password, entry.mtime = current, modified
+    sort_history(entry)
+
+
+# --- Bitwarden export ------------------------------------------------------------------
+
+def hkdf_expand(key, info):
+    return hmac.new(key, info + b"\x01", hashlib.sha256).digest()
+
+
+def decrypt_encstring(value, enc_key, mac_key):
+    from Cryptodome.Cipher import AES
+    from Cryptodome.Util.Padding import unpad
+    kind, _, body = value.partition(".")
+    if kind != "2":
+        raise ValueError(f"unsupported Bitwarden encryption type {kind}")
+    iv, data, mac = (base64.b64decode(part) for part in body.split("|"))
+    if not hmac.compare_digest(hmac.new(mac_key, iv + data, hashlib.sha256).digest(), mac):
+        raise ValueError("wrong Bitwarden export password, or a damaged export")
+    return unpad(AES.new(enc_key, AES.MODE_CBC, iv).decrypt(data), 16)
+
+
+def export_keys(export, password):
+    secret, salt = password.encode(), export["salt"].encode()
+    if export.get("kdfType", 0) == 0:
+        key = hashlib.pbkdf2_hmac("sha256", secret, salt, export["kdfIterations"], 32)
+    else:
+        from argon2.low_level import Type, hash_secret_raw
+        key = hash_secret_raw(secret, hashlib.sha256(salt).digest(),
+                              time_cost=export["kdfIterations"],
+                              memory_cost=export["kdfMemory"] * 1024,
+                              parallelism=export["kdfParallelism"], hash_len=32, type=Type.ID)
+    return hkdf_expand(key, b"enc"), hkdf_expand(key, b"mac")
+
+
+def load_bitwarden(path, ask=None):
+    ask = ask or getpass.getpass
+    export = json.loads(Path(path).read_text(encoding="utf-8"))
+    if export.get("encrypted") and not export.get("passwordProtected"):
+        raise ValueError("account-restricted exports cannot be read; export as "
+                         "'Password protected' (or unencrypted) JSON")
+    if export.get("encrypted"):
+        keys = export_keys(export, ask("Bitwarden export password: "))
+        decrypt_encstring(export["encKeyValidation_DO_NOT_EDIT"], *keys)
+        export = json.loads(decrypt_encstring(export["data"], *keys))
+    folders = {folder["id"]: folder["name"] for folder in export.get("folders") or []}
+    return [Item.from_export(item, folders) for item in export.get("items") or []]
+
+
+def parse_time(value):
+    if not value:
+        return None
+    moment = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    return moment if moment.tzinfo else moment.replace(tzinfo=timezone.utc)
+
+
+@dataclass
+class Item:
+    kind: str
+    title: str
+    username: str = ""
+    password: str = ""
+    uris: list = field(default_factory=list)
+    notes: str = ""
+    totp: str = ""
+    fields: list = field(default_factory=list) # (name, value, hidden)
+    folder: str = ""
+    created: datetime = None
+    modified: datetime = None
+    password_changed: datetime = None
+    passkeys: int = 0
+
+    @classmethod
+    def from_export(cls, raw, folders):
+        kinds = {1: "login", 2: "note", 3: "card", 4: "identity", 5: "ssh-key"}
+        login = raw.get("login") or {}
+        item = cls(kind=kinds.get(raw.get("type"), "other"), title=raw.get("name") or "",
+                   username=login.get("username") or "", password=login.get("password") or "",
+                   uris=[uri["uri"] for uri in login.get("uris") or [] if uri.get("uri")],
+                   notes=raw.get("notes") or "", totp=login.get("totp") or "",
+                   folder=folders.get(raw.get("folderId"), ""),
+                   created=parse_time(raw.get("creationDate")),
+                   modified=parse_time(raw.get("revisionDate")),
+                   passkeys=len(login.get("fido2Credentials") or []))
+        # Bitwarden records password changes separately from other edits.
+        item.password_changed = parse_time(login.get("passwordRevisionDate")) or item.created
+        item.fields = [(f.get("name") or "Field", f.get("value") or "", f.get("type") == 1)
+                       for f in raw.get("fields") or []]
+        for section, secret in (("card", {"number", "code"}),
+                                ("identity", {"ssn", "passportNumber", "licenseNumber"})):
+            for name, value in (raw.get(section) or {}).items():
+                if value:
+                    item.fields.append((name, str(value), name in secret))
+        return item
+
+    def name(self):
+        return (self.title or "(untitled)") + (f" ({self.username})" if self.username else "")
+
+
+def otp_uri(item):
+    secret = item.totp.strip()
+    if not secret or secret.startswith("otpauth://"):
+        return secret
+    return f"otpauth://totp/{item.title or 'Bitwarden'}?secret={secret.replace(' ', '')}"
+
+
+def add_item(kp, item):
+    group = kp.root_group
+    for name in (IMPORT_GROUP, item.folder):
+        if name:
+            group = (kp.find_groups(name=name, group=group, recursive=False, first=True)
+                     or kp.add_group(group, name))
+    web = [with_scheme(uri) for uri in item.uris if web_host(uri)]
+    entry = kp.add_entry(group, item.title or "(untitled)", item.username, item.password,
+                         url=web[0] if web else None, notes=item.notes or None,
+                         otp=otp_uri(item) or None, force_creation=True)
+    for uri in web[1:]:
+        add_additional_url(entry, uri)
+    for name, value, hidden in item.fields:
+        key = f"Bitwarden {name}" if name in RESERVED or name in entry.custom_properties else name
+        entry.set_custom_property(key, value, protect=hidden)
+    entry.ctime = item.created or entry.ctime
+    entry.mtime = item.modified or entry.mtime
+    return entry
+
+
+# --- Planning ------------------------------------------------------------------------
+
+@dataclass
+class Change:
+    section: str
+    what: str
+    detail: str
+    apply: object      # callable; returns the entry it created, if any
+    entry: object = None
+
+
+@dataclass
+class Plan:
+    changes: list = field(default_factory=list)
+    reviews: list = field(default_factory=list) # (section, what, detail)
+
+    def change(self, section, what, detail, apply, entry=None):
+        self.changes.append(Change(section, what, detail, apply, entry))
+
+    def review(self, section, what, detail=""):
+        self.reviews.append((section, what, detail))
+
+
+def plan_urls(entries, suffixes, plan):
+    owners = {}
+    for entry in entries:
+        urls = [url.strip() for url in entry_urls(entry) if url.strip()]
+        if not urls:
+            if entry.password:
+                plan.review("No URL: never offered by browser or iOS autofill", label(entry))
+            continue
+        url = (entry.url or "").strip()
+        if url and "://" not in url and web_host(url):
+            plan.change("Add https:// to scheme-less URLs", label(entry), url,
+                        lambda e=entry: setattr(e, "url", with_scheme(e.url)), entry)
+        hosts = [host for url in urls if (host := web_host(url))]
+        if not hosts:
+            plan.review("URL is not a web address", label(entry), urls[0])
+        bases = {suffixes.base_domain(host) for host in hosts} - {None}
+        for base in sorted(bases - set(hosts)):
+            subdomains = ", ".join(sorted({h for h in hosts if suffixes.base_domain(h) == base}))
+            plan.change("Add the base domain, so every subdomain matches", label(entry),
+                        f"{subdomains} -> {base}",
+                        lambda e=entry, b=base: add_additional_url(e, "https://" + b), entry)
+        for base in bases:
+            owners.setdefault((base, (entry.username or "").strip().lower()), []).append(entry)
+    for (base, user), found in sorted(owners.items()):
+        if len(found) > 1:
+            plan.review("Possible duplicates (same site and username)",
+                        f"{base} / {user or '(no username)'}", "; ".join(label(e) for e in found))
+
+
+def plan_bitwarden(kp, entries, items, suffixes, plan):
+    by_site, by_title = {}, {}
+    for entry in entries:
+        user = (entry.username or "").strip().lower()
+        for base in entry_bases(entry, suffixes):
+            by_site.setdefault((base, user), []).append(entry)
+        by_title.setdefault(((entry.title or "").strip().lower(), user), []).append(entry)
+    added = set() # Keys of items this run adds, so duplicates inside the export collapse.
+
+    for item in items:
+        if item.kind == "ssh-key":
+            plan.review("Bitwarden SSH keys (not imported; SSH lives on the Solos)", item.name())
+            continue
+        if item.passkeys:
+            plan.review("Bitwarden passkeys (not imported; register a new one on the site)",
+                        item.name())
+        user = item.username.strip().lower()
+        bases = {base for uri in item.uris
+                 if (host := web_host(uri)) and (base := suffixes.base_domain(host))}
+        keys = {(base, user) for base in bases} or {(item.title.strip().lower(), user)}
+        index = by_site if bases else by_title
+        matches = list({id(e): e for key in sorted(keys) for e in index.get(key, [])}.values())
+        if not matches:
+            if keys & added:
+                plan.review("Duplicate inside the Bitwarden export (first one imported)", item.name())
+                continue
+            added |= keys
+            plan.change(f"Only in Bitwarden: add under '{IMPORT_GROUP}'", item.name(),
+                        ", ".join(sorted(bases)) or item.kind, lambda i=item: add_item(kp, i))
+            continue
+        same = [e for e in matches if (e.password or "") == item.password]
+        if not same and len(matches) > 1:
+            plan.review("Several KeePass entries match, none with this password: merge by hand",
+                        item.name(), "; ".join(label(e) for e in matches))
+            continue
+        entry = (same or matches)[0]
+        if same:
+            for base in sorted(bases - entry_bases(entry, suffixes)):
+                plan.change("Add sites known only to Bitwarden", label(entry), base,
+                            lambda e=entry, b=base: add_additional_url(e, "https://" + b), entry)
+            if item.totp and not entry.otp:
+                plan.change("Add TOTP known only to Bitwarden", label(entry), "otp",
+                            lambda e=entry, i=item: setattr(e, "otp", otp_uri(i)), entry)
+            continue
+        ours, theirs = password_set_time(entry), item.password_changed
+        if ours and theirs and theirs > ours:
+            plan.change("Different password, Bitwarden's is newer: use it, old one kept in history",
+                        label(entry), f"Bitwarden {theirs:%Y-%m-%d}, KeePass {ours:%Y-%m-%d}",
+                        lambda e=entry, i=item: replace_password(e, i.password), entry)
+        else:
+            dates = (f"KeePass {ours:%Y-%m-%d}, Bitwarden {theirs:%Y-%m-%d}"
+                     if ours and theirs else "dates unknown")
+            plan.change("Different password, KeePass's is newer: Bitwarden's kept in history",
+                        label(entry), dates,
+                        lambda e=entry, i=item: keep_in_history(
+                            e, i.password, i.password_changed or i.modified or e.ctime), entry)
+
+
+def build_plan(kp, items, suffixes):
+    plan, entries = Plan(), live_entries(kp)
+    plan_urls(entries, suffixes, plan)
+    if items is not None:
+        plan_bitwarden(kp, entries, items, suffixes, plan)
+    return plan
+
+
+def apply_plan(plan, now=None):
+    now = now or datetime.now(timezone.utc)
+    changed = {}
+    for change in plan.changes:
+        change.apply()
+        if change.entry is not None:
+            changed[id(change.entry)] = change.entry
+    # Newer modification times make a KeePassXC merge keep these versions.
+    for entry in changed.values():
+        entry.mtime = now
+    return len(changed)
+
+
+def print_plan(plan, out=None):
+    out = out or sys.stdout
+    sections = {}
+    for change in plan.changes:
+        sections.setdefault(("CHANGE", change.section), []).append((change.what, change.detail))
+    for section, what, detail in plan.reviews:
+        sections.setdefault(("REVIEW", section), []).append((what, detail))
+    for (kind, section), rows in sections.items():
+        print(f"\n{kind}: {section} ({len(rows)})", file=out)
+        for what, detail in rows:
+            print(f"  - {what}" + (f"  [{detail}]" if detail else ""), file=out)
+    print(f"\n{len(plan.changes)} changes; {len(plan.reviews)} items to review by hand.", file=out)
+
+
+# --- Command line ------------------------------------------------------------------------
+
+def open_database(path, keyfile, ask=None):
+    ask = ask or getpass.getpass
+    from pykeepass import PyKeePass
+    from pykeepass.exceptions import CredentialsError
+    try:
+        return PyKeePass(str(path), password=ask(f"Password for {path.name}: ") or None,
+                         keyfile=str(keyfile) if keyfile else None)
+    except CredentialsError:
+        raise ValueError("wrong database password or key file") from None
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(description=__doc__,
+                                     formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument("command", choices=("report", "apply"))
+    parser.add_argument("database", type=Path)
+    parser.add_argument("output", type=Path, nargs="?", help="new file written by apply")
+    parser.add_argument("--keyfile", type=Path)
+    parser.add_argument("--bitwarden", type=Path, metavar="EXPORT.json",
+                        help="Bitwarden JSON export, password-protected or unencrypted")
+    args = parser.parse_args(argv)
+    if args.command == "apply" and not args.output:
+        parser.error("apply needs an output file")
+    if args.output and (args.output.exists() or args.output.resolve() == args.database.resolve()):
+        parser.error(f"{args.output} already exists; kdbx-tidy never overwrites a file")
+    try:
+        from pykeepass import PyKeePass
+    except ImportError:
+        print("kdbx-tidy: install python-pykeepass", file=sys.stderr)
+        return 1
+    suffixes = Suffixes()
+    if not suffixes.available:
+        print(f"warning: {PSL_PATH} is missing (install publicsuffix-list); "
+              "suffixes like co.uk are treated as domains", file=sys.stderr)
+    try:
+        items = load_bitwarden(args.bitwarden) if args.bitwarden else None
+        kp = open_database(args.database, args.keyfile)
+    except (OSError, ValueError, KeyError) as error:
+        print(f"kdbx-tidy: {error}", file=sys.stderr)
+        return 1
+    plan = build_plan(kp, items, suffixes)
+    print_plan(plan)
+    if args.command == "report":
+        print("Preview only; nothing was written.")
+        return 0
+    apply_plan(plan)
+    kp.save(filename=str(args.output))
+    PyKeePass(str(args.output), password=kp.password, keyfile=kp.keyfile) # Must reopen.
+    print(f"\nWrote {args.output} with the same credentials. Open it in KeePassXC to review, then:")
+    print(f"  keepassxc-cli merge --same-credentials {args.database} {args.output}")
+    print("(or Database > Merge from database), and delete the new file.")
+    runtime = os.environ.get("XDG_RUNTIME_DIR")
+    if args.bitwarden and not (runtime and args.bitwarden.resolve().is_relative_to(runtime)):
+        print(f"Then remove the Bitwarden export: shred -u {args.bitwarden}")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

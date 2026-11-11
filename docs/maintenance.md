@@ -51,6 +51,18 @@ own preference file: close it before reviewing/applying changes and use
 `chezmoi diff`/`chezmoi merge` for intentional local preferences. Do not re-add runtime
 state indiscriminately. App configuration is separate from backups of its data.
 
+`kdbx-tidy report vault.kdbx` lists entries autofill can't match: missing or
+scheme-less URLs, subdomain-only URLs, possible duplicates. With
+`--bitwarden export.json` it also plans a merge of a Bitwarden export, preferably
+the password-protected one. Entries only in Bitwarden go under "Imported from
+Bitwarden". When passwords differ, the more recently changed one wins and the other
+is kept in the entry's history. Passkeys and SSH keys are listed, not imported.
+`kdbx-tidy apply vault.kdbx tidy.kdbx` writes the same plan to a new file and never
+touches the original. Review that file in KeePassXC, check with
+`keepassxc-cli merge --dry-run --same-credentials vault.kdbx tidy.kdbx`, then merge
+without `--dry-run` and delete it. Keep an unencrypted export only under
+`$XDG_RUNTIME_DIR`, and delete it afterwards.
+
 Keep encrypted independent backups of documents, project work, Firefox profiles,
 the password database and recovery information. Store a LUKS recovery key and header
 backup off the encrypted disk; test recovery before relying on TPM unlock. Keep at

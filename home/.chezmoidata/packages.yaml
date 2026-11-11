@@ -125,6 +125,8 @@ packages:
     - lsof
     - ddcutil
     - keepassxc
+    - python-pykeepass # kdbx-tidy
+    - publicsuffix-list # kdbx-tidy base domains
     - libsecret
     - nextcloud-client
     - docker
