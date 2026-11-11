@@ -14,7 +14,7 @@ Usage: ./setup [--preview | --customize | login | system | scheduler | ssh | aut
   ./setup system       Preview memory/boot policy; --apply installs it through sudo.
   ./setup system --snapshots  Also include paired Btrfs/UKI recovery.
   ./setup scheduler    Preview optional process scheduling; --apply installs it.
-  ./setup ssh          Load the connected Solo's SSH keys.
+  ./setup ssh          Save the connected Solo's SSH keys on this machine.
   ./setup auth         Enroll both Solos for optional login/sudo setup.
   ./setup check        Show a read-only machine status report.
 

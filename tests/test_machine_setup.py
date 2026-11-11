@@ -194,18 +194,43 @@ class MachineSetup(unittest.TestCase):
         self.assertNotEqual(incomplete.returncode, 0)
         self.assertNotIn("no rebuild needed", incomplete.stdout)
 
-    def test_ssh_uses_managed_socket_without_clearing_agent(self):
-        with patch.dict(os.environ, {"XDG_RUNTIME_DIR": self.temporary.name,
-                                    "SSH_AUTH_SOCK": "/some/forwarded-agent"}), \
+    def test_ssh_saves_resident_keys_under_config_names_without_overwriting(self):
+        ssh_dir = Path(self.temporary.name) / "ssh"
+        ssh_dir.mkdir()
+        (ssh_dir / "id_ed25519_sk_daily_backup").write_text("other private")
+        (ssh_dir / "id_ed25519_sk_daily_backup.pub").write_text("sk-ssh-ed25519 OTHER old\n")
+        (ssh_dir / "id_ed25519_sk_personal.pub").write_text("sk-ssh-ed25519 OLD again\n")
+        (ssh_dir / "id_ed25519_sk_personal").write_text("old private")
+
+        def download(argv, **kwargs):
+            if argv[0] == "ssh-keygen":
+                directory = Path(kwargs["cwd"])
+                for name, key in (("daily", "NEW"), ("daily-backup", "BACKUP"), ("personal", "OLD")):
+                    (directory / f"id_ed25519_sk_rk_{name}").write_text("private")
+                    (directory / f"id_ed25519_sk_rk_{name}.pub").write_text(f"sk-ssh-ed25519 {key}\n")
+
+        output = io.StringIO()
+        with patch.dict(os.environ, {"XDG_RUNTIME_DIR": self.temporary.name}), \
                 patch.object(self.setup.shutil, "which", return_value="/usr/bin/tool"), \
-                patch.object(self.setup, "run") as commands, redirect_stdout(io.StringIO()):
-            self.setup.load_ssh_token()
+                patch.object(self.setup, "run", side_effect=download) as commands, \
+                redirect_stdout(output):
+            self.setup.save_ssh_keys(ssh_dir)
         self.assertEqual([call.args[0] for call in commands.call_args_list], [
-            ["systemctl", "--user", "start", "ssh-agent.service"],
-            ["ssh-add", "-K"], ["ssh-add", "-l"]])
-        for call in commands.call_args_list[1:]:
-            self.assertEqual(call.kwargs["env"]["SSH_AUTH_SOCK"],
-                             str(Path(self.temporary.name) / "ssh-agent.socket"))
+            ["systemctl", "--user", "start", "ssh-agent.service"], ["ssh-keygen", "-K"]])
+        self.assertEqual((ssh_dir / "id_ed25519_sk_daily.pub").read_text(), "sk-ssh-ed25519 NEW\n")
+        self.assertEqual((ssh_dir / "id_ed25519_sk_daily_backup").read_text(), "other private")
+        self.assertIn("NOT SAVED: " + str(ssh_dir / "id_ed25519_sk_daily_backup"), output.getvalue())
+        self.assertIn("Already present: " + str(ssh_dir / "id_ed25519_sk_personal"), output.getvalue())
+        self.assertEqual(sorted(path.name for path in ssh_dir.iterdir()), [
+            "id_ed25519_sk_daily", "id_ed25519_sk_daily.pub", "id_ed25519_sk_daily_backup",
+            "id_ed25519_sk_daily_backup.pub", "id_ed25519_sk_personal", "id_ed25519_sk_personal.pub"])
+
+    def test_ssh_stops_when_token_has_no_resident_keys(self):
+        with patch.dict(os.environ, {"XDG_RUNTIME_DIR": self.temporary.name}), \
+                patch.object(self.setup.shutil, "which", return_value="/usr/bin/tool"), \
+                patch.object(self.setup, "run"), redirect_stdout(io.StringIO()), \
+                self.assertRaises(RuntimeError):
+            self.setup.save_ssh_keys(Path(self.temporary.name) / "ssh")
 
     def test_unsupported_distribution_rejected(self):
         for stage in ("configure", "ssh", "auth", "check"):

@@ -1,0 +1,19 @@
+# Managed by chezmoi. Machine-local hosts and overrides go in ~/.ssh/config.d/;
+# they are read first, so their settings win.
+Include config.d/*
+
+Host github.com
+    User git
+
+Host *
+    # Touch-only resident keys on the two Solos, saved by `./setup ssh`.
+    # A file that is missing on this machine is skipped.
+    IdentityFile ~/.ssh/id_ed25519_sk_daily
+    IdentityFile ~/.ssh/id_ed25519_sk_daily_backup
+    IdentitiesOnly yes
+    # Unlock a key file once per session; later uses only need a touch.
+    AddKeysToAgent yes
+    # Reuse one authenticated connection per host, so bursts cost one touch.
+    ControlMaster auto
+    ControlPath ~/.ssh/cm-%C
+    ControlPersist 10m

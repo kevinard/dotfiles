@@ -71,8 +71,8 @@ gpg-connect-agent updatestartuptty /bye
 
 The managed OpenSSH agent remains independent of GnuPG and token enrollment.
 In a Canopa session, OpenSSH uses Canopa pinentry for graphical prompts,
-including the Solo PIN when loading resident keys with `./setup ssh` or signing
-with a PIN-protected key. Open a new terminal after applying the dotfiles. An
+including the Solo PIN when saving resident keys with `./setup ssh`, key-file
+passphrases and touch reminders. Open a new terminal after applying the dotfiles. An
 existing SSH agent picks up the setting when it next starts.
 
 ## Existing portal overrides

@@ -43,9 +43,9 @@ See [the full Canopa guide](canopa.md) for migration, upgrades and rollback.
 
 ## 3. Connect your accounts
 
-For SSH on Arch, plug in either Solo and run `./setup ssh`, then test
-`ssh -T git@github.com`. Your login session uses the managed SSH agent; if running
-before logging in again, follow the helper's environment instruction.
+For SSH on Arch, plug in one Solo and run `./setup ssh`, then repeat with the other.
+It saves the tokens' resident keys in `~/.ssh` (PIN once per machine); afterwards
+each connection needs only a touch. Test with `ssh -T git@github.com`.
 
 Sign into your password manager and VPN, restore your files, and connect your
 backup destination. These accounts and secrets are never copied into Git.

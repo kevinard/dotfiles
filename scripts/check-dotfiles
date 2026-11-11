@@ -101,6 +101,10 @@ def check_profile(fixture, source, work):
     assert units + "ssh-agent.service" not in rendered
     if arch:
         assert 'SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/ssh-agent.socket"' in rendered[".profile"]["contents"]
+    # The SSH identities match the names `./setup ssh` saves resident keys under.
+    ssh_config = rendered[".ssh/config"]["contents"]
+    for name in ("id_ed25519_sk_daily", "id_ed25519_sk_daily_backup"):
+        assert f"IdentityFile ~/.ssh/{name}\n" in ssh_config, name
     askpass = ".local/bin/canopa-ssh-askpass"
     ssh_agent = rendered.get(units + "ssh-agent.service.d/50-dotfiles.conf", {}).get("contents", "")
     assert ("ExecStart" not in ssh_agent) and ((ssh_agent != "") == (shell == "canopa"))

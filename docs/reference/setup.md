@@ -138,29 +138,32 @@ resume, docking, notifications, portals and screen sharing on actual hardware.
 
 ## 4. Use either Solo for SSH
 
-For each test, connect only the intended Solo and run:
+Connect one Solo at a time and run:
 
 ```sh
 scripts/setup-machine ssh
-export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/ssh-agent.socket"
 ssh -T git@github.com
 ```
 
-The helper starts the managed Arch user agent and runs `ssh-add -K` to load
-resident credentials. It never generates/replaces an SSH identity, resets the
-token, clears other agent identities, or copies private keys into Git. PIN + touch
-requirements remain. At the first connection, verify GitHub's published host key
-fingerprint before accepting it. [GitHub fingerprints](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/githubs-ssh-key-fingerprints)
+The helper runs `ssh-keygen -K` in a private temporary directory inside `~/.ssh`
+and saves each resident key under the name the managed `~/.ssh/config` expects:
+`ssh:daily` becomes `id_ed25519_sk_daily`, `ssh:daily-backup` becomes
+`id_ed25519_sk_daily_backup`. Reading the keys off the token needs its PIN, once
+per machine and token. It never overwrites an existing file, generates or replaces
+an identity, resets the token, or copies key files into Git. Repeat with the other
+Solo. At the first connection, verify GitHub's published host key fingerprint
+before accepting it. [GitHub fingerprints](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/githubs-ssh-key-fingerprints)
+
+The keys are touch-only: they were created without `verify-required`, so signing
+needs a touch but no PIN. A saved file is only usable together with its token. If
+you gave the files a passphrase, `AddKeysToAgent` asks for it on first use and
+keeps the key in the managed agent until it restarts. `ControlPersist` reuses a
+connection for 10 minutes, so a burst of Git commands costs one touch.
 
 GitHub's success message comes with exit status 1 because it provides no shell.
-If an old `IdentityFile` or `IdentitiesOnly` setting restricts agent selection,
-review `ssh -G github.com` and `ssh -vT git@github.com`; don't disable host-key checks.
-
-Repeat loading when a new agent session starts or when switching to the backup.
-Loading an identity does not remove its hardware requirement. For persistent local
-reference files, use `ssh-keygen -K` in an empty private directory and deliberately
-select the desired credential in SSH config; those filenames may differ from the
-custom filenames on the old laptop. [OpenSSH resident-key loading](https://man.openbsd.org/ssh-add.1)
+Put machine-local hosts and identities in `~/.ssh/config.d/`; they are read before
+the managed defaults. Use `ssh -G github.com` and `ssh -vT git@github.com` to
+review the selected identity; don't disable host-key checks.
 
 Authorize both public keys on every required SSH destination. A new laptop using
 the same token needs no new server-side token registration. Your SSH agent is

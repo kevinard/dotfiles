@@ -25,7 +25,7 @@ selects it for the next boot.
 ```sh
 ./setup --preview     # See changes first
 ./setup              # Apply configuration and install/update dotfiles packages
-./setup ssh          # Load the connected Solo's SSH keys (Arch)
+./setup ssh          # Save the connected Solo's SSH keys (Arch)
 chezmoi edit-config  # Change saved preferences
 ```
 
