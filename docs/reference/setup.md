@@ -97,14 +97,15 @@ config onto another machine without reviewing hardware choices.
 
 `configure` initializes missing configuration, displays a diff, and with `--apply`
 installs dotfiles packages and applies files. The Canopa profile checks for the
-existing desktop and compositor before applying.
+existing desktop and compositor before applying, validates the shell startup
+configuration and sets up Canopa Greeter when there is no display manager.
 It stops at the first failed stage. Without `--apply`, it initializes choices and
 shows the diff only. Existing chezmoi configuration is kept; edit it with
 `chezmoi edit-config` to change choices. `--reconfigure` explicitly regenerates the
 template using saved data; it can remove custom config sections, so back those up.
-`--skip-desktop-build` allows staging dotfiles before Canopa is installed and
-skips building the opted-in scheduler helper. See [Canopa setup](../canopa.md)
-and `scripts/install-system76-scheduler-niri` for those separate installations.
+`--skip-desktop-build` stages dotfiles before Canopa is installed. It skips the
+session checks, greeter setup and the opted-in scheduler helper build.
+See [Canopa setup](../canopa.md) and `scripts/install-system76-scheduler-niri`.
 
 Use the same command again to resume after a failure. There is no persistent
 "completed" flag that would hide a partially installed stage. Reapplying is
@@ -116,9 +117,10 @@ Set Zsh as your login shell if desired:
 chsh -s /usr/bin/zsh
 ```
 
-First test `canopa-session` from a TTY after logging in again (`niri-session` for Waybar).
-For Canopa Greeter, use `./setup login` followed by `./setup login --apply` and reboot;
-see [the Canopa guide](../canopa.md). For an optional SDDM
+If setup enabled Canopa Greeter, reboot and sign in to **Canopa**. To switch
+an existing display manager, use `./setup login` followed by
+`./setup login --apply` and reboot. For TTY recovery, run `canopa-session`
+(`niri-session` for Waybar). See [the Canopa guide](../canopa.md). For an optional SDDM
 graphical login, the simplest initial greeter uses SDDM's default X11 backend:
 
 ```sh

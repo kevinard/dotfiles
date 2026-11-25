@@ -179,10 +179,13 @@ class CanopaLogin(unittest.TestCase):
             def isolated_path(value):
                 return root / str(value).lstrip('/') if str(value).startswith(('/etc/', '/var/')) else Path(value)
 
+            def execute(argv, **kwargs):
+                return subprocess.CompletedProcess(argv, 0, stdout='graphical.target\n')
+
             with patch.object(provision, 'SOURCE', source), patch.object(provision, 'DESTINATION', destination), \
                     patch.object(provision, 'Path', side_effect=isolated_path), \
                     patch.object(provision.os, 'geteuid', return_value=0), \
-                    patch.object(provision.subprocess, 'run') as commands, redirect_stdout(io.StringIO()):
+                    patch.object(provision.subprocess, 'run', side_effect=execute) as commands, redirect_stdout(io.StringIO()):
                 provision.main(['--apply'])
             self.assertEqual(destination.read_text(), 'new login\n')
             backups = list((root / 'var/backups/dotfiles-canopa-login').iterdir())
@@ -190,8 +193,62 @@ class CanopaLogin(unittest.TestCase):
             self.assertEqual((backups[0] / 'previous-display-manager').read_text(), '/usr/lib/systemd/system/sddm.service\n')
             self.assertEqual([call.args[0] for call in commands.call_args_list], [
                 ['/usr/bin/canopa-greeter', '--canopa-config', '/etc/canopa/greeter.kdl', 'check-config'],
+                ['systemctl', 'get-default'],
                 ['systemctl', 'disable', 'sddm.service'],
                 ['systemctl', 'enable', '--force', 'greetd.service']])
+
+    def test_automatic_apply_keeps_an_existing_display_manager_without_sudo(self):
+        provision = load('provision-canopa-login')
+        loaded = subprocess.CompletedProcess([], 0, stdout='loaded\n')
+        with patch.object(provision.subprocess, 'run', return_value=loaded) as commands, redirect_stdout(io.StringIO()):
+            provision.main(['--apply', '--if-unconfigured'])
+        self.assertEqual(commands.call_count, 1)
+        self.assertEqual(commands.call_args.args[0][-1], 'display-manager.service')
+
+    def test_automatic_apply_sets_graphical_boot_and_rolls_back_on_enable_failure(self):
+        provision = load('provision-canopa-login')
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            source, destination = root / 'packaged.toml', root / 'etc/greetd/config.toml'
+            source.write_text('packaged login\n')
+            destination.parent.mkdir(parents=True)
+            (root / 'etc/arch-release').touch()
+
+            def isolated_path(value):
+                return root / str(value).lstrip('/') if str(value).startswith(('/etc/', '/var/')) else Path(value)
+
+            for fail in (True, False):
+                with self.subTest(enable_fails=fail):
+                    def execute(argv, **kwargs):
+                        if argv[1] == 'show':
+                            return subprocess.CompletedProcess(argv, 0, stdout='not-found\n')
+                        if argv[1] == 'list-sessions':
+                            return subprocess.CompletedProcess(argv, 0, stdout='[{"argv":["/usr/bin/canopa-session"]}]')
+                        if argv[1] == 'get-default':
+                            return subprocess.CompletedProcess(argv, 0, stdout='multi-user.target\n')
+                        if argv[1] == 'enable' and fail:
+                            raise subprocess.CalledProcessError(1, argv)
+                        return subprocess.CompletedProcess(argv, 0)
+
+                    with patch.object(provision, 'SOURCE', source), patch.object(provision, 'DESTINATION', destination), \
+                            patch.object(provision, 'Path', side_effect=isolated_path), \
+                            patch.object(provision.os, 'geteuid', return_value=0), \
+                            patch.object(provision.subprocess, 'run', side_effect=execute) as commands, redirect_stdout(io.StringIO()):
+                        if fail:
+                            with self.assertRaises(subprocess.CalledProcessError):
+                                provision.main(['--apply', '--if-unconfigured'])
+                        else:
+                            provision.main(['--apply', '--if-unconfigured'])
+                    boot_commands = [
+                        ['systemctl', 'set-default', 'graphical.target'],
+                        ['systemctl', 'enable', 'greetd.service'],
+                    ]
+                    if fail:
+                        boot_commands.append(['systemctl', 'set-default', 'multi-user.target'])
+                        self.assertFalse(destination.exists())
+                    else:
+                        self.assertEqual(destination.read_text(), 'packaged login\n')
+                    self.assertEqual([call.args[0] for call in commands.call_args_list[4:]], boot_commands)
 
 
 class CanopaAskpass(unittest.TestCase):

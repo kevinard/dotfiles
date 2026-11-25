@@ -94,6 +94,22 @@ def chezmoi_command(config):
             "--config", str(config)]
 
 
+def check_canopa_session(config_home):
+    directory = config_home / "canopa"
+    run(["/usr/bin/canopa-shell", "--version"])
+    run(["/usr/bin/canopa", "config", "check", "--file", directory / "config.kdl"])
+    run(["/usr/bin/canopa-settings", "check", "--directory", directory])
+    units = ("canopa-compositor.service", "canopa-session.target", "canopa-shell.service")
+    for index, unit in enumerate(units):
+        result = run(["systemctl", "--user", "show", "--property=LoadState", "--property=Wants", unit],
+                     stdout=subprocess.PIPE, text=True)
+        properties = dict(line.split("=", 1) for line in result.stdout.splitlines())
+        if properties.get("LoadState") != "loaded":
+            raise RuntimeError(f"{unit} is unavailable. Check the Canopa package and user systemd overrides.")
+        if index + 1 < len(units) and units[index + 1] not in properties.get("Wants", "").split():
+            raise RuntimeError(f"{unit} does not pull in {units[index + 1]}. Check user systemd overrides.")
+
+
 def configure(args, distro):
     if not shutil.which("chezmoi"):
         raise RuntimeError("install chezmoi first; see docs/setup.md")
@@ -122,23 +138,29 @@ def configure(args, distro):
                           stdout=subprocess.PIPE, text=True).stdout)
     canopa = data.get("desktopShell", "canopa") == "canopa"
     if canopa:
-        required = ("canopa", "canopa-session", "/usr/lib/canopa/niri")
-        if all(shutil.which(program) for program in required):
-            print("Using the installed Canopa desktop.")
-        elif args.skip_desktop_build:
+        required = ("/usr/bin/canopa", "/usr/bin/canopa-session", "/usr/bin/canopa-settings",
+                    "/usr/bin/canopa-shell", "/usr/lib/canopa/niri")
+        missing = [program for program in required if not shutil.which(program)]
+        if missing and args.skip_desktop_build:
             print("Install the Canopa desktop and compositor before selecting Canopa at login.")
-        else:
+        elif missing:
             raise RuntimeError("install the Canopa desktop and compositor from your checkout or "
-                               "existing packages first (see docs/canopa.md)")
+                               f"existing packages first (missing {', '.join(missing)}; see docs/canopa.md)")
+        else:
+            print("Using the installed Canopa desktop.")
     run(command + ["apply"])
     if distro == "arch" and data.get("processScheduler", False):
         if args.skip_desktop_build:
             print("Scheduler helper build skipped; run scripts/install-system76-scheduler-niri before starting niri.")
         else:
             run([REPO / "scripts/install-system76-scheduler-niri"])
-    print("Configuration applied. Log out and back in for the managed session environment.")
-    if canopa:
-        print("Select Canopa at login. ./setup login previews the optional Canopa Greeter.")
+    if canopa and not args.skip_desktop_build:
+        config_home = Path(os.environ.get("XDG_CONFIG_HOME") or Path.home() / ".config")
+        check_canopa_session(config_home)
+        run([REPO / "scripts/provision-canopa-login", "--apply", "--if-unconfigured"])
+    print("Configuration applied.")
+    if not canopa:
+        print("Log out and back in to start the updated desktop session.")
     print("Optional: ./setup ssh to save your Solos' SSH keys. ./setup --help lists other actions.")
 
 
@@ -240,7 +262,7 @@ def main(argv=None):
     config.add_argument("--customize", action="store_true", help="ask all initial questions, or edit existing configuration")
     config.add_argument("--reconfigure", action="store_true", help="regenerate config from saved choices/template")
     config.add_argument("--skip-desktop-build", action="store_true",
-                        help="allow applying before Canopa is installed and skip the optional scheduler helper build")
+                        help="stage dotfiles without Canopa session validation, greeter selection or scheduler build")
     config.add_argument("--config", type=Path, default=config_dir / "chezmoi/chezmoi.toml")
     system = commands.add_parser("system", help="preview/apply desktop memory, bounded network waits and optional Btrfs/UKI recovery")
     system.add_argument("--apply", action="store_true")
@@ -256,7 +278,8 @@ def main(argv=None):
     args = parser.parse_args(argv)
     if args.stage == "plan":
         print("1. Install the base OS: docs/arch-install.md (skip on an existing installation).")
-        print("2. Run ./setup as your normal user, answer the identity questions, then log in again.")
+        print("2. Install the matching Canopa packages (docs/canopa.md), then run ./setup as your normal user.")
+        print("   Reboot if setup enabled the Canopa greeter.")
         print("3. Optional: ./setup ssh for SSH; docs/hardware-auth.md for login/sudo tokens.")
         print("Quick start: " + str(REPO / "docs/setup.md"))
         return 0

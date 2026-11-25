@@ -93,11 +93,15 @@ reference primary/fallback configurations illustrate this. Keep automatic GPU
 discovery unless a measured hardware issue requires an override. Install the
 primary/LTS preset files explicitly if adopting the UKI paths in this repository.
 
-Generate `/etc/kernel/cmdline` using the **UUID of the LUKS container**, not the
-filesystem UUID. Substitute the verified UUID manually:
+The primary preset reads `/etc/kernel/cmdline-linux` and uses the Plymouth hook.
+The LTS fallback reads `/etc/kernel/cmdline` and uses a text unlock prompt.
+Substitute the verified **LUKS container UUID** when generating both files.
 
-```text
-rd.luks.name=YOUR-LUKS-UUID=root root=/dev/mapper/root rootflags=subvol=@ rw
+```sh
+luks_uuid=YOUR-LUKS-UUID
+boot_args="rd.luks.name=$luks_uuid=root root=/dev/mapper/root rootflags=subvol=@ rw"
+printf '%s plymouth.enable=0\n' "$boot_args" > /etc/kernel/cmdline
+printf '%s quiet splash\n' "$boot_args" > /etc/kernel/cmdline-linux
 ```
 
 Add only desired boot options. The explicit `rootflags=subvol=@` agrees with the
@@ -112,8 +116,15 @@ ls -l /efi/EFI/Linux
 
 Create firmware boot entries with `efibootmgr` for the verified disk and ESP index,
 pointing to `\EFI\Linux\arch-linux.efi` and
-`\EFI\Linux\arch-linux-lts-fallback.efi`. Confirm both paths exist. The fallback
-uses the same tested kernel command line and encryption/root layout.
+`\EFI\Linux\arch-linux-lts-fallback.efi`. Confirm both paths exist. Both use
+the same encryption and root layout. Check that the primary shows a Plymouth
+unlock prompt and the fallback shows a text prompt.
+
+For an existing installation with these two UKIs, keep its current unlock and
+root arguments when updating the command-line files. Use the corresponding
+primary and fallback hook lists, install the updated presets, and rebuild
+both images with `sudo mkinitcpio -p linux -p linux-lts`. For Secure Boot, verify
+the rebuilt images using the checks below.
 
 Enable the network/time/mirror/cache services that match your chosen setup. If using
 iwd + networkd, install only the relevant reviewed `.network` files; the checked-in

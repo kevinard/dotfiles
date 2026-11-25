@@ -3,6 +3,7 @@
 import argparse
 from datetime import datetime, timezone
 import difflib
+import json
 import os
 from pathlib import Path
 import shutil
@@ -15,16 +16,30 @@ DESTINATION = Path("/etc/greetd/config.toml")
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--apply", action="store_true")
+    parser.add_argument("--if-unconfigured", action="store_true",
+                        help="select the greeter only if no display manager is configured")
     args = parser.parse_args(argv)
+    if args.if_unconfigured:
+        if not args.apply:
+            parser.error("--if-unconfigured requires --apply")
+        manager_state = subprocess.run(
+            ["systemctl", "show", "--property=LoadState", "--value", "display-manager.service"],
+            capture_output=True, text=True, check=True).stdout.strip()
+        if manager_state != "not-found":
+            print("A display manager is already configured. Log out and select Canopa at login.")
+            return
     if not SOURCE.is_file():
-        raise RuntimeError("install the optional canopa-login package first; see docs/canopa.md")
+        raise RuntimeError("install the matching canopa-login package and re-run setup; see docs/canopa.md")
     if DESTINATION.is_symlink():
         raise RuntimeError("review the existing greetd configuration symlink before replacing it")
+    if args.if_unconfigured and os.geteuid() != 0:
+        subprocess.run(["sudo", str(Path(__file__).resolve()), "--apply", "--if-unconfigured"], check=True)
+        return
     original = DESTINATION.read_text() if DESTINATION.exists() else ""
     updated = SOURCE.read_text()
     print("".join(difflib.unified_diff(original.splitlines(True), updated.splitlines(True),
                                     fromfile=str(DESTINATION), tofile=str(SOURCE))))
-    print("Select greetd as display-manager.service for the next boot; keep the current session running.")
+    print("Select greetd as the display manager and boot to graphical.target.")
     if not args.apply:
         print("Preview only. ./setup login --apply backs up configuration and selects greetd.")
         return
@@ -33,28 +48,49 @@ def main(argv=None):
     # Validate the administrator-owned presentation before changing login policy.
     subprocess.run(["/usr/bin/canopa-greeter", "--canopa-config", "/etc/canopa/greeter.kdl",
                     "check-config"], check=True)
+    if args.if_unconfigured:
+        sessions = subprocess.run(["/usr/bin/canopa-greeter", "list-sessions"], capture_output=True,
+                                  text=True, check=True)
+        if not any(session.get("argv") == ["/usr/bin/canopa-session"] for session in json.loads(sessions.stdout)):
+            raise RuntimeError("Canopa Greeter cannot find the packaged Canopa session. "
+                               "Check /usr/share/wayland-sessions/canopa.desktop and /etc/canopa/greeter.kdl.")
+    boot_target = subprocess.run(["systemctl", "get-default"], capture_output=True,
+                                 text=True, check=True).stdout.strip()
+    manager = Path("/etc/systemd/system/display-manager.service")
+    previous = os.readlink(manager) if manager.is_symlink() else ""
+    old_unit = Path(previous).name if previous else ""
     stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S.%fZ")
     backup = Path("/var/backups/dotfiles-canopa-login") / stamp
     backup.mkdir(mode=0o700, parents=True)
     if DESTINATION.exists():
         shutil.copy2(DESTINATION, backup / "config.toml")
-    manager = Path("/etc/systemd/system/display-manager.service")
-    previous = os.readlink(manager) if manager.is_symlink() else ""
     (backup / "previous-display-manager").write_text(
         previous + "\n" if previous else "none\n")
+    (backup / "previous-boot-target").write_text(boot_target + "\n")
     DESTINATION.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copyfile(SOURCE, DESTINATION)
-    DESTINATION.chmod(0o644)
-    old_unit = Path(previous).name if previous else ""
-    if old_unit and old_unit != "greetd.service":
-        subprocess.run(["systemctl", "disable", old_unit], check=True)
+    replace_manager = old_unit and old_unit != "greetd.service"
+    enable = ["systemctl", "enable"]
+    if not args.if_unconfigured:
+        enable.append("--force")
     try:
-        subprocess.run(["systemctl", "enable", "--force", "greetd.service"], check=True)
-    except subprocess.CalledProcessError:
-        if old_unit and old_unit != "greetd.service":
+        shutil.copyfile(SOURCE, DESTINATION)
+        DESTINATION.chmod(0o644)
+        if boot_target != "graphical.target":
+            subprocess.run(["systemctl", "set-default", "graphical.target"], check=True)
+        if replace_manager and not args.if_unconfigured:
+            subprocess.run(["systemctl", "disable", old_unit], check=True)
+        subprocess.run(enable + ["greetd.service"], check=True)
+    except (OSError, subprocess.CalledProcessError):
+        if replace_manager and not args.if_unconfigured:
             subprocess.run(["systemctl", "enable", "--force", old_unit], check=False)
+        elif not previous and manager.is_symlink() and Path(os.readlink(manager)).name == "greetd.service":
+            subprocess.run(["systemctl", "disable", "greetd.service"], check=False)
         if (backup / "config.toml").is_file():
-            shutil.copyfile(backup / "config.toml", DESTINATION)
+            shutil.copy2(backup / "config.toml", DESTINATION)
+        else:
+            DESTINATION.unlink(missing_ok=True)
+        if boot_target != "graphical.target":
+            subprocess.run(["systemctl", "set-default", boot_target], check=False)
         raise
     print(f"Login configuration backed up under {backup}. Reboot to use Canopa Greeter.")
 
@@ -62,5 +98,5 @@ def main(argv=None):
 if __name__ == "__main__":
     try:
         main()
-    except (OSError, RuntimeError, subprocess.CalledProcessError) as error:
+    except (OSError, RuntimeError, ValueError, subprocess.CalledProcessError) as error:
         raise SystemExit(f"Login setup stopped: {error}")

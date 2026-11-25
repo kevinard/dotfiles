@@ -6,3 +6,4 @@ ALL_kver="/boot/vmlinuz-linux"
 PRESETS=('default')
 
 default_uki="/efi/EFI/Linux/arch-linux.efi"
+default_cmdline="/etc/kernel/cmdline-linux"

@@ -11,7 +11,8 @@ import subprocess
 import tempfile
 import tomllib
 
-REVISION = "887ec8ae8e19087e965e5c18b49016398edec8fe"
+# This revision fixes session startup when the user manager has no loaded Canopa units.
+REVISION = "8ede03f811f8230642ef5569f5dae2ec4a8e9a33"
 STASIS_REVISION = "d84e75e22cc00329712fb1caa83445d2f12ce921"
 PROGRAMS = ("canopa", "canopa-shell", "canopa-notify", "canopa-files", "canopa-settings",
             "canopa-wifi-provider", "canopa-audio-provider", "canopa-media-provider",

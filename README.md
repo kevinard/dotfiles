@@ -4,8 +4,8 @@ Arch: niri desktop and development tools for home and work identities.
 
 ## Install
 
-On an installed OS with Git, Python 3 and chezmoi available, install the Canopa
-desktop and compositor packages from your existing build for the default profile.
+On an installed OS with Git, Python 3 and chezmoi available, install the matching
+`canopa`, `canopa-compositor` and `canopa-login` packages for the default profile.
 See [Canopa setup](docs/canopa.md). Then run as your normal user:
 
 ```sh
@@ -16,9 +16,10 @@ cd "${XDG_DATA_HOME:-$HOME/.local/share}/chezmoi"
 
 Answer home/work, email and name. Hardware is detected; the defaults are Canopa,
 mocha/lavender, and no GPG signing. A hybrid GPU may need one extra choice.
-Existing settings are kept. Log out and select **Canopa** afterward.
-`./setup login` previews its optional login screen; `./setup login --apply`
-selects it for the next boot.
+On a machine without a display manager, setup enables Canopa Greeter for the
+next boot. Reboot and sign in to **Canopa**. If you already have a display manager,
+log out and choose **Canopa** there. Use `./setup login --apply` to switch an
+existing login screen to Canopa Greeter.
 
 ## Everyday use
 

@@ -129,16 +129,31 @@ class MachineSetup(unittest.TestCase):
             self.setup.configure(self.args, "arch")
         self.assertEqual([call.args[0][-1] for call in commands.call_args_list], ["diff", "--format=json", "apply"])
 
-    def test_setup_reuses_installed_canopa_without_an_installer(self):
+    def test_setup_reuses_installed_canopa_and_provisions_login_after_checking_the_session(self):
         self.config.write_text(COMPLETE_CONFIG)
         self.args.apply = True
         data = subprocess.CompletedProcess([], 0, stdout="{}")
         output = io.StringIO()
         with patch.object(self.setup.shutil, "which", side_effect=lambda program: program), \
-                patch.object(self.setup, "run", return_value=data) as commands, redirect_stdout(output):
+                patch.object(self.setup, "run", return_value=data) as commands, \
+                patch.object(self.setup, "check_canopa_session") as check_session, redirect_stdout(output):
+            commands.attach_mock(check_session, "check_session")
             self.setup.configure(self.args, "arch")
         self.assertIn("Using the installed Canopa desktop", output.getvalue())
-        self.assertEqual([call.args[0][-1] for call in commands.call_args_list], ["diff", "--format=json", "apply"])
+        self.assertEqual([call.args[0][-1] for call in commands.call_args_list[:3]], ["diff", "--format=json", "apply"])
+        self.assertEqual(commands.mock_calls[-2][0], "check_session")
+        self.assertEqual(commands.call_args.args[0],
+                         [REPO / "scripts/provision-canopa-login", "--apply", "--if-unconfigured"])
+
+    def test_session_check_detects_a_missing_shell_dependency(self):
+        def execute(command, **kwargs):
+            if command[-1] == "canopa-compositor.service":
+                return SimpleNamespace(stdout="LoadState=loaded\nWants=canopa-session.target\n")
+            return SimpleNamespace(stdout="LoadState=loaded\nWants=canopa-notify.service\n")
+
+        with patch.object(self.setup, "run", side_effect=execute), \
+                self.assertRaisesRegex(RuntimeError, "canopa-session.target does not pull in canopa-shell.service"):
+            self.setup.check_canopa_session(self.config.parent)
 
     def test_missing_canopa_stops_before_apply_unless_explicitly_skipped(self):
         self.config.write_text(COMPLETE_CONFIG)

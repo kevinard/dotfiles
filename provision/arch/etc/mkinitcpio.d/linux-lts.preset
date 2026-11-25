@@ -1,4 +1,4 @@
-# mkinitcpio preset file for the 'linux' package
+# mkinitcpio preset file for the 'linux-lts' package
 
 ALL_config="/etc/mkinitcpio-fallback.conf"
 ALL_kver="/boot/vmlinuz-linux-lts"
@@ -6,5 +6,5 @@ ALL_kver="/boot/vmlinuz-linux-lts"
 PRESETS=('fallback')
 
 fallback_uki="/efi/EFI/Linux/arch-linux-lts-fallback.efi"
-# Uses the same tested /etc/kernel/cmdline as the primary kernel.
+fallback_cmdline="/etc/kernel/cmdline"
 # MODULES and kernel autodetection are not required for the fallback initramfs.

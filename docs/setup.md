@@ -5,9 +5,8 @@ Already have Arch installed? Start at step 1. For a new disk, use the
 
 ## 1. Install your configuration
 
-The default Canopa profile uses an installed Canopa desktop and compositor.
-If you have built them already, install the matching package files from that
-build. See [Canopa setup](canopa.md).
+Install the matching `canopa`, `canopa-compositor` and `canopa-login` packages
+for the default Canopa profile with its graphical login. See [Canopa setup](canopa.md).
 
 From this checkout, as your normal user:
 
@@ -26,19 +25,20 @@ Change preferences later with `chezmoi edit-config`, then run `./setup` again.
 
 ## 2. Start a fresh session
 
-If you want Zsh as your login shell, run `chsh -s /usr/bin/zsh`. Log out and back in.
-Select **Canopa** in your existing greeter, or run `canopa-session` from a TTY.
-Run `desktop-health` inside Canopa to check its services. Waybar users select the
-ordinary Niri session or run `niri-session` instead.
+If setup enabled Canopa Greeter, reboot and sign in to **Canopa**. On a machine
+with an existing display manager, log out and select **Canopa** there. The Canopa
+session starts the compositor and shell. Run `desktop-health` inside Canopa to
+check its services. Waybar users select the ordinary Niri session or run
+`niri-session` from a TTY. To use Zsh as your login shell, run `chsh -s /usr/bin/zsh`.
 
-With the optional `canopa-login` package installed, select the Canopa login screen:
+Preview the configuration before switching an existing display manager to Canopa Greeter.
 
 ```sh
 ./setup login             # Preview greetd configuration
 ./setup login --apply     # Back up the old configuration; select greetd for next boot
 ```
 
-Reboot afterward. The current desktop and display manager keep running until then.
+Reboot afterward. From a TTY, `canopa-session` is available for recovery.
 See [the full Canopa guide](canopa.md) for migration, upgrades and rollback.
 
 ## 3. Connect your accounts

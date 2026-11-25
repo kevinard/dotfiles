@@ -1,16 +1,18 @@
 # Canopa desktop
 
 `desktopShell = "canopa"` uses the installed Canopa desktop and compositor.
-If `canopa`, `canopa-session` and `/usr/lib/canopa/niri` are already installed,
-run `./setup --preview` and then `./setup` to apply the dotfiles. Select
-**Canopa** in the login manager or run `canopa-session` from a TTY. Set
+Run `./setup --preview` and then `./setup` to apply the dotfiles. Setup checks the
+configuration and the user units that start the shell. On a machine without a
+display manager, it also configures Canopa Greeter for the next boot. Set
 `desktopShell = "waybar"` for the ordinary Niri/Waybar session.
 
 If you already built Arch packages, install the matching `canopa` and
 `canopa-compositor` package files together with `sudo pacman -U`. Include the
-matching `canopa-login` or `canopa-oo7` packages if you use them. For new builds,
-follow `docs/installation.md` in your Canopa checkout. Package updates use the
-same process. Keep the previous matching packages for rollback.
+matching `canopa-login` package for Canopa Greeter and `canopa-oo7` if you use it.
+Build from a Canopa checkout that includes the first-login fix in
+[`8ede03f8`](https://github.com/kevinard/canopa/commit/8ede03f811f8230642ef5569f5dae2ec4a8e9a33).
+Follow `docs/installation.md` in that checkout to build or update the packages.
+Keep the previous matching packages for rollback.
 
 The installation includes Shell, Notify, Files, Settings, the Wi-Fi/audio/media
 providers, wallpaper, lockscreen, the logind lock listener, idle supervisor,
@@ -86,8 +88,9 @@ portal restarts with the new routing.
 ## Login screen
 
 The `canopa-login` package supplies a dedicated unprivileged greeter account,
-Cage integration, administrator-owned presentation and a greetd example.
-Installation alone does not select greetd. Use:
+administrator-owned presentation and a greetd example.
+`./setup` selects greetd if there is no configured display manager. Preview the
+configuration before replacing an existing login screen.
 
 ```sh
 ./setup login
@@ -95,16 +98,18 @@ Installation alone does not select greetd. Use:
 ```
 
 The apply step validates `/etc/canopa/greeter.kdl`, backs up the previous greetd
-configuration and display-manager link under `/var/backups/dotfiles-canopa-login/`,
-disables the previous manager's boot enablement and enables greetd for the next boot. It leaves the running display manager and
-session alone. Reboot to activate it. Greetd retains its distribution PAM policy;
-only its frontend changes. Edit `/etc/canopa/greeter.kdl` as administrator for
-login-screen appearance. No personal files or credentials are installed there.
+configuration, display-manager link and default boot target under
+`/var/backups/dotfiles-canopa-login/`, then enables greetd and sets
+`graphical.target` for the next boot. Reboot to activate it. Greetd uses the
+distribution PAM policy. Edit `/etc/canopa/greeter.kdl` as administrator for
+login-screen appearance.
 
 To restore an earlier manager, use a TTY, restore the saved greetd config if
 needed, disable greetd, and enable the manager recorded in
-`previous-display-manager` with `systemctl enable --force NAME.service`. Reboot.
-If no manager was previously configured, leave greetd disabled and use TTY login.
+`previous-display-manager` with `systemctl enable --force NAME.service`. If
+setup changed the boot target, restore the target recorded in
+`previous-boot-target` with `systemctl set-default TARGET`. Reboot.
+If no manager was previously configured, disable greetd and use TTY login.
 
 ## Validation and recovery
 
